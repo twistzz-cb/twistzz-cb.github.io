@@ -102,3 +102,38 @@
 .tag-cloud-number {
   display: none !important;
 }
+
+/* Make 404 page full screen */
+#error-404 {
+  width: 100% !important;
+  max-width: 100% !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  justify-content: center;
+  align-items: center;
+  background: transparent !important;
+}
+
+#error-404 .error-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+/* Remove white card */
+#error-404 .error-content .error-text {
+  background: transparent !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Make image scale properly */
+#error-404 img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}

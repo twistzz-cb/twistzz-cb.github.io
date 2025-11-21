@@ -123,8 +123,8 @@
         <tag>MSSQL</tag>
         <tag>Enumeration</tag>
         <tag>MSSQL-Execute-Commands</tag>
-        <tag>Read-Execute-Commands</tag>
-        <tag>Write-Execute-Commands</tag>
+        <tag>MSSQL-Read-Files</tag>
+        <tag>MSSQL-Write-Files</tag>
         <tag>MSSQL-Linked-Server</tag>
         <tag>MSSQL-Impersonate-User</tag>
         <tag>Capture-MSSQL-Service-Hash</tag>
@@ -200,12 +200,14 @@
 ]]></content>
       <categories>
         <category>Linux</category>
-        <category>Service-Exploitation</category>
+        <category>Service-Enumeration</category>
         <category>MySQL</category>
       </categories>
       <tags>
         <tag>MySQL</tag>
         <tag>Exploitation</tag>
+        <tag>MySQL-Read-Files</tag>
+        <tag>MySQL-Write-Files</tag>
       </tags>
   </entry>
 </search>
