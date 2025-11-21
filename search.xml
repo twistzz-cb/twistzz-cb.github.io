@@ -136,9 +136,9 @@
     <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
 
 
-<h1 id="Enumeration-Version"><a href="#Enumeration-Version" class="headerlink" title="Enumeration Version"></a>Enumeration Version</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@version</span>;</span><br></pre></td></tr></table></figure>
+<h1 id="Enumerate-Version"><a href="#Enumerate-Version" class="headerlink" title="Enumerate Version"></a>Enumerate Version</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@version</span>;</span><br></pre></td></tr></table></figure>
 
-<h1 id="Enumeration-Database"><a href="#Enumeration-Database" class="headerlink" title="Enumeration Database"></a>Enumeration Database</h1><h3 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> DATABASES; </span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> SCHEMA_NAME <span class="keyword">FROM</span> information_schema.SCHEMATA;</span><br></pre></td></tr></table></figure>
+<h1 id="Enumerate-Database"><a href="#Enumerate-Database" class="headerlink" title="Enumerate Database"></a>Enumerate Database</h1><h3 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> DATABASES; </span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> SCHEMA_NAME <span class="keyword">FROM</span> information_schema.SCHEMATA;</span><br></pre></td></tr></table></figure>
 <h3 id="Check-Current-Database"><a href="#Check-Current-Database" class="headerlink" title="Check Current Database"></a>Check Current Database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> DATABASE();</span><br></pre></td></tr></table></figure>
 
 <h3 id="List-tables-in-current-database"><a href="#List-tables-in-current-database" class="headerlink" title="List tables in current database"></a>List tables in current database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> TABLES;  </span><br><span class="line"><span class="keyword">SELECT</span> table_name <span class="keyword">FROM</span> information_schema.TABLES <span class="keyword">WHERE</span> table_schema<span class="operator">=</span>DATABASE();  </span><br></pre></td></tr></table></figure>
@@ -200,7 +200,7 @@
 ]]></content>
       <categories>
         <category>Linux</category>
-        <category>Service-Enumeration</category>
+        <category>Service-Exploitation</category>
         <category>MySQL</category>
       </categories>
       <tags>
