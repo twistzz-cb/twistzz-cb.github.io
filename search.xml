@@ -46,7 +46,7 @@
 ]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Enumeration</category>
+        <category>Service-Enumeration</category>
         <category>MSSQL</category>
       </categories>
       <tags>
@@ -116,7 +116,7 @@
 ]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Exploitation</category>
+        <category>Service-Exploitation</category>
         <category>MSSQL</category>
       </categories>
       <tags>
@@ -128,6 +128,20 @@
         <tag>MSSQL-Linked-Server</tag>
         <tag>MSSQL-Impersonate-User</tag>
         <tag>Capture-MSSQL-Service-Hash</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL Enumeration</title>
+    <url>/2025/11/21/MySQL-Enumeration/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>Service-Enumeration</category>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>Enumeration</tag>
+        <tag>MySQL</tag>
       </tags>
   </entry>
 </search>
