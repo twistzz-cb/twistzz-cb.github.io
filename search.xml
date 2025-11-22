@@ -210,4 +210,59 @@
         <tag>MySQL-Write-Files</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Pivoting And Port Forwarding</title>
+    <url>/2025/11/22/Pivoting-And-Port-Forwarding/</url>
+    <content><![CDATA[<h1 id="Port-Forwarding"><a href="#Port-Forwarding" class="headerlink" title="Port Forwarding"></a>Port Forwarding</h1><h2 id="Local-Port-Forwarding"><a href="#Local-Port-Forwarding" class="headerlink" title="Local Port Forwarding"></a>Local Port Forwarding</h2><h3 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h3><p>Forward a Single Port</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -L local_port:localhost:remote_port username@n+1</span><br></pre></td></tr></table></figure>
+
+<p>Forward Multiple Ports</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -L local_port:localhost:remote_port -L local_port:localhost:remote_port username@n+1</span><br></pre></td></tr></table></figure>
+
+<h2 id="Dynamic-Port-Forwarding"><a href="#Dynamic-Port-Forwarding" class="headerlink" title="Dynamic Port Forwarding"></a>Dynamic Port Forwarding</h2><h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h4 id="Using-Proxychains"><a href="#Using-Proxychains" class="headerlink" title="Using Proxychains"></a>Using Proxychains</h4><h5 id="SSH-1"><a href="#SSH-1" class="headerlink" title="SSH"></a>SSH</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -D Local-proxy-port username@n+1</span><br></pre></td></tr></table></figure>
+
+<h5 id="Meterpreter"><a href="#Meterpreter" class="headerlink" title="Meterpreter"></a>Meterpreter</h5><p>➜ Requires an active Meterpreter session.</p>
+<h6 id="Start-the-SOCKS-Proxy"><a href="#Start-the-SOCKS-Proxy" class="headerlink" title="Start the SOCKS Proxy"></a>Start the SOCKS Proxy</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 &gt; use auxiliary/server/socks_proxy </span><br><span class="line"></span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; <span class="built_in">set</span> SRVPORT Local-proxy-port </span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; <span class="built_in">set</span> SRVHOST 0.0.0.0 </span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; <span class="built_in">set</span> version 4a </span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; run</span><br></pre></td></tr></table></figure>
+
+<h6 id="Add-Route-to-internal-network"><a href="#Add-Route-to-internal-network" class="headerlink" title="Add Route to internal_network"></a>Add Route to internal_network</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 &gt; use post/multi/manage/autoroute </span><br><span class="line"></span><br><span class="line">msf6 post(multi/manage/autoroute) &gt; <span class="built_in">set</span> SESSION &lt;<span class="built_in">id</span>&gt; </span><br><span class="line">msf6 post(multi/manage/autoroute) &gt; <span class="built_in">set</span> SUBNET internal_network_@ </span><br><span class="line">msf6 post(multi/manage/autoroute) &gt; run</span><br></pre></td></tr></table></figure>
+
+<pre><code>or 
+</code></pre>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; run autoroute -s internal_network_@/mask</span><br></pre></td></tr></table></figure>
+
+<h5 id="Rpivot"><a href="#Rpivot" class="headerlink" title="Rpivot"></a>Rpivot</h5><h6 id="Server-attacker-machine-n"><a href="#Server-attacker-machine-n" class="headerlink" title="Server (attacker machine - n)"></a>Server (attacker machine - n)</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python2.7 server.py --proxy-port Local-proxy-port --server-port Listener-port --server-ip 0.0.0.0</span><br></pre></td></tr></table></figure>
+
+<h6 id="Client-pivot-machine-n-1"><a href="#Client-pivot-machine-n-1" class="headerlink" title="Client (pivot machine - n+1)"></a>Client (pivot machine - n+1)</h6><p>Transfer rpivot:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -r rpivot username@n+1:/home/username/</span><br></pre></td></tr></table></figure>
+
+<p>Run client:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python2.7 client.py --server-ip n --server-port Listener-port</span><br></pre></td></tr></table></figure>
+
+<h5 id="Configure-Proxychains"><a href="#Configure-Proxychains" class="headerlink" title="Configure Proxychains"></a>Configure Proxychains</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/proxychains.conf  </span><br><span class="line"></span><br><span class="line">socks4 127.0.0.1 Local-proxy-port</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Without-Proxychains"><a href="#Without-Proxychains" class="headerlink" title="Without Proxychains"></a>Without Proxychains</h4><h5 id="sshuttle"><a href="#sshuttle" class="headerlink" title="sshuttle"></a>sshuttle</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> sshuttle -r username@n+1 internal_network_@/mask -v</span><br></pre></td></tr></table></figure>
+
+<p>➜ Automatically handles traffic forwarding without needing Proxychains. </p>
+<p>➜ Works <em>only</em> for SSH-based pivoting (no TOR&#x2F;HTTPS proxy support).</p>
+<h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h4 id="plink-exe"><a href="#plink-exe" class="headerlink" title="plink.exe"></a>plink.exe</h4><h5 id="SSH-Dynamic-SOCKS-Proxy"><a href="#SSH-Dynamic-SOCKS-Proxy" class="headerlink" title="SSH Dynamic SOCKS Proxy"></a>SSH Dynamic SOCKS Proxy</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">plink -ssh -D Local-proxy-port username@n+<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="Proxy-Handling-Windows"><a href="#Proxy-Handling-Windows" class="headerlink" title="Proxy Handling (Windows)"></a>Proxy Handling (Windows)</h5><p>Use <strong>Proxifier</strong> to route selected tools through the proxy:</p>
+<p><img src="/img/proxifier.png" alt="Proxifier"></p>
+<p>➜ After configuration, any selected tool will have its traffic forwarded automatically.</p>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Pivoting And Port Forwarding</category>
+      </categories>
+      <tags>
+        <tag>Local-Port-Forwarding</tag>
+        <tag>Dynamic-Port-Forwarding</tag>
+        <tag>Proxychains</tag>
+        <tag>Rpivot</tag>
+        <tag>sshuttle</tag>
+        <tag>plink</tag>
+        <tag>Proxifier</tag>
+      </tags>
+  </entry>
 </search>
