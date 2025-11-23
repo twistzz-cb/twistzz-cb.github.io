@@ -7,7 +7,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/img/pivoting.png">
 <meta property="article:published_time" content="2025-11-22T18:45:35.000Z">
-<meta property="article:modified_time" content="2025-11-23T17:53:03.205Z">
+<meta property="article:modified_time" content="2025-11-23T17:56:02.769Z">
 <meta property="article:author" content="Twistzz">
 <meta property="article:tag" content="Chisel">
 <meta property="article:tag" content="Dynamic-Port-Forwarding">
@@ -27,7 +27,7 @@
   "url": "http://example.com/2025/11/22/Pivoting-And-Port-Forwarding/",
   "image": "http://example.com/img/pivoting.png",
   "datePublished": "2025-11-22T18:45:35.000Z",
-  "dateModified": "2025-11-23T17:53:03.205Z",
+  "dateModified": "2025-11-23T17:56:02.769Z",
   "author": [
     {
       "@type": "Person",
@@ -184,7 +184,7 @@
 <p>Example</p>
 <figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xfreerdp /v:localhost:Local-proxy-port /u:username /p:password</span><br></pre></td></tr></table></figure>
 
-<h2 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h2><h3 id="Netsh-n-1"><a href="#Netsh-n-1" class="headerlink" title="Netsh (n+1)"></a>Netsh (n+1)</h3><figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Windows</span>\<span class="title">system32</span>&gt; <span class="title">netsh.exe</span> <span class="title">interface</span> <span class="title">portproxy</span> <span class="title">add</span> <span class="title">v4tov4</span> <span class="title">listenport</span>=<span class="title">Listener</span>-<span class="title">port</span> <span class="title">listenaddress</span>=<span class="title">n</span>+1 <span class="title">connectport</span>=<span class="title">remote</span>-<span class="title">port</span> <span class="title">connectaddress</span>=<span class="title">n</span>+2</span></span><br></pre></td></tr></table></figure>
+<h2 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h2><h3 id="Netsh-n-1"><a href="#Netsh-n-1" class="headerlink" title="Netsh (n+1)"></a>Netsh (n+1)</h3><figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Windows</span>\<span class="title">system32</span>&gt; <span class="title">netsh.exe</span> <span class="title">interface</span> <span class="title">portproxy</span> <span class="title">add</span> <span class="title">v4tov4</span> <span class="title">listenport</span>=<span class="title">Listener</span>-<span class="title">port</span>-<span class="title">on</span>-<span class="title">n</span>+1 <span class="title">listenaddress</span>=<span class="title">n</span>+1 <span class="title">connectport</span>=<span class="title">remote</span>-<span class="title">port</span>-<span class="title">on</span>-<span class="title">n</span>+2 <span class="title">connectaddress</span>=<span class="title">n</span>+2</span></span><br></pre></td></tr></table></figure>
 
 
 
