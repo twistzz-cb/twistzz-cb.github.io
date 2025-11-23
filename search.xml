@@ -307,6 +307,9 @@
         <tag>sshuttle</tag>
         <tag>plink</tag>
         <tag>Proxifier</tag>
+        <tag>socat</tag>
+        <tag>Reverse-Port-Forwarding</tag>
+        <tag>Chisel</tag>
       </tags>
   </entry>
 </search>
