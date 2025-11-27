@@ -81,6 +81,7 @@
 ]]></content>
       <categories>
         <category>Active Directory</category>
+        <category>Windows</category>
         <category>Post-Exploitation</category>
         <category>Dump-Passwords</category>
       </categories>
@@ -604,6 +605,8 @@
 
 <h3 id="Execute-Bind-Shell"><a href="#Execute-Bind-Shell" class="headerlink" title="Execute Bind Shell"></a>Execute Bind Shell</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; getuid</span><br><span class="line">Server username: INLANEFREIGHT\victor</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
         <category>Pivoting And Port Forwarding</category>
       </categories>
       <tags>
@@ -658,6 +661,7 @@
 ]]></content>
       <categories>
         <category>Active Directory</category>
+        <category>Windows</category>
         <category>Post-Exploitation</category>
         <category>Credential Hunting</category>
       </categories>
