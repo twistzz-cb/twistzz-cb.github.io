@@ -154,44 +154,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux Credential Hunting</title>
-    <url>/2025/11/27/Linux-Credential-Hunting/</url>
-    <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
-
-<h3 id="Searching-for-configuration-files"><a href="#Searching-for-configuration-files" class="headerlink" title="Searching for configuration files"></a>Searching for configuration files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.conf .config .cnf&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;lib\|fonts\|share\|core&quot;</span> ;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Searching-for-Passwords-in-Configuration-Files"><a href="#Searching-for-Passwords-in-Configuration-Files" class="headerlink" title="Searching for Passwords in Configuration Files"></a>Searching for Passwords in Configuration Files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(find / -<span class="built_in">type</span> f \( -iname <span class="string">&quot;*.txt&quot;</span> -o -iname <span class="string">&quot;*.ini&quot;</span> -o -iname <span class="string">&quot;*.cfg&quot;</span> -o -iname <span class="string">&quot;*.config&quot;</span> -o -iname <span class="string">&quot;*.xml&quot;</span> -o -iname <span class="string">&quot;*.yml&quot;</span> -o -iname <span class="string">&quot;*.yaml&quot;</span> -o -iname <span class="string">&quot;*.cnf&quot;</span> -o -iname <span class="string">&quot;*.conf&quot;</span> -o -iname <span class="string">&quot;*.sh&quot;</span> -o -iname <span class="string">&quot;*.py&quot;</span> -o -iname <span class="string">&quot;*.php&quot;</span> -o -iname <span class="string">&quot;*.git&quot;</span> -o -iname <span class="string">&quot;*.json&quot;</span> \) 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib&quot;</span>); <span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile: <span class="variable">$i</span>&quot;</span>; grep -Ei <span class="string">&quot;password|passphrase|key|username|user account|creds|users|passkeys|configuration|dbcredential|dbpassword|pwd|login|credentials&quot;</span> <span class="string">&quot;<span class="variable">$i</span>&quot;</span> 2&gt;/dev/null | grep -Ev <span class="string">&quot;^\s*#&quot;</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-databases"><a href="#Searching-for-databases" class="headerlink" title="Searching for databases"></a>Searching for databases</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.sql .db .*db .db*&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nDB File extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share\|man&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-scripts"><a href="#Searching-for-scripts" class="headerlink" title="Searching for scripts"></a>Searching for scripts</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.py .pyc .pl .go .jar .c .sh&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-notes"><a href="#Searching-for-notes" class="headerlink" title="Searching for notes"></a>Searching for notes</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find /home/* -<span class="built_in">type</span> f -name <span class="string">&quot;*.txt&quot;</span> -o ! -name <span class="string">&quot;*.*&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Enumerating-log-files"><a href="#Enumerating-log-files" class="headerlink" title="Enumerating log files"></a>Enumerating log files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(<span class="built_in">ls</span> /var/log/* 2&gt;/dev/null);<span class="keyword">do</span> GREP=$(grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null); <span class="keyword">if</span> [[ <span class="variable">$GREP</span> ]];<span class="keyword">then</span> <span class="built_in">echo</span> -e <span class="string">&quot;\n#### Log file: &quot;</span> <span class="variable">$i</span>; grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null;<span class="keyword">fi</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Enumerating-cronjobs"><a href="#Enumerating-cronjobs" class="headerlink" title="Enumerating cronjobs"></a>Enumerating cronjobs</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/crontab </span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/crontab: system-wide crontab</span></span><br><span class="line"><span class="comment"># Unlike any other crontab you don&#x27;t have to run the `crontab&#x27;</span></span><br><span class="line"><span class="comment"># command to install the new version when you edit this file</span></span><br><span class="line"><span class="comment"># and files in /etc/cron.d. These files also have username fields,</span></span><br><span class="line"><span class="comment"># that none of the other crontabs do.</span></span><br><span class="line"></span><br><span class="line">SHELL=/bin/sh</span><br><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Example of job definition:</span></span><br><span class="line"><span class="comment"># .---------------- minute (0 - 59)</span></span><br><span class="line"><span class="comment"># |  .------------- hour (0 - 23)</span></span><br><span class="line"><span class="comment"># |  |  .---------- day of month (1 - 31)</span></span><br><span class="line"><span class="comment"># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></span><br><span class="line"><span class="comment"># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></span><br><span class="line"><span class="comment"># |  |  |  |  |</span></span><br><span class="line"><span class="comment"># *  *  *  *  * user-name command to be executed</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /etc/cron.*/</span><br><span class="line"></span><br><span class="line">/etc/cron.d/:</span><br><span class="line">total 28</span><br><span class="line">drwxr-xr-x 1 root root  106  3. Jan 20:27 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">-rw-r--r-- 1 root root  201  1. Mär 2021  e2scrub_all</span><br><span class="line">-rw-r--r-- 1 root root  331  9. Jan 2021  geoipupdate</span><br><span class="line">-rw-r--r-- 1 root root  607 25. Jan 2021  john</span><br><span class="line">-rw-r--r-- 1 root root  589 14. Sep 2020  mdadm</span><br><span class="line">-rw-r--r-- 1 root root  712 11. Mai 2020  php</span><br><span class="line">-rw-r--r-- 1 root root  102 22. Feb 2021  .placeholder</span><br><span class="line">-rw-r--r-- 1 root root  396  2. Feb 2021  sysstat</span><br><span class="line"></span><br><span class="line">/etc/cron.daily/:</span><br><span class="line">total 68</span><br><span class="line">drwxr-xr-x 1 root root  252  6. Jan 16:24 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>config-files</tag>
-        <tag>history-file</tag>
-        <tag>db-files</tag>
-        <tag>cronjobs-enumeration</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Extracting Passwords from Windows Registry.</title>
     <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
     <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
@@ -228,6 +190,44 @@
       </categories>
       <tags>
         <tag>Dump-SAM</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux Credential Hunting</title>
+    <url>/2025/11/27/Linux-Credential-Hunting/</url>
+    <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
+
+<h3 id="Searching-for-configuration-files"><a href="#Searching-for-configuration-files" class="headerlink" title="Searching for configuration files"></a>Searching for configuration files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.conf .config .cnf&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;lib\|fonts\|share\|core&quot;</span> ;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Searching-for-Passwords-in-Configuration-Files"><a href="#Searching-for-Passwords-in-Configuration-Files" class="headerlink" title="Searching for Passwords in Configuration Files"></a>Searching for Passwords in Configuration Files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(find / -<span class="built_in">type</span> f \( -iname <span class="string">&quot;*.txt&quot;</span> -o -iname <span class="string">&quot;*.ini&quot;</span> -o -iname <span class="string">&quot;*.cfg&quot;</span> -o -iname <span class="string">&quot;*.config&quot;</span> -o -iname <span class="string">&quot;*.xml&quot;</span> -o -iname <span class="string">&quot;*.yml&quot;</span> -o -iname <span class="string">&quot;*.yaml&quot;</span> -o -iname <span class="string">&quot;*.cnf&quot;</span> -o -iname <span class="string">&quot;*.conf&quot;</span> -o -iname <span class="string">&quot;*.sh&quot;</span> -o -iname <span class="string">&quot;*.py&quot;</span> -o -iname <span class="string">&quot;*.php&quot;</span> -o -iname <span class="string">&quot;*.git&quot;</span> -o -iname <span class="string">&quot;*.json&quot;</span> \) 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib&quot;</span>); <span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile: <span class="variable">$i</span>&quot;</span>; grep -Ei <span class="string">&quot;password|passphrase|key|username|user account|creds|users|passkeys|configuration|dbcredential|dbpassword|pwd|login|credentials&quot;</span> <span class="string">&quot;<span class="variable">$i</span>&quot;</span> 2&gt;/dev/null | grep -Ev <span class="string">&quot;^\s*#&quot;</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-databases"><a href="#Searching-for-databases" class="headerlink" title="Searching for databases"></a>Searching for databases</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.sql .db .*db .db*&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nDB File extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share\|man&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-scripts"><a href="#Searching-for-scripts" class="headerlink" title="Searching for scripts"></a>Searching for scripts</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.py .pyc .pl .go .jar .c .sh&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-notes"><a href="#Searching-for-notes" class="headerlink" title="Searching for notes"></a>Searching for notes</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find /home/* -<span class="built_in">type</span> f -name <span class="string">&quot;*.txt&quot;</span> -o ! -name <span class="string">&quot;*.*&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Enumerating-log-files"><a href="#Enumerating-log-files" class="headerlink" title="Enumerating log files"></a>Enumerating log files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(<span class="built_in">ls</span> /var/log/* 2&gt;/dev/null);<span class="keyword">do</span> GREP=$(grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null); <span class="keyword">if</span> [[ <span class="variable">$GREP</span> ]];<span class="keyword">then</span> <span class="built_in">echo</span> -e <span class="string">&quot;\n#### Log file: &quot;</span> <span class="variable">$i</span>; grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null;<span class="keyword">fi</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Enumerating-cronjobs"><a href="#Enumerating-cronjobs" class="headerlink" title="Enumerating cronjobs"></a>Enumerating cronjobs</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/crontab </span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/crontab: system-wide crontab</span></span><br><span class="line"><span class="comment"># Unlike any other crontab you don&#x27;t have to run the `crontab&#x27;</span></span><br><span class="line"><span class="comment"># command to install the new version when you edit this file</span></span><br><span class="line"><span class="comment"># and files in /etc/cron.d. These files also have username fields,</span></span><br><span class="line"><span class="comment"># that none of the other crontabs do.</span></span><br><span class="line"></span><br><span class="line">SHELL=/bin/sh</span><br><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Example of job definition:</span></span><br><span class="line"><span class="comment"># .---------------- minute (0 - 59)</span></span><br><span class="line"><span class="comment"># |  .------------- hour (0 - 23)</span></span><br><span class="line"><span class="comment"># |  |  .---------- day of month (1 - 31)</span></span><br><span class="line"><span class="comment"># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></span><br><span class="line"><span class="comment"># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></span><br><span class="line"><span class="comment"># |  |  |  |  |</span></span><br><span class="line"><span class="comment"># *  *  *  *  * user-name command to be executed</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /etc/cron.*/</span><br><span class="line"></span><br><span class="line">/etc/cron.d/:</span><br><span class="line">total 28</span><br><span class="line">drwxr-xr-x 1 root root  106  3. Jan 20:27 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">-rw-r--r-- 1 root root  201  1. Mär 2021  e2scrub_all</span><br><span class="line">-rw-r--r-- 1 root root  331  9. Jan 2021  geoipupdate</span><br><span class="line">-rw-r--r-- 1 root root  607 25. Jan 2021  john</span><br><span class="line">-rw-r--r-- 1 root root  589 14. Sep 2020  mdadm</span><br><span class="line">-rw-r--r-- 1 root root  712 11. Mai 2020  php</span><br><span class="line">-rw-r--r-- 1 root root  102 22. Feb 2021  .placeholder</span><br><span class="line">-rw-r--r-- 1 root root  396  2. Feb 2021  sysstat</span><br><span class="line"></span><br><span class="line">/etc/cron.daily/:</span><br><span class="line">total 68</span><br><span class="line">drwxr-xr-x 1 root root  252  6. Jan 16:24 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>config-files</tag>
+        <tag>history-file</tag>
+        <tag>db-files</tag>
+        <tag>cronjobs-enumeration</tag>
       </tags>
   </entry>
   <entry>
@@ -284,6 +284,18 @@
 <h1 id="PsExec"><a href="#PsExec" class="headerlink" title="PsExec"></a>PsExec</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-psexec username@ip -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
 
 <h1 id="RDP"><a href="#RDP" class="headerlink" title="RDP"></a>RDP</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp  /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post-Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>evil-winrm</tag>
+        <tag>impacket-psexec</tag>
+        <tag>xfreerdp</tag>
+      </tags>
   </entry>
   <entry>
     <title>Linux Memory-Cache-Browser Credentials Hunting</title>
@@ -450,46 +462,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL Enumeration</title>
-    <url>/2025/11/21/MySQL-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Enumerate-Version"><a href="#Enumerate-Version" class="headerlink" title="Enumerate Version"></a>Enumerate Version</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@version</span>;</span><br></pre></td></tr></table></figure>
-
-<h1 id="Enumerate-Database"><a href="#Enumerate-Database" class="headerlink" title="Enumerate Database"></a>Enumerate Database</h1><h3 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> DATABASES; </span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> SCHEMA_NAME <span class="keyword">FROM</span> information_schema.SCHEMATA;</span><br></pre></td></tr></table></figure>
-<h3 id="Check-Current-Database"><a href="#Check-Current-Database" class="headerlink" title="Check Current Database"></a>Check Current Database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> DATABASE();</span><br></pre></td></tr></table></figure>
-
-<h3 id="List-tables-in-current-database"><a href="#List-tables-in-current-database" class="headerlink" title="List tables in current database"></a>List tables in current database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> TABLES;  </span><br><span class="line"><span class="keyword">SELECT</span> table_name <span class="keyword">FROM</span> information_schema.TABLES <span class="keyword">WHERE</span> table_schema<span class="operator">=</span>DATABASE();  </span><br></pre></td></tr></table></figure>
-<h3 id="List-columns-in-specific-table"><a href="#List-columns-in-specific-table" class="headerlink" title="List columns in specific table"></a>List columns in specific table</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> COLUMNS <span class="keyword">FROM</span> table_name;  </span><br><span class="line"><span class="keyword">SELECT</span> column_name, data_type <span class="keyword">FROM</span> information_schema.COLUMNS <span class="keyword">WHERE</span> table_name<span class="operator">=</span><span class="string">&#x27;users&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-<h3 id="Find-sensitive-columns"><a href="#Find-sensitive-columns" class="headerlink" title="Find sensitive columns"></a>Find sensitive columns</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, column_name <span class="keyword">FROM</span> information_schema.COLUMNS  </span><br><span class="line"><span class="keyword">WHERE</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%password%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pass%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pwd%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%secret%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%token%&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-<h3 id="Count-rows-in-tables"><a href="#Count-rows-in-tables" class="headerlink" title="Count rows in tables"></a>Count rows in tables</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, table_rows <span class="keyword">FROM</span> information_schema.TABLES  </span><br><span class="line"><span class="keyword">WHERE</span> table_schema <span class="operator">=</span> DATABASE();</span><br></pre></td></tr></table></figure>
-
-
-
-
-<h1 id="Users-Enumeration"><a href="#Users-Enumeration" class="headerlink" title="Users Enumeration"></a>Users Enumeration</h1><h4 id="List-MySQL-users"><a href="#List-MySQL-users" class="headerlink" title="List MySQL users"></a>List MySQL users</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user;</span><br></pre></td></tr></table></figure>
-
-<h4 id="Check-Current-User"><a href="#Check-Current-User" class="headerlink" title="Check Current User"></a>Check Current User</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">USER</span>();  </span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">CURRENT_USER</span>();</span><br></pre></td></tr></table></figure>
-
-<h4 id="List-users-with-FILE-privilege"><a href="#List-users-with-FILE-privilege" class="headerlink" title="List users with FILE privilege"></a>List users with FILE privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> File_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> file_priv <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> <span class="keyword">user</span><span class="operator">=</span><span class="string">&#x27;current_user&#x27;</span>;</span><br></pre></td></tr></table></figure>
-<h4 id="List-users-with-SUPER-privilege"><a href="#List-users-with-SUPER-privilege" class="headerlink" title="List users with SUPER privilege"></a>List users with SUPER privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> Super_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>Enumeration</tag>
-        <tag>MySQL</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL Exploitation</title>
     <url>/2025/11/21/MySQL-Exploitation/</url>
     <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
@@ -527,6 +499,46 @@
         <tag>Exploitation</tag>
         <tag>MySQL-Read-Files</tag>
         <tag>MySQL-Write-Files</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL Enumeration</title>
+    <url>/2025/11/21/MySQL-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Enumerate-Version"><a href="#Enumerate-Version" class="headerlink" title="Enumerate Version"></a>Enumerate Version</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@version</span>;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Enumerate-Database"><a href="#Enumerate-Database" class="headerlink" title="Enumerate Database"></a>Enumerate Database</h1><h3 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> DATABASES; </span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> SCHEMA_NAME <span class="keyword">FROM</span> information_schema.SCHEMATA;</span><br></pre></td></tr></table></figure>
+<h3 id="Check-Current-Database"><a href="#Check-Current-Database" class="headerlink" title="Check Current Database"></a>Check Current Database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> DATABASE();</span><br></pre></td></tr></table></figure>
+
+<h3 id="List-tables-in-current-database"><a href="#List-tables-in-current-database" class="headerlink" title="List tables in current database"></a>List tables in current database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> TABLES;  </span><br><span class="line"><span class="keyword">SELECT</span> table_name <span class="keyword">FROM</span> information_schema.TABLES <span class="keyword">WHERE</span> table_schema<span class="operator">=</span>DATABASE();  </span><br></pre></td></tr></table></figure>
+<h3 id="List-columns-in-specific-table"><a href="#List-columns-in-specific-table" class="headerlink" title="List columns in specific table"></a>List columns in specific table</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> COLUMNS <span class="keyword">FROM</span> table_name;  </span><br><span class="line"><span class="keyword">SELECT</span> column_name, data_type <span class="keyword">FROM</span> information_schema.COLUMNS <span class="keyword">WHERE</span> table_name<span class="operator">=</span><span class="string">&#x27;users&#x27;</span>;  </span><br></pre></td></tr></table></figure>
+<h3 id="Find-sensitive-columns"><a href="#Find-sensitive-columns" class="headerlink" title="Find sensitive columns"></a>Find sensitive columns</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, column_name <span class="keyword">FROM</span> information_schema.COLUMNS  </span><br><span class="line"><span class="keyword">WHERE</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%password%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pass%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pwd%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%secret%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%token%&#x27;</span>;  </span><br></pre></td></tr></table></figure>
+<h3 id="Count-rows-in-tables"><a href="#Count-rows-in-tables" class="headerlink" title="Count rows in tables"></a>Count rows in tables</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, table_rows <span class="keyword">FROM</span> information_schema.TABLES  </span><br><span class="line"><span class="keyword">WHERE</span> table_schema <span class="operator">=</span> DATABASE();</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h1 id="Users-Enumeration"><a href="#Users-Enumeration" class="headerlink" title="Users Enumeration"></a>Users Enumeration</h1><h4 id="List-MySQL-users"><a href="#List-MySQL-users" class="headerlink" title="List MySQL users"></a>List MySQL users</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Check-Current-User"><a href="#Check-Current-User" class="headerlink" title="Check Current User"></a>Check Current User</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">USER</span>();  </span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">CURRENT_USER</span>();</span><br></pre></td></tr></table></figure>
+
+<h4 id="List-users-with-FILE-privilege"><a href="#List-users-with-FILE-privilege" class="headerlink" title="List users with FILE privilege"></a>List users with FILE privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> File_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;  </span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> file_priv <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> <span class="keyword">user</span><span class="operator">=</span><span class="string">&#x27;current_user&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="List-users-with-SUPER-privilege"><a href="#List-users-with-SUPER-privilege" class="headerlink" title="List users with SUPER privilege"></a>List users with SUPER privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> Super_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Enumeration</category>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>Enumeration</tag>
+        <tag>MySQL</tag>
       </tags>
   </entry>
   <entry>
@@ -752,6 +764,21 @@
 
 
 ]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>mimikatz</tag>
+        <tag>Invoke-TheHash</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Pass the Ticket (PtT)</title>
+    <url>/2025/11/27/Windows-Pass-the-Ticket-PtT/</url>
+    <content><![CDATA[]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
