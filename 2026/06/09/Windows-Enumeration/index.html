@@ -7,7 +7,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:image" content="http://example.com/img/privesc.png">
 <meta property="article:published_time" content="2026-06-09T19:23:00.000Z">
-<meta property="article:modified_time" content="2026-06-09T20:39:40.762Z">
+<meta property="article:modified_time" content="2026-06-09T20:43:54.770Z">
 <meta property="article:author" content="Twistzz">
 <meta property="article:tag" content="Get-HotFix">
 <meta property="article:tag" content="Get-Process">
@@ -25,7 +25,7 @@
   "url": "http://example.com/2026/06/09/Windows-Enumeration/",
   "image": "http://example.com/img/privesc.png",
   "datePublished": "2026-06-09T19:23:00.000Z",
-  "dateModified": "2026-06-09T20:39:40.762Z",
+  "dateModified": "2026-06-09T20:43:54.770Z",
   "author": [
     {
       "@type": "Person",
@@ -202,7 +202,7 @@
 
 <figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">Get-Process</span></span><br></pre></td></tr></table></figure>
 
-<p><code>If we see a process with &quot;Session ID &gt; 1&quot; this probably means there is another user logged in with us</code></p>
+<p><code>If we see a process with &quot;Session ID &gt;= 1&quot; and we are connecting with winrm this probably means there is another user logged in with us</code></p>
 <blockquote>
 <p>Network connections </p>
 </blockquote>
